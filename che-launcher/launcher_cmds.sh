@@ -11,7 +11,13 @@
 
 start_che_server() {
   if che_container_exist; then
-    error_exit "A container named \"${CHE_SERVER_CONTAINER_NAME}\" already exists. Remove it manually (docker rm -f ${CHE_SERVER_CONTAINER_NAME}) and try again."
+    error_exit "
+           A container running ${CHE_PRODUCT_NAME} named \"${CHE_SERVER_CONTAINER_NAME}\" already exists.
+             1. Use \"info\" to find it's URL.
+             2. Use \"restart\" to stop it and start anew.
+             3. Stop it with \"stop\".
+             4. Remove it manually (docker rm -f ${CHE_SERVER_CONTAINER_NAME}) and try again. Or:
+             5. Set CHE_SERVER_CONTAINER_NAME to a different value and try again."
   fi
 
   CURRENT_IMAGE=$(docker images -q "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}")

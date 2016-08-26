@@ -49,6 +49,7 @@ init_global_variables() {
 
   # User configurable variables
   DEFAULT_CHE_PRODUCT_NAME="ECLIPSE CHE"
+  DEFAULT_CHE_MINI_PRODUCT_NAME="che"
   DEFAULT_CHE_SERVER_CONTAINER_NAME="che-server"
   DEFAULT_CHE_SERVER_IMAGE_NAME="codenvy/che-server"
   DEFAULT_DOCKER_HOST_IP=$(get_docker_host_ip)
@@ -66,6 +67,7 @@ init_global_variables() {
   CHE_LOCAL_BINARY=${CHE_LOCAL_BINARY:+$(get_converted_and_clean_path "${CHE_LOCAL_BINARY}")}
 
   CHE_PRODUCT_NAME=${CHE_PRODUCT_NAME:-${DEFAULT_CHE_PRODUCT_NAME}}
+  CHE_MINI_PRODUCT_NAME=${CHE_MINI_PRODUCT_NAME:-${DEFAULT_CHE_MINI_PRODUCT_NAME}}
   CHE_SERVER_CONTAINER_NAME=${CHE_SERVER_CONTAINER_NAME:-${DEFAULT_CHE_SERVER_CONTAINER_NAME}}
   CHE_SERVER_IMAGE_NAME=${CHE_SERVER_IMAGE_NAME:-${DEFAULT_CHE_SERVER_IMAGE_NAME}}
   CHE_HOSTNAME=${CHE_HOSTNAME:-${DEFAULT_CHE_HOSTNAME}}
@@ -98,14 +100,12 @@ init_global_variables() {
 
   USAGE="
 Usage:
-  docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock eclipse/che [COMMAND]
-     start                              Starts Che server
-     stop                               Stops Che server
-     restart                            Restart Che server
+  docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock ${LAUNCHER_IMAGE_NAME} [COMMAND]
+     start                              Starts ${CHE_MINI_PRODUCT_NAME} server
+     stop                               Stops ${CHE_MINI_PRODUCT_NAME} server
+     restart                            Restart ${CHE_MINI_PRODUCT_NAME} server
      update                             Pull latest version of ${CHE_SERVER_IMAGE_NAME}
      info                               Print some debugging information
-
-Docs: http://eclipse.org/che/getting-started.
 "
 }
 
