@@ -67,17 +67,7 @@ init_logging
 init_global_variables
 parse_command_line "$@"
 
-ssh-keygen -b 2048 -t rsa -f ~/id_rsa -q -N ""
-rsync -aq --rsync-path="mkir -p ~/.ssh && rsync" \
-      -e "ssh -p $2" \
-      ~/id_rsa.pub \
-      user@10.075.2:~/ssh/authorized_keys
-
-# On the workspace palce the public key /home/user/.ssh/authorized_keys
-#Do an append the additional key
-#Private key goes in mount cntainer ~/.ssh/id_rsa
-
-sshfs user@$1:/projects /mntssh -p $2 -o IdentityFile=~/id_rsa
+sshfs user@$1:/projects /mntssh -p $2
 unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer > /dev/null 2>&1
 
 info "INFO: ECLIPSE CHE: Successfully mounted user@$1:/projects"
