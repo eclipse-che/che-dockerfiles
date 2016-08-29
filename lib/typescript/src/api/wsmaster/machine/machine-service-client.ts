@@ -63,7 +63,7 @@ export class MachineServiceClientImpl {
             "commandLine": cheFileStructWorkspaceCommand.commandLine
         };
 
-        let path : string = '/api/machine/' + machineId + '/command/?outputChannel=' + outputChannel;
+        let path : string = '/api/workspace/' + workspaceDto.getId() + '/machine/' + machineId + '/command/?outputChannel=' + outputChannel;
         // get MessageBus
         var displayOutputWorkspaceSubscriber:MessageBusSubscriber = new ProcesLogOutputMessageBusSubscriber();
         let processTerminatedEventPromiseMessageBusSubscriber : ProcessTerminatedEventPromiseMessageBusSubscriber;
