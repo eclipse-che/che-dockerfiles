@@ -620,7 +620,7 @@ export class CheDir {
     this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
 
     // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + '\t/var/run/docker.sock:/var/run/docker.sock');
+    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ';/var/run/docker.sock:/var/run/docker.sock');
 
   }
 
