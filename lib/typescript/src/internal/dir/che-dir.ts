@@ -469,9 +469,9 @@ export class CheDir {
           // now create the workspace
           let createWorkspaceConfig:CreateWorkspaceConfig = new CreateWorkspaceConfig();
 
-          let dockerContent: string = new RecipeBuilder(this.currentFolder).getDockerContent();
-
-          createWorkspaceConfig.machineConfigSource = {"type": "dockerfile", "content": dockerContent};
+          let recipe: string = new RecipeBuilder(this.currentFolder).getRecipe(this.chefileStructWorkspace);
+          Log.getLogger().debug("Using workspace recipe", recipe);
+          createWorkspaceConfig.machineConfigSource = recipe;
           createWorkspaceConfig.commands = this.chefileStructWorkspace.commands;
           createWorkspaceConfig.name = this.chefileStructWorkspace.name;
           createWorkspaceConfig.ram = this.chefileStructWorkspace.ram;
@@ -620,7 +620,7 @@ export class CheDir {
     this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
 
     // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName);
+    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + '\t/var/run/docker.sock:/var/run/docker.sock');
 
   }
 
