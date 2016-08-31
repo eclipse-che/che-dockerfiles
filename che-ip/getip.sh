@@ -7,6 +7,7 @@
 
 # define network interface variable
 NETWORK_IF=
+
 for i in $( ls /sys/class/net ); do
   if [ ${i:0:3} = eth ]
   then
@@ -14,10 +15,20 @@ for i in $( ls /sys/class/net ); do
   fi
 done
 
+
+# if not found, consider native and use docker0
+if test -z ${NETWORK_IF}
+  then
+   if [ -d "/sys/class/net/docker0" ]; then
+     NETWORK_IF="docker0"
+   fi
+fi
+
+
 # if not found, throw error
 if test -z ${NETWORK_IF}
   then
-    echo unable to find a eth* interface
+    echo unable to find a network interface for docker
     exit 1
 fi
 
