@@ -72,13 +72,42 @@ export class CheFileStructWorkspace {
 
     postload : CheFileStructWorkspacePostLoad;
 
+    runtime : CheFileStructWorkspaceRuntime;
+
     constructor() {
         this.commands = new Array<CheFileStructWorkspaceCommandImpl>();
         this.postload = new CheFileStructWorkspacePostLoad();
+        this.runtime = new CheFileStructWorkspaceRuntime();
         // init some commands
         for (let i : number = 0; i < 255; i++) {
             this.commands[i] = new CheFileStructWorkspaceCommandImpl();
         }
+
+    }
+}
+
+
+export class CheFileStructWorkspaceRuntimeDocker {
+    content : string;
+    location: string;
+}
+
+export class CheFileStructWorkspaceRuntimeImage {
+    location: string;
+
+    constructor() {
+
+    }
+}
+
+export class CheFileStructWorkspaceRuntime {
+    dockerfile : CheFileStructWorkspaceRuntimeDocker;
+    image : CheFileStructWorkspaceRuntimeImage;
+
+    constructor() {
+        this.dockerfile = new CheFileStructWorkspaceRuntimeDocker();
+        this.image = new CheFileStructWorkspaceRuntimeImage();
+
 
     }
 }

@@ -11,6 +11,7 @@
 
 
 import {Log} from "../log/log";
+import {CheFileStructWorkspace} from "../../internal/dir/chefile-struct/che-file-struct";
 /**
  * Build a default recipe.
  * @author Florent Benoit
@@ -29,7 +30,18 @@ export class RecipeBuilder {
     }
 
 
-    getDockerContent() : string {
+    getRecipe(cheStructWorkspace : CheFileStructWorkspace) : any {
+
+        // do we have a custom property in Chefile
+        if (cheStructWorkspace) {
+            if (cheStructWorkspace.runtime) {
+                if (cheStructWorkspace.runtime.image) {
+                    if (cheStructWorkspace.runtime.image.location) {
+                        return {"type": "image", "location": cheStructWorkspace.runtime.image.location}
+                    }
+                }
+            }
+        }
 
         // build path to the Dockerfile in current directory
         var dockerFilePath = this.path.resolve(this.currentFolder, 'Dockerfile');
@@ -39,12 +51,14 @@ export class RecipeBuilder {
             var stats = this.fs.statSync(dockerFilePath);
             Log.getLogger().info('Using a custom project Dockerfile \'' + dockerFilePath + '\' for the setup of the workspace.');
             var content = this.fs.readFileSync(dockerFilePath, 'utf8');
-            return content;
+            return {"type": "dockerfile", "content": content};
         } catch (e) {
             // file does not exist, return default
-            return RecipeBuilder.DEFAULT_DOCKERFILE_CONTENT;
+            return {"type": "dockerfile", "content": RecipeBuilder.DEFAULT_DOCKERFILE_CONTENT} ;
         }
 
     }
+
+
 
 }
