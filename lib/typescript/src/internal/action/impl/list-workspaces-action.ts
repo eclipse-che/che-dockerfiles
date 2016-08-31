@@ -51,10 +51,10 @@ export class ListWorkspacesAction {
             return this.workspace.getWorkspaces()
                 .then((workspaceDtos:Array<WorkspaceDto>) => {
                     // then start it
-                    Log.getLogger().info('Number of workspaces =', workspaceDtos.length);
+                    Log.getLogger().info('Total workspaces:', workspaceDtos.length);
 
                     workspaceDtos.forEach((workspaceDto:WorkspaceDto) => {
-                        Log.getLogger().info(' Workspace ', workspaceDto.getContent().config.name, '(' + workspaceDto.getId() + ')',"\t", workspaceDto.getContent().status);
+                        Log.getLogger().info('Workspace ', workspaceDto.getContent().config.name, '(' + workspaceDto.getId() + ')',"\t", workspaceDto.getContent().status);
                     })
                 });
         });
