@@ -16,6 +16,7 @@ import {RemoveUserAction} from "./impl/remove-user-action";
 import {AddUserAction} from "./impl/add-user-action";
 import {ExecuteCommandAction} from "./impl/execute-command-action";
 import {Log} from "../../spi/log/log";
+import {ListWorkspacesAction} from "./impl/list-workspaces-action";
 /**
  * Entrypoint for the Actions.
  * @author Florent Benoit
@@ -49,6 +50,7 @@ export class CheAction {
         this.mapOfActions.set('add-user', AddUserAction);
         this.mapOfActions.set('remove-user', RemoveUserAction);
         this.mapOfActions.set('execute-command', ExecuteCommandAction);
+        this.mapOfActions.set('list-workspaces', ListWorkspacesAction);
 
 
     }
