@@ -47,6 +47,20 @@ export class Workspace {
     }
 
 
+
+    /**
+     * Get all workspaces
+     */
+    getWorkspaces():Promise<Array<WorkspaceDto>> {
+        var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, '/api/workspace/', 200);
+        return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
+            let workspaceDtos:Array<WorkspaceDto> = new Array<WorkspaceDto>();
+            JSON.parse(jsonResponse.getData()).forEach((entry)=> {
+                workspaceDtos.push(new WorkspaceDto(entry));
+            });
+            return workspaceDtos;
+        });
+    }
     /**
      * Create a workspace and return a promise with content of WorkspaceDto in case of success
      */
