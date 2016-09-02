@@ -63,6 +63,19 @@ export class CheFileStructWorkspaceCommandImpl implements CheFileStructWorkspace
 }
 
 
+export interface CheFileStructWorkspaceProject {
+    type: string;
+}
+
+export class CheFileStructWorkspaceProjectImpl implements CheFileStructWorkspaceProject{
+    type: string;
+
+    constructor() {
+        this.type = 'blank';
+    }
+}
+
+
 export class CheFileStructWorkspace {
 
     name: string;
@@ -74,8 +87,11 @@ export class CheFileStructWorkspace {
 
     runtime : CheFileStructWorkspaceRuntime;
 
+    projects: Array<CheFileStructWorkspaceProject>;
+
     constructor() {
-        this.commands = new Array<CheFileStructWorkspaceCommandImpl>();
+        this.commands = new Array<CheFileStructWorkspaceCommand>();
+        this.projects = new Array<CheFileStructWorkspaceProject>();
         this.postload = new CheFileStructWorkspacePostLoad();
         this.runtime = new CheFileStructWorkspaceRuntime();
         // init some commands
@@ -83,33 +99,24 @@ export class CheFileStructWorkspace {
             this.commands[i] = new CheFileStructWorkspaceCommandImpl();
         }
 
+        this.projects[0] = new CheFileStructWorkspaceProjectImpl();
+
     }
 }
 
 
 export class CheFileStructWorkspaceRuntimeDocker {
     content : string;
+    image : string;
     location: string;
-}
-
-export class CheFileStructWorkspaceRuntimeImage {
-    location: string;
-
-    constructor() {
-
-    }
 }
 
 export class CheFileStructWorkspaceRuntime {
-    dockerfile : CheFileStructWorkspaceRuntimeDocker;
-    image : CheFileStructWorkspaceRuntimeImage;
-
+    docker : CheFileStructWorkspaceRuntimeDocker;
+    
     constructor() {
-        this.dockerfile = new CheFileStructWorkspaceRuntimeDocker();
-        this.image = new CheFileStructWorkspaceRuntimeImage();
-
-
-    }
+        this.docker = new CheFileStructWorkspaceRuntimeDocker();
+      }
 }
 
 export class CheFileStructWorkspaceLoadingAction {

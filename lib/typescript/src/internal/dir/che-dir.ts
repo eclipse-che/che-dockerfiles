@@ -37,7 +37,7 @@ import {CheFileStructWorkspaceLoadingAction} from "./chefile-struct/che-file-str
 import {ArgumentProcessor} from "../../spi/decorator/argument-processor";
 import {Parameter} from "../../spi/decorator/parameter";
 import {ProductName} from "../../utils/product-name";
-
+import {SSHGenerator} from "../../spi/docker/ssh-generator";
 
 /**
  * Entrypoint for the Chefile handling in a directory.
@@ -75,6 +75,8 @@ export class CheDir {
   workspacesFolder : any;
   chePropertiesFile : any;
   dotCheIdFile : any;
+  dotCheSshPrivateKeyFile : any;
+  dotCheSshPublicKeyFile : any;
   instanceId: string;
 
   mode;
@@ -98,6 +100,8 @@ export class CheDir {
     this.cheFile = this.path.resolve(this.currentFolder, 'Chefile');
     this.dotCheFolder = this.path.resolve(this.currentFolder, '.che');
     this.dotCheIdFile = this.path.resolve(this.dotCheFolder, 'id');
+    this.dotCheSshPrivateKeyFile = this.path.resolve(this.dotCheFolder, 'ssh-key.private');
+    this.dotCheSshPublicKeyFile = this.path.resolve(this.dotCheFolder, 'ssh-key.public');
     this.confFolder = this.path.resolve(this.dotCheFolder, 'conf');
     this.workspacesFolder = this.path.resolve(this.dotCheFolder, 'workspaces');
     this.chePropertiesFile = this.path.resolve(this.confFolder, 'che.properties');
@@ -144,7 +148,11 @@ export class CheDir {
       let invalidCommand : string = 'only init, up, down and status commands are supported.';
       if (this.args.length == 0) {
         reject(invalidCommand);
-      } else if ('init' === this.args[1] || 'up' === this.args[1] || 'down' === this.args[1] || 'status' === this.args[1]) {
+      } else if ('init' === this.args[1]
+                 || 'up' === this.args[1]
+                 || 'destroy' === this.args[1]                 
+                 || 'down' === this.args[1]
+                 || 'status' === this.args[1]) {
         // return method found based on arguments
         resolve(this.args[1]);
       } else {
@@ -415,6 +423,62 @@ export class CheDir {
 
 
 
+  /**
+   * Search a che instance and destroy workspace and then stop
+   */
+  destroy() : Promise<void> {
+
+    // check if directory has been initialized or not
+    return this.isInitialized().then((isInitialized) => {
+      if (!isInitialized) {
+        throw new Error('Unable to stop current instance as this directory has not been initialized.')
+      }
+    }).then(() => {
+
+      return new Promise<string>((resolve, reject) => {
+        this.parse();
+
+        resolve();
+      }).then(() => {
+        Log.getLogger().info(this.i18n.get('down.search'));
+
+        // Try to connect to Eclipse Che instance
+        return this.checkCheIsRunning();
+      }).then((isRunning) => {
+        if (!isRunning) {
+          return Promise.reject(this.i18n.get('down.not-running'));
+        }
+        Log.getLogger().info(this.i18n.get('down.found', this.buildLocalCheURL()));
+        this.workspace = new Workspace(this.authData);
+        // now, check if there is a workspace
+        return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
+      }).then((workspaceDto) => {
+        // exists ?
+        if (!workspaceDto) {
+          // workspace is not existing
+          Log.getLogger().warn(this.i18n.get('destroy.workspace-not-existing', this.chefileStructWorkspace.name));
+          // call docker stop on the docker launcher
+          Log.getLogger().info(this.i18n.get('down.stopping'));
+          return this.cheStop();
+        } else {
+          // first stop and then delete workspace
+            Log.getLogger().info(this.i18n.get('destroy.destroying-workspace', this.chefileStructWorkspace.name));
+            return this.workspace.stopWorkspace(workspaceDto.getId()).then(() => {
+              return this.workspace.deleteWorkspace(workspaceDto.getId());
+            }).then(() => {
+              Log.getLogger().info(this.i18n.get('destroy.destroyed-workspace', this.chefileStructWorkspace.name));
+              // then stop server
+              Log.getLogger().info(this.i18n.get('down.stopping'));
+              return this.cheStop();
+            });
+        }
+      }).then(() => {
+        Log.getLogger().info(this.i18n.get('down.stopped'));
+      });
+    });
+  }
+
+
   up() : Promise<string> {
 
     // call init if not initialized and then call up
@@ -429,7 +493,7 @@ export class CheDir {
 
       var needToSetupProject: boolean = true;
       var userWorkspaceDto: WorkspaceDto;
-
+      var workspaceHasBeenCreated : boolean = false;
       return new Promise<string>((resolve, reject) => {
         this.parse();
 
@@ -476,6 +540,7 @@ export class CheDir {
           createWorkspaceConfig.name = this.chefileStructWorkspace.name;
           createWorkspaceConfig.ram = this.chefileStructWorkspace.ram;
           Log.getLogger().info(this.i18n.get('up.workspace-created'));
+          workspaceHasBeenCreated = true;
           return this.workspace.createWorkspace(createWorkspaceConfig)
         } else {
           // do not create it, just return current one
@@ -500,21 +565,94 @@ export class CheDir {
           Log.getLogger().info(this.i18n.get('up.updating-project'));
           var project:Project = new Project(workspaceDto);
           // update created project to blank
-          return project.updateType(this.folderName, 'blank');
+          return this.estimateAndUpdateProject(project, this.chefileStructWorkspace.projects[0].type);
+          
         } else {
           Promise.resolve('existing project')
         }
       }).then(() => {
+          return this.setupSSHKeys(userWorkspaceDto);
+      }).then(() => {
         return this.executeCommandsFromCurrentWorkspace(userWorkspaceDto);
-
       }).then(() => {
         Log.getLogger().info(this.i18n.get('up.workspace-booted'));
+      }).then(() => {
         Log.getLogger().info(this.i18n.get('up.workspace-connect-to', ideUrl));
         return ideUrl;
       });
 
     });
   }
+
+setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
+
+   let privateKey : string;
+   let publicKey : string;
+  // check if we have keys locally or not ?
+   try {
+      this.fs.statSync(this.dotCheSshPrivateKeyFile);
+      // we have the file
+      privateKey = this.fs.readFileSync(this.dotCheSshPrivateKeyFile).toString();
+      publicKey = this.fs.readFileSync(this.dotCheSshPublicKeyFile).toString();
+      Log.getLogger().info('Using existing ssh key');     
+   } catch (e) {
+      // no file, need to generate key
+      Log.getLogger().info('Generating ssh key');
+      let map : Map<string, string> = new SSHGenerator().generateKey();
+
+      // store locally the private and public keys
+      privateKey = map.get('private');
+      publicKey = map.get('public');
+      this.fs.writeFileSync(this.dotCheSshPrivateKeyFile, privateKey);
+      this.fs.writeFileSync(this.dotCheSshPublicKeyFile, publicKey);   
+    }
+
+    // ok we have the public key, now storing it
+    // get dev machine
+    let machineId : string = workspaceDto.getContent().runtime.devMachine.id;
+
+    let machineServiceClient:MachineServiceClientImpl = new MachineServiceClientImpl(this.workspace, this.authData);
+
+    let uuid:string = UUID.build();
+    let channel:string = 'process:output:' + uuid;
+
+    let customCommand:CheFileStructWorkspaceCommand = new CheFileStructWorkspaceCommandImpl();
+    customCommand.commandLine = 'mkdir $HOME/.ssh && echo "' + publicKey + '"> $HOME/.ssh/authorized_keys';
+    customCommand.name = 'setup ssh';
+    customCommand.type = 'custom';
+    
+   // store in workspace the public key
+   return machineServiceClient.executeCommand(workspaceDto, machineId, customCommand, channel, false);
+ 
+}
+
+
+
+
+
+estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
+  Log.getLogger().debug('estimateAndUpdateProject with projectType', projectType);
+
+  var projectTypeToUse: string;
+  // try to estimate
+  return project.estimateType(this.folderName, projectType).then((content) => {
+    if (!content.matched) {
+      Log.getLogger().warn('Wanted to configure project as ' + projectType + ' but server replied that this project type is not possible. Keep Blank');  
+      projectTypeToUse = 'blank'; 
+    } else {
+      projectTypeToUse = projectType;
+    }
+    // matched = true, then continue
+    return true;
+  }).then(() => {
+    // estimate done, update
+    return project.updateType(this.folderName, projectTypeToUse);
+  })
+  
+}
+
+
+
 
   executeCommandsFromCurrentWorkspace(workspaceDto : WorkspaceDto) : Promise<any> {
     // get dev machine
@@ -620,7 +758,7 @@ export class CheDir {
     this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
 
     // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ';/var/run/docker.sock:/var/run/docker.sock');
+    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName);
 
   }
 

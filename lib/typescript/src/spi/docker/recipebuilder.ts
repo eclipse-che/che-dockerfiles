@@ -35,9 +35,13 @@ export class RecipeBuilder {
         // do we have a custom property in Chefile
         if (cheStructWorkspace) {
             if (cheStructWorkspace.runtime) {
-                if (cheStructWorkspace.runtime.image) {
-                    if (cheStructWorkspace.runtime.image.location) {
-                        return {"type": "image", "location": cheStructWorkspace.runtime.image.location}
+                if (cheStructWorkspace.runtime.docker) {
+                    if (cheStructWorkspace.runtime.docker.image) {
+                        return {"type": "image", "location": cheStructWorkspace.runtime.docker.image};
+                    } else if (cheStructWorkspace.runtime.docker.content) {
+                        return {"type": "dockerfile", "content": cheStructWorkspace.runtime.docker.content};
+                    } else if (cheStructWorkspace.runtime.docker.location) {
+                        return {"type": "recipe", "location": cheStructWorkspace.runtime.docker.location};
                     }
                 }
             }

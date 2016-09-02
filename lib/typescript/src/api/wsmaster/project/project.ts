@@ -13,6 +13,9 @@ import {ProjectDto} from "./dto/projectdto";
 import {AuthData} from "../auth/auth-data";
 import {WorkspaceDto} from "../workspace/dto/workspacedto";
 import {Log} from "../../../spi/log/log";
+import {HttpJsonRequest} from "../../../spi/http/default-http-json-request";
+import {DefaultHttpJsonRequest} from "../../../spi/http/default-http-json-request";
+import {HttpJsonResponse} from "../../../spi/http/default-http-json-request";
 
 /**
  * Project class allowing to manage a project like updating project-type.
@@ -135,6 +138,19 @@ export class Project {
         })
 
     }
+
+
+    /**
+     */
+    estimateType(projectName, projectType) : Promise<any> {
+         var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, this.wsAgentPath + '/project/estimate/' + projectName + '?type=' + projectType, 200);
+        return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
+            return JSON.parse(jsonResponse.getData());
+        });
+
+    }
+
+
 
 
     /**
