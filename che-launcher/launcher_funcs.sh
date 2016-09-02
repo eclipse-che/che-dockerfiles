@@ -104,7 +104,6 @@ is_docker_for_windows() {
 }
 
 docker_run() {
-  echo "here"
    ENV_FILE=$(get_list_of_che_system_environment_variables)
    docker run -d --name "${CHE_SERVER_CONTAINER_NAME}" \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -119,11 +118,10 @@ docker_run() {
 }
 
 docker_run_with_storage() {
-  echo "here"
   if is_docker_for_mac || is_docker_for_windows; then
     # If on docker for mac or windows, then we have to use these special parameters
     docker_run -e "CHE_WORKSPACE_STORAGE=$CHE_DATA_FOLDER/workspaces" \
-                            -e "CHE_WORKSPACE_STORAGE_CREATE_FOLDERS=false" "$@"
+               -e "CHE_WORKSPACE_STORAGE_CREATE_FOLDERS=false" "$@"
   else
     # Otherwise, mount the full directory
     docker_run -v "$CHE_WORKSPACE_LOCATION" "$@"
@@ -131,7 +129,6 @@ docker_run_with_storage() {
 }
 
 docker_run_with_local_binary() {
-  echo "here"
   if has_local_binary_path; then
     docker_run_with_storage -v "$CHE_LOCAL_BINARY_LOCATION" "$@"
   else
@@ -140,7 +137,6 @@ docker_run_with_local_binary() {
 }
 
 docker_run_with_conf() {
-  echo "here"
   if has_che_conf_path; then
     docker_run_with_local_binary -v "$CHE_CONF_LOCATION" -e "CHE_LOCAL_CONF_DIR=/conf" "$@"
   else
