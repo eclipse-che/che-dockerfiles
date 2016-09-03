@@ -23,7 +23,7 @@ start_che_server() {
   CURRENT_IMAGE=$(docker images -q "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}")
 
   if [ "${CURRENT_IMAGE}" != "" ]; then
-    info "${CHE_PRODUCT_NAME}: Already have image ${CHE_SERVER_IMAGE_NAME}:${CHE_VERSION}"
+    info "${CHE_PRODUCT_NAME}: Found image ${CHE_SERVER_IMAGE_NAME}:${CHE_VERSION}"
   else
     update_che_server
   fi
