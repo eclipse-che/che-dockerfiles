@@ -23,33 +23,19 @@ start_che_server() {
   CURRENT_IMAGE=$(docker images -q "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}")
 
   if [ "${CURRENT_IMAGE}" != "" ]; then
-    info "${CHE_PRODUCT_NAME}: Already have image ${CHE_SERVER_IMAGE_NAME}:${CHE_VERSION}"
+    info "${CHE_PRODUCT_NAME}: Found image ${CHE_SERVER_IMAGE_NAME}:${CHE_VERSION}"
   else
     update_che_server
   fi
 
-  ENV_FILE=$(get_list_of_che_system_environment_variables)
-
   info "${CHE_PRODUCT_NAME}: Starting container..."
-  docker run -d --name "${CHE_SERVER_CONTAINER_NAME}" \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v /home/user/che/lib:/home/user/che/lib-copy \
-    ${CHE_LOCAL_BINARY_ARGS} \
-    -p "${CHE_PORT}":8080 \
-    --restart="${CHE_RESTART_POLICY}" \
-    --user="${CHE_USER}" \
-    ${CHE_CONF_ARGS} \
-    ${CHE_STORAGE_ARGS} \
-    --env-file=$ENV_FILE \
-    "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
-                --remote:"${CHE_HOST_IP}" \
-                -s:uid \
-                -s:client \
-                ${CHE_DEBUG_OPTION} \
-                run > /dev/null
+  docker_run_with_conf "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
+                          --remote:"${CHE_HOST_IP}" \
+                          -s:uid \
+                          -s:client \
+                          ${CHE_DEBUG_OPTION} \
+                          run > /dev/null
 
-  rm $ENV_FILE
-  
   wait_until_container_is_running 10
   if ! che_container_is_running; then
     error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for ${CHE_PRODUCT_NAME} container to start."

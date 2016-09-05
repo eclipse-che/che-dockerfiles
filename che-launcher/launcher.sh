@@ -79,23 +79,10 @@ init_global_variables() {
   CHE_LOG_LEVEL=${CHE_LOG_LEVEL:-${DEFAULT_CHE_LOG_LEVEL}}
   CHE_DATA_FOLDER=${CHE_DATA_FOLDER:-${DEFAULT_CHE_DATA_FOLDER}}
 
-  # CHE_CONF_ARGS are the Docker run options that need to be used if users set CHE_CONF_FOLDER:
-  #   - empty if CHE_CONF_FOLDER is not set
-  #   - -v ${CHE_CONF_FOLDER}:/conf -e "CHE_LOCAL_CONF_DIR=/conf" if CHE_CONF_FOLDER is set
-  CHE_CONF_ARGS=${CHE_CONF_FOLDER:+-v "${CHE_CONF_FOLDER}":/conf -e "CHE_LOCAL_CONF_DIR=/conf"}
-
-  # CHE_LOCAL_BINARY is the path to a Che assembly that will be mounted into the Che server container
-  CHE_LOCAL_BINARY_ARGS=${CHE_LOCAL_BINARY:+-v "${CHE_LOCAL_BINARY}":/home/user/che}
-
-  # CHE_STORAGE_ARGS is where Che JSON files and workspace / project files are saved
-  if is_docker_for_mac || is_docker_for_windows; then
-    CHE_STORAGE_ARGS=${CHE_DATA_FOLDER:+-v "${CHE_DATA_FOLDER}/storage":/home/user/che/storage \
-                                        -e "CHE_WORKSPACE_STORAGE=${CHE_DATA_FOLDER}/workspaces" \
-                                        -e "CHE_WORKSPACE_STORAGE_CREATE_FOLDERS=false"}
-  else
-    CHE_STORAGE_ARGS=${CHE_DATA_FOLDER:+-v "${CHE_DATA_FOLDER}/storage":/home/user/che/storage \
-                                        -v "${CHE_DATA_FOLDER}/workspaces":/home/user/che/workspaces}
-  fi
+  CHE_CONF_LOCATION="${CHE_CONF_FOLDER}":"/conf" 
+  CHE_STORAGE_LOCATION="${CHE_DATA_FOLDER}/storage":"/home/user/che/storage"
+  CHE_WORKSPACE_LOCATION="${CHE_DATA_FOLDER}/workspaces":"/home/user/che/workspaces"
+  CHE_LOCAL_BINARY_LOCATION="${CHE_LOCAL_BINARY}":"/home/user/che"
 
   if [ "${CHE_LOG_LEVEL}" = "debug" ]; then
     CHE_DEBUG_OPTION="--debug --log_level:debug"

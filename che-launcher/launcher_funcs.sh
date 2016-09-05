@@ -103,6 +103,63 @@ is_docker_for_windows() {
   fi
 }
 
+docker_run() {
+   ENV_FILE=$(get_list_of_che_system_environment_variables)
+   docker run -d --name "${CHE_SERVER_CONTAINER_NAME}" \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /home/user/che/lib:/home/user/che/lib-copy \
+    -p "${CHE_PORT}":8080 \
+    --restart="${CHE_RESTART_POLICY}" \
+    --user="${CHE_USER}" \
+    --env-file=$ENV_FILE \
+    -v "$CHE_STORAGE_LOCATION" "$@"
+ 
+   rm -rf $ENV_FILE > /dev/null
+}
+
+docker_run_with_storage() {
+  if is_docker_for_mac || is_docker_for_windows; then
+    # If on docker for mac or windows, then we have to use these special parameters
+    docker_run -e "CHE_WORKSPACE_STORAGE=$CHE_DATA_FOLDER/workspaces" \
+               -e "CHE_WORKSPACE_STORAGE_CREATE_FOLDERS=false" "$@"
+  else
+    # Otherwise, mount the full directory
+    docker_run -v "$CHE_WORKSPACE_LOCATION" "$@"
+  fi
+}
+
+docker_run_with_local_binary() {
+  if has_local_binary_path; then
+    docker_run_with_storage -v "$CHE_LOCAL_BINARY_LOCATION" "$@"
+  else
+    docker_run_with_storage "$@"
+  fi
+}
+
+docker_run_with_conf() {
+  if has_che_conf_path; then
+    docker_run_with_local_binary -v "$CHE_CONF_LOCATION" -e "CHE_LOCAL_CONF_DIR=/conf" "$@"
+  else
+    docker_run_with_local_binary "$@"
+  fi
+}
+
+has_che_conf_path() {
+  if [ "${CHE_CONF_FOLDER}" = "" ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+has_local_binary_path() {
+  if [ "${CHE_LOCAL_BINARY}" = "" ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
 get_list_of_che_system_environment_variables() {
   # See: http://stackoverflow.com/questions/4128235/what-is-the-exact-meaning-of-ifs-n
   IFS=$'\n'
@@ -114,6 +171,7 @@ get_list_of_che_system_environment_variables() {
   for SINGLE_VARIABLE in "${CHE_VARIABLES}"; do
     echo "${SINGLE_VARIABLE}" >> $DOCKER_ENV
   done
+  
 
   # Add in known proxy variables
   if [ ! -z ${http_proxy+x} ]; then 
