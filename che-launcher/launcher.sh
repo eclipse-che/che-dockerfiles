@@ -80,9 +80,9 @@ init_global_variables() {
   CHE_DATA_FOLDER=${CHE_DATA_FOLDER:-${DEFAULT_CHE_DATA_FOLDER}}
 
   CHE_CONF_LOCATION="${CHE_CONF_FOLDER}":"/conf" 
-  CHE_STORAGE_LOCATION="$CHE_DATA_FOLDER/storage":"/home/user/che/storage"
-  CHE_WORKSPACE_LOCATION="$CHE_DATA_FOLDER/workspaces":"/home/user/che/workspaces"
-  CHE_LOCAL_BINARY_LOCATION="$CHE_LOCAL_BINARY":"/home/user/che"
+  CHE_STORAGE_LOCATION="${CHE_DATA_FOLDER}/storage":"/home/user/che/storage"
+  CHE_WORKSPACE_LOCATION="${CHE_DATA_FOLDER}/workspaces":"/home/user/che/workspaces"
+  CHE_LOCAL_BINARY_LOCATION="${CHE_LOCAL_BINARY}":"/home/user/che"
 
   if [ "${CHE_LOG_LEVEL}" = "debug" ]; then
     CHE_DEBUG_OPTION="--debug --log_level:debug"
