@@ -146,8 +146,7 @@ docker_run_with_conf() {
 
 docker_run_with_debug() {
   if has_debug; then
-    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":"${CHE_DEBUG_SERVER_PORT}" \
-                         -e "JPDA_ADDRESS=${CHE_DEBUG_SERVER_PORT}" "$@"
+    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
   else
     docker_run_with_conf "$@"
   fi
