@@ -52,7 +52,7 @@ start_che_server() {
     info "${CHE_PRODUCT_NAME}: API - http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
 
     if has_debug; then
-      info "${CHE_PRODUCT_NAME}: Debug - http://${CHE_HOST_IP}:${CHE_DEBUG_SERVER_PORT}"
+      info "${CHE_PRODUCT_NAME}: JPDA Debug - http://${CHE_HOST_IP}:${CHE_DEBUG_SERVER_PORT}"
     fi
   else
     error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for server. Run \"docker logs ${CHE_SERVER_CONTAINER_NAME}\" to inspect the issue."
@@ -118,7 +118,7 @@ print_debug_info() {
     debug "CHE API URL               = http://${CHE_HOST_IP}:${CURRENT_CHE_PORT}/swagger"
     if has_debug; then
       CURRENT_CHE_DEBUG_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8000/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_NAME})
-      debug "CHE DEBUG URL             = http://${CHE_HOST_IP}:${CURRENT_CHE_DEBUG_PORT}"  
+      debug "CHE JPDA DEBUG URL      = http://${CHE_HOST_IP}:${CURRENT_CHE_DEBUG_PORT}"  
     fi
 
     debug 'CHE LOGS                  = run `docker logs -f '${CHE_SERVER_CONTAINER_NAME}'`'
