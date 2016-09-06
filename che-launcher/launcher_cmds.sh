@@ -29,7 +29,7 @@ start_che_server() {
   fi
 
   info "${CHE_PRODUCT_NAME}: Starting container..."
-  docker_run_with_conf "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
+  docker_run_with_debug "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
                           --remote:"${CHE_HOST_IP}" \
                           -s:uid \
                           -s:client \
@@ -47,7 +47,13 @@ start_che_server() {
 
   if server_is_booted; then
     info "${CHE_PRODUCT_NAME}: Booted and reachable"
-    info "${CHE_PRODUCT_NAME}: http://${CHE_HOSTNAME}:${CHE_PORT}"
+    info "${CHE_PRODUCT_NAME}: Use - http://${CHE_HOSTNAME}:${CHE_PORT}"
+    info "${CHE_PRODUCT_NAME}: Use - http://${CHE_HOST_IP}:${CHE_PORT}"
+    info "${CHE_PRODUCT_NAME}: API - http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
+
+    if has_debug; then
+      info "${CHE_PRODUCT_NAME}: JPDA Debug - http://${CHE_HOST_IP}:${CHE_DEBUG_SERVER_PORT}"
+    fi
   else
     error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for server. Run \"docker logs ${CHE_SERVER_CONTAINER_NAME}\" to inspect the issue."
   fi
@@ -102,14 +108,19 @@ print_debug_info() {
   debug "CHE CONTAINER EXISTS      = $(che_container_exist && echo "YES" || echo "NO")"
   debug "CHE CONTAINER STATUS      = $(che_container_is_running && echo "running" || echo "stopped")"
   if che_container_is_running; then
-    debug "CHE SERVER STATUS         = $(server_is_booted && echo "running" || echo "stopped")"
+    debug "CHE SERVER STATUS         = $(server_is_booted && echo "running & api reachable" || echo "stopped")"
     debug "CHE IMAGE                 = $(get_che_container_image_name)"
     debug "CHE SERVER CONTAINER ID   = $(get_che_server_container_id)"
     debug "CHE CONF FOLDER           = $(get_che_container_conf_folder)"
     debug "CHE DATA FOLDER           = $(get_che_container_data_folder)"
     CURRENT_CHE_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_NAME})
-    debug "CHE DASHBOARD URL         = http://${DEFAULT_CHE_HOSTNAME}:${CURRENT_CHE_PORT}"  
-    debug "CHE API URL               = http://${DEFAULT_CHE_HOSTNAME}:${CURRENT_CHE_PORT}/api"
+    debug "CHE USE URL               = http://${CHE_HOST_IP}:${CURRENT_CHE_PORT}"  
+    debug "CHE API URL               = http://${CHE_HOST_IP}:${CURRENT_CHE_PORT}/swagger"
+    if has_debug; then
+      CURRENT_CHE_DEBUG_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8000/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_NAME})
+      debug "CHE JPDA DEBUG URL      = http://${CHE_HOST_IP}:${CURRENT_CHE_DEBUG_PORT}"  
+    fi
+
     debug 'CHE LOGS                  = run `docker logs -f '${CHE_SERVER_CONTAINER_NAME}'`'
   fi
   debug ""
@@ -121,6 +132,8 @@ print_debug_info() {
   debug "CHE_USER                  = ${CHE_USER}"
   debug "CHE_HOST_IP               = ${CHE_HOST_IP}"
   debug "CHE_LOG_LEVEL             = ${CHE_LOG_LEVEL}"
+  debug "CHE_DEBUG_SERVER          = ${CHE_DEBUG_SERVER}"
+  debug "CHE_DEBUG_SERVER_PORT     = ${CHE_DEBUG_SERVER_PORT}"
   debug "CHE_HOSTNAME              = ${CHE_HOSTNAME}"
   debug "CHE_DATA_FOLDER           = ${CHE_DATA_FOLDER}"
   debug "CHE_CONF_FOLDER           = ${CHE_CONF_FOLDER:-not set}"

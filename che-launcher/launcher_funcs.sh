@@ -144,6 +144,22 @@ docker_run_with_conf() {
   fi
 }
 
+docker_run_with_debug() {
+  if has_debug; then
+    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
+  else
+    docker_run_with_conf "$@"
+  fi
+}
+
+has_debug() {
+  if [ "${CHE_DEBUG_SERVER}" = "false" ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
 has_che_conf_path() {
   if [ "${CHE_CONF_FOLDER}" = "" ]; then
     return 1

@@ -60,6 +60,8 @@ init_global_variables() {
   DEFAULT_CHE_USER="root"
   DEFAULT_CHE_LOG_LEVEL="info"
   DEFAULT_CHE_DATA_FOLDER="/home/user/che"
+  DEFAULT_CHE_DEBUG_SERVER="false"
+  DEFAULT_CHE_DEBUG_SERVER_PORT="8000"
 
   # Clean eventual user provided paths
   CHE_CONF_FOLDER=${CHE_CONF_FOLDER:+$(get_converted_and_clean_path "${CHE_CONF_FOLDER}")}
@@ -78,6 +80,8 @@ init_global_variables() {
   CHE_HOST_IP=${CHE_HOST_IP:-${DEFAULT_DOCKER_HOST_IP}}
   CHE_LOG_LEVEL=${CHE_LOG_LEVEL:-${DEFAULT_CHE_LOG_LEVEL}}
   CHE_DATA_FOLDER=${CHE_DATA_FOLDER:-${DEFAULT_CHE_DATA_FOLDER}}
+  CHE_DEBUG_SERVER=${CHE_DEBUG_SERVER:-${DEFAULT_CHE_DEBUG_SERVER}}
+  CHE_DEBUG_SERVER_PORT=${CHE_DEBUG_SERVER_PORT:-${DEFAULT_CHE_DEBUG_SERVER_PORT}}
 
   CHE_CONF_LOCATION="${CHE_CONF_FOLDER}":"/conf" 
   CHE_STORAGE_LOCATION="${CHE_DATA_FOLDER}/storage":"/home/user/che/storage"
@@ -85,9 +89,13 @@ init_global_variables() {
   CHE_LOCAL_BINARY_LOCATION="${CHE_LOCAL_BINARY}":"/home/user/che"
 
   if [ "${CHE_LOG_LEVEL}" = "debug" ]; then
-    CHE_DEBUG_OPTION="--debug --log_level:debug"
+    CHE_DEBUG_OPTION="--log_level:debug"
   else
     CHE_DEBUG_OPTION=""
+  fi
+
+  if [ "${CHE_DEBUG_SERVER}" = "true" ]; then
+    CHE_DEBUG_OPTION="${CHE_DEBUG_OPTION} --debug"
   fi
 
   USAGE="
