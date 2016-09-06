@@ -29,7 +29,7 @@ start_che_server() {
   fi
 
   info "${CHE_PRODUCT_NAME}: Starting container..."
-  docker_run_with_conf "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
+  docker_run_with_debug "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
                           --remote:"${CHE_HOST_IP}" \
                           -s:uid \
                           -s:client \
