@@ -118,7 +118,7 @@ docker_run() {
 }
 
 docker_run_with_storage() {
-  if is_docker_for_mac || is_docker_for_windows; then
+  if is_docker_for_mac || is_docker_for_windows || is_boot2docker; then
     # If on docker for mac or windows, then we have to use these special parameters
     docker_run -e "CHE_WORKSPACE_STORAGE=$CHE_DATA_FOLDER/workspaces" \
                -e "CHE_WORKSPACE_STORAGE_CREATE_FOLDERS=false" "$@"

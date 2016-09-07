@@ -47,9 +47,8 @@ start_che_server() {
 
   if server_is_booted; then
     info "${CHE_PRODUCT_NAME}: Booted and reachable"
-    info "${CHE_PRODUCT_NAME}: Use - http://${CHE_HOSTNAME}:${CHE_PORT}"
-    info "${CHE_PRODUCT_NAME}: Use - http://${CHE_HOST_IP}:${CHE_PORT}"
-    info "${CHE_PRODUCT_NAME}: API - http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
+    info "${CHE_PRODUCT_NAME}: Use: http://${CHE_HOST_IP}:${CHE_PORT}"
+    info "${CHE_PRODUCT_NAME}: API: http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
 
     if has_debug; then
       info "${CHE_PRODUCT_NAME}: JPDA Debug - http://${CHE_HOST_IP}:${CHE_DEBUG_SERVER_PORT}"
