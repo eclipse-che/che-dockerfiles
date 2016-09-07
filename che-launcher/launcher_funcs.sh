@@ -145,10 +145,20 @@ docker_run_with_conf() {
 }
 
 docker_run_with_debug() {
-  if has_debug; then
+  if has_debug && has_debug_suspend; then
+    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 -e "JPDA_SUSPEND=y" "$@"
+  elif has_debug; then
     docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
   else
     docker_run_with_conf "$@"
+  fi
+}
+
+has_debug_suspend() {
+  if [ "${CHE_DEBUG_SERVER_SUSPEND}" = "false" ]; then
+    return 1
+  else
+    return 0
   fi
 }
 
