@@ -144,13 +144,21 @@ docker_run_with_conf() {
   fi
 }
 
-docker_run_with_debug() {
-  if has_debug && has_debug_suspend; then
-    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 -e "JPDA_SUSPEND=y" "$@"
-  elif has_debug; then
-    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
+docker_run_with_external_hostname() {
+  if has_external_hostname; then
+    docker_run_with_conf -e "CHE_DOCKER_MACHINE_HOST_EXTERNAL=${CHE_DOCKER_MACHINE_HOST_EXTERNAL}" "$@"
   else
     docker_run_with_conf "$@"
+  fi
+}
+
+docker_run_with_debug() {
+  if has_debug && has_debug_suspend; then
+    docker_run_with_external_hostname -p "${CHE_DEBUG_SERVER_PORT}":8000 -e "JPDA_SUSPEND=y" "$@"
+  elif has_debug; then
+    docker_run_with_external_hostname -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
+  else
+    docker_run_with_external_hostname "$@"
   fi
 }
 
@@ -180,6 +188,14 @@ has_che_conf_path() {
 
 has_local_binary_path() {
   if [ "${CHE_LOCAL_BINARY}" = "" ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+has_external_hostname() {
+  if [ "${CHE_DOCKER_MACHINE_HOST_EXTERNAL}" = "" ]; then
     return 1
   else
     return 0
@@ -326,6 +342,14 @@ get_che_container_image_name() {
 
 get_che_server_container_id() {
   docker ps -q -a -f "name=${CHE_SERVER_CONTAINER_NAME}"
+}
+
+get_docker_external_hostname() {
+  if is_docker_for_mac || is_docker_for_windows; then
+    echo "localhost"
+  else
+    echo ""
+  fi
 }
 
 wait_until_container_is_running() {
