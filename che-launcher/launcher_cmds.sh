@@ -100,6 +100,7 @@ print_debug_info() {
   debug "DOCKER_INSTALL_TYPE       = ${DOCKER_INSTALL_TYPE}"
   debug "DOCKER_HOST_OS            = $(get_docker_host_os)"
   debug "DOCKER_HOST_IP            = ${DEFAULT_DOCKER_HOST_IP}"
+  debug "DOCKER_HOST_EXTERNAL_IP   = ${DEFAULT_CHE_DOCKER_MACHINE_HOST_EXTERNAL:-not set}"
   debug "DOCKER_DAEMON_VERSION     = $(get_docker_daemon_version)"
   debug ""
   debug ""
