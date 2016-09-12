@@ -123,6 +123,7 @@ export class Workspace {
             messageBus.subscribe(channel, callbackSubscriber);
             if (displayLog) {
                 messageBus.subscribe('workspace:' + workspaceId + ':ext-server:output', displayOutputWorkspaceSubscriber);
+                messageBus.subscribe('workspace:' + workspaceId + ':environment_output', displayOutputWorkspaceSubscriber);
                 messageBus.subscribe(workspaceId + ':default:default', displayOutputWorkspaceSubscriber);
             }
             return userWorkspaceDto;

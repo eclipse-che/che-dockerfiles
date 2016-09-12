@@ -37,11 +37,20 @@ export class RecipeBuilder {
             if (cheStructWorkspace.runtime) {
                 if (cheStructWorkspace.runtime.docker) {
                     if (cheStructWorkspace.runtime.docker.image) {
-                        return {"contentType": "text/x-dockerfile", "type": "image", "location": cheStructWorkspace.runtime.docker.image};
+                        return {"contentType": "text/x-dockerfile", "type": "dockerimage", "location": cheStructWorkspace.runtime.docker.image};
                     } else if (cheStructWorkspace.runtime.docker.content) {
-                        return {"contentType": "text/x-dockerfile", "type": "dockerfile", "content": cheStructWorkspace.runtime.docker.content};
+                        return {
+                            "contentType": "text/x-dockerfile",
+                            "type": "dockerfile",
+                            "content": cheStructWorkspace.runtime.docker.content
+                        };
                     } else if (cheStructWorkspace.runtime.docker.location) {
-                        return {"contentType": "text/x-dockerfile", "type": "recipe", "location": cheStructWorkspace.runtime.docker.location};
+                        return {
+                            "contentType": "text/x-dockerfile",
+                            "type": "recipe",
+                            "location": cheStructWorkspace.runtime.docker.location
+                        };
+                    }
                 }
             }
         }
