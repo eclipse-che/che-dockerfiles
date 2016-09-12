@@ -1,2 +1,19 @@
+# Eclipse  #
+###################
+
+.classpath
+.project
+.settings/
+target/
+bin/
+test-output/
+
+# Idea #
+##################
+*.iml
+*.ipr
+*.iws
+.idea/
+
 .DAV
 
