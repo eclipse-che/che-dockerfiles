@@ -100,6 +100,12 @@ init_global_variables() {
     CHE_DEBUG_OPTION="${CHE_DEBUG_OPTION} --debug"
   fi
 
+  if is_docker_for_mac; then
+    CHE_REMOTE_OPTION=""
+  else
+    CHE_REMOTE_OPTION="--remote:"${CHE_HOST_IP}""
+  fi   
+
   USAGE="
 Usage:
   docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock ${LAUNCHER_IMAGE_NAME} [COMMAND]

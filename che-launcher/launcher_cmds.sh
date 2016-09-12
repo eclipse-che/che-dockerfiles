@@ -30,7 +30,7 @@ start_che_server() {
 
   info "${CHE_PRODUCT_NAME}: Starting container..."
   docker_run_with_debug "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
-                          --remote:"${CHE_HOST_IP}" \
+                          ${CHE_REMOTE_OPTION} \
                           -s:uid \
                           -s:client \
                           ${CHE_DEBUG_OPTION} \
@@ -56,6 +56,13 @@ start_che_server() {
   else
     error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for server. Run \"docker logs ${CHE_SERVER_CONTAINER_NAME}\" to inspect the issue."
   fi
+
+  if is_docker_for_mac; then
+    info "${CHE_PRODUCT_NAME}: Adding iptable rules in ${CHE_SERVER_CONTAINER_NAME} container..."
+    add_iptables_rules
+    info "${CHE_PRODUCT_NAME}: Iptable rules added."
+  fi
+  
 }
 
 stop_che_server() {

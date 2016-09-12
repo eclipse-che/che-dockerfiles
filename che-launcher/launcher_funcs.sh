@@ -144,13 +144,21 @@ docker_run_with_conf() {
   fi
 }
 
-docker_run_with_debug() {
-  if has_debug && has_debug_suspend; then
-    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 -e "JPDA_SUSPEND=y" "$@"
-  elif has_debug; then
-    docker_run_with_conf -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
+docker_run_with_privileges() {
+  if is_docker_for_mac; then
+    docker_run_with_conf --privileged "$@"
   else
     docker_run_with_conf "$@"
+  fi
+}
+
+docker_run_with_debug() {
+  if has_debug && has_debug_suspend; then
+    docker_run_with_privileges -p "${CHE_DEBUG_SERVER_PORT}":8000 -e "JPDA_SUSPEND=y" "$@"
+  elif has_debug; then
+    docker_run_with_privileges -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
+  else
+    docker_run_with_privileges "$@"
   fi
 }
 
@@ -183,6 +191,39 @@ has_local_binary_path() {
     return 1
   else
     return 0
+  fi
+}
+
+add_iptables_rules() {
+  APK_UPDATE="apk update"
+  INSTALL_IPTABLES="apk add iptables"
+  ALLOW_LO_RULE="sysctl -w net.ipv4.conf.eth0.route_localnet=1"
+  IP_TABLE_RULE1="iptables -t nat -A OUTPUT -p tcp -d localhost -o lo --dport 32000:65000 -j DNAT --to ${CHE_HOST_IP}:32000-65000"
+  IP_TABLE_RULE2="iptables -t nat -A POSTROUTING -o eth0 -m addrtype --src-type LOCAL --dst-type UNICAST -j MASQUERADE"
+
+  if ! docker exec ${CHE_SERVER_CONTAINER_NAME} ${APK_UPDATE} > /dev/null 2>&1; then
+    output=$(docker exec ${CHE_SERVER_CONTAINER_NAME} ${APK_UPDATE})
+    error_exit "Error when running \"docker exec ${CHE_SERVER_CONTAINER_NAME} ${APK_UPDATE}\": ${output}"
+  fi
+
+  if ! docker exec ${CHE_SERVER_CONTAINER_NAME} ${INSTALL_IPTABLES} > /dev/null 2>&1; then
+    output=$(docker exec ${CHE_SERVER_CONTAINER_NAME} ${INSTALL_IPTABLES})
+    error_exit "Error when running \"docker exec ${CHE_SERVER_CONTAINER_NAME} ${INSTALL_IPTABLES}\": ${output}"
+  fi
+
+  if ! docker exec ${CHE_SERVER_CONTAINER_NAME} ${ALLOW_LO_RULE} > /dev/null 2>&1; then
+    output=$(docker exec ${CHE_SERVER_CONTAINER_NAME} ${ALLOW_LO_RULE})
+    error_exit "Error when running \"docker exec ${CHE_SERVER_CONTAINER_NAME} ${ALLOW_LO_RULE}\": ${output}"
+  fi
+
+  if ! docker exec ${CHE_SERVER_CONTAINER_NAME} ${IP_TABLE_RULE1} > /dev/null 2>&1; then
+    output=$(docker exec ${CHE_SERVER_CONTAINER_NAME} ${IP_TABLE_RULE1})
+    error_exit "Error when running \"docker exec ${CHE_SERVER_CONTAINER_NAME} ${IP_TABLE_RULE1}\": ${output}"
+  fi
+
+  if ! docker exec ${CHE_SERVER_CONTAINER_NAME} ${IP_TABLE_RULE2} > /dev/null 2>&1; then
+    output=$(docker exec ${CHE_SERVER_CONTAINER_NAME} ${IP_TABLE_RULE2})
+    error_exit "Error when running \"docker exec ${CHE_SERVER_CONTAINER_NAME} ${IP_TABLE_RULE2}\": ${output}"
   fi
 }
 
