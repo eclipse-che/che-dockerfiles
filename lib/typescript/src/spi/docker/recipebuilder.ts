@@ -37,12 +37,11 @@ export class RecipeBuilder {
             if (cheStructWorkspace.runtime) {
                 if (cheStructWorkspace.runtime.docker) {
                     if (cheStructWorkspace.runtime.docker.image) {
-                        return {"type": "image", "location": cheStructWorkspace.runtime.docker.image};
+                        return {"contentType": "text/x-dockerfile", "type": "image", "location": cheStructWorkspace.runtime.docker.image};
                     } else if (cheStructWorkspace.runtime.docker.content) {
-                        return {"type": "dockerfile", "content": cheStructWorkspace.runtime.docker.content};
+                        return {"contentType": "text/x-dockerfile", "type": "dockerfile", "content": cheStructWorkspace.runtime.docker.content};
                     } else if (cheStructWorkspace.runtime.docker.location) {
-                        return {"type": "recipe", "location": cheStructWorkspace.runtime.docker.location};
-                    }
+                        return {"contentType": "text/x-dockerfile", "type": "recipe", "location": cheStructWorkspace.runtime.docker.location};
                 }
             }
         }
@@ -55,10 +54,10 @@ export class RecipeBuilder {
             var stats = this.fs.statSync(dockerFilePath);
             Log.getLogger().info('Using a custom project Dockerfile \'' + dockerFilePath + '\' for the setup of the workspace.');
             var content = this.fs.readFileSync(dockerFilePath, 'utf8');
-            return {"type": "dockerfile", "content": content};
+            return {"contentType": "text/x-dockerfile", "type": "dockerfile", "content": content};
         } catch (e) {
             // file does not exist, return default
-            return {"type": "dockerfile", "content": RecipeBuilder.DEFAULT_DOCKERFILE_CONTENT} ;
+            return {"contentType": "text/x-dockerfile", "type": "dockerfile", "content": RecipeBuilder.DEFAULT_DOCKERFILE_CONTENT} ;
         }
 
     }

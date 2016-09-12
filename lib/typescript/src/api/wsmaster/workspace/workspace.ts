@@ -67,25 +67,34 @@ export class Workspace {
     createWorkspace(createWorkspaceConfig:CreateWorkspaceConfig):Promise<WorkspaceDto> {
 
         var workspace = {
-            "defaultEnv": "default",
             "commands": createWorkspaceConfig.commands,
-            "projects": [],
-            "environments": [{
-                "machineConfigs": [{
-                    "dev": true,
-                    "servers": [],
-                    "envVariables": {},
-                    "limits": {"ram": createWorkspaceConfig.ram},
-                    "source": createWorkspaceConfig.machineConfigSource,
-                    "name": "default",
-                    "type": "docker",
-                    "links": []
-                }], "name": "default"
-            }],
-            "name": createWorkspaceConfig.name,
-            "links": [],
-            "description": null
+                "projects": [],
+                "defaultEnv": "default",
+                "name": createWorkspaceConfig.name,
+                "attributes": {},
+            "environments": {
+                "default": {
+                    "machines": {
+                        "dev-machine": {
+                            "agents": [
+                                "org.eclipse.che.terminal",
+                                "org.eclipse.che.ws-agent",
+                                "org.eclipse.che.ssh"
+                            ],
+                                "servers": {},
+                            "attributes": {
+                                "memoryLimitBytes": "2147483648"
+                            }
+                        }
+                    },
+                    "recipe": createWorkspaceConfig.machineConfigSource
+                }
+            }
         };
+        // TODO use ram ?
+        //createWorkspaceConfig.ram
+
+
 
         var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, '/api/workspace?account=', 201).setMethod('POST').setBody(workspace);
         return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
@@ -258,9 +267,8 @@ export class Workspace {
 }
 
 export class CreateWorkspaceConfig {
-
     ram : number = 2048;
-    machineConfigSource : any = {"type": "dockerfile", "content": RecipeBuilder.DEFAULT_DOCKERFILE_CONTENT};
+    machineConfigSource : any = {"contentType": "text/x-dockerfile", "type": "dockerfile", "content": RecipeBuilder.DEFAULT_DOCKERFILE_CONTENT};
     name: string = "default";
     commands: Array<CheFileStructWorkspaceCommand> = [];
 
