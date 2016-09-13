@@ -145,13 +145,14 @@ export class CheDir {
 
   parseArgument() : Promise<string> {
     return new Promise<string>( (resolve, reject) => {
-      let invalidCommand : string = 'only init, up, down and status commands are supported.';
+      let invalidCommand : string = 'only init, up, down, ssh and status commands are supported.';
       if (this.args.length == 0) {
         reject(invalidCommand);
       } else if ('init' === this.args[1]
                  || 'up' === this.args[1]
-                 || 'destroy' === this.args[1]                 
+                 || 'destroy' === this.args[1]
                  || 'down' === this.args[1]
+                 || 'ssh' === this.args[1]
                  || 'status' === this.args[1]) {
         // return method found based on arguments
         resolve(this.args[1]);
@@ -603,7 +604,7 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
       // store locally the private and public keys
       privateKey = map.get('private');
       publicKey = map.get('public');
-      this.fs.writeFileSync(this.dotCheSshPrivateKeyFile, privateKey);
+      this.fs.writeFileSync(this.dotCheSshPrivateKeyFile, privateKey,  { mode: 0o600 });
       this.fs.writeFileSync(this.dotCheSshPublicKeyFile, publicKey);   
     }
 
@@ -626,6 +627,54 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
  
 }
 
+
+  ssh() : Promise<any> {
+    return this.isInitialized().then((isInitialized) => {
+      if (!isInitialized) {
+        return Promise.reject('This directory has not been initialized. So, ssh is not available.');
+      }
+
+      return new Promise<string>((resolve, reject) => {
+        this.parse();
+        resolve('parsed');
+      }).then(() => {
+        return this.checkCheIsRunning();
+      }).then((isRunning) => {
+        if (!isRunning) {
+          return Promise.reject('No Eclipse Che Instance Running.');
+        }
+
+        // check workspace exists
+        this.workspace = new Workspace(this.authData);
+        return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
+      }).then((workspaceDto) => {
+        // found it
+        if (!workspaceDto) {
+          return Promise.reject('Eclipse Che is running ' + this.buildLocalCheURL() + ' but workspace (' + this.chefileStructWorkspace.name + ') has not been found');
+        }
+
+
+        let port: string = workspaceDto.getContent().runtime.devMachine.runtime.servers["22/tcp"].address.split(":")[1];
+        var spawn = require('child_process').spawn;
+
+        let username : string = "user@" + this.chefileStruct.server.ip;
+
+        var p = spawn("docker", ["run", "-v", this.dotCheSshPrivateKeyFile + ":/tmp/ssh.key", "-ti", "codenvy/alpine_jdk8", "ssh", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", username, "-p", port, "-i", "/tmp/ssh.key"], {
+          stdio: 'inherit'
+        });
+
+        p.on('error', (err) => {
+          console.log('err =', err);
+        });
+
+        p.on('exit', () => {
+          console.log('Ending ssh connection');
+
+        });
+        return Promise.resolve("ok");
+      })
+    });
+  }
 
 
 
