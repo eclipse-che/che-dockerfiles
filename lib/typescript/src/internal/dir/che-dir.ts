@@ -822,7 +822,7 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
     this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
 
     // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName);
+    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock");
 
   }
 
