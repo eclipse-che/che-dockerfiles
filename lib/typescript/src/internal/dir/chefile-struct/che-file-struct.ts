@@ -32,7 +32,7 @@ export class CheFileServerStruct {
     properties : Map<string, string>;
 
     constructor() {
-        this.startup = new Array<string>();
+        //this.startup = new Array<string>();
         this.properties = new Map<string, string>();
     }
 }

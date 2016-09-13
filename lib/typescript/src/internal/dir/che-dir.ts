@@ -134,6 +134,16 @@ export class CheDir {
       this.writeInstanceId();
     }
 
+    /*Object.keys(process.env).forEach((key) => {
+      Log.getLogger().debug('Env variable', key, process.env[key]);
+    });*/
+
+    if (process.env.CHE_HOST_IP) {
+      this.chefileStruct.server.properties['CHE_HOST_IP'] = process.env.CHE_HOST_IP;
+    }
+
+
+
   }
 
 
@@ -291,29 +301,35 @@ export class CheDir {
     this.chefileStructWorkspace.postload.actions[0].command = "my-first-command";
     this.chefileStructWorkspace.postload.actions[1].script = "echo 'this is my custom command' && while true; do echo $(date); sleep 1; done";
 
-
+    // remove empty values
     this.cleanupArrays();
-    // get json string from object
-    let stringified = JSON.stringify(this.chefileStruct, null, 4);
 
-
+    // create content to write
     let content = '';
-    let flatChe = this.flatJson('che', this.chefileStruct);
+
+    // work on a copy
+    let che : CheFileStruct =  JSON.parse(JSON.stringify(this.chefileStruct));
+
+    // make flat the che object
+    let flatChe = this.flatJson('che', che);
     flatChe.forEach((value, key) => {
       Log.getLogger().debug( 'the value is ' + value.toString() + ' for key' + key);
       content += key + '=' + value.toString() + '\n';
     });
 
+    // make flat the workspace object
     let flatWorkspace = this.flatJson('workspace', this.chefileStructWorkspace);
     flatWorkspace.forEach((value, key) => {
       Log.getLogger().debug( 'the flatWorkspace value is ' + value.toString() + ' for key' + key);
       content += key + '=' + value.toString() + '\n';
     });
 
-
     // write content of this.che object
     this.fs.writeFileSync(this.cheFile, content);
-    Log.getLogger().info('GENERATING DEFAULT', this.cheFile);
+    Log.getLogger().info('Generating default', this.cheFile);
+
+
+
 
   }
 
@@ -336,7 +352,7 @@ export class CheDir {
           Log.getLogger().debug('Write a default Chefile at ', this.cheFile);
           this.writeDefaultChefile();
         }
-        Log.getLogger().info('ADDING', this.dotCheFolder, 'DIRECTORY');
+        Log.getLogger().info('Adding', this.dotCheFolder, 'directory');
         return true;
       }
 
@@ -664,12 +680,11 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
         });
 
         p.on('error', (err) => {
-          console.log('err =', err);
+          Log.getLogger().error(err);
         });
 
         p.on('exit', () => {
-          console.log('Ending ssh connection');
-
+          Log.getLogger().info('Ending ssh connection');
         });
         return Promise.resolve("ok");
       })
@@ -1081,8 +1096,9 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
         isEmpty = false;
         this.recurseFlatten(map, jsonData[p], prop ? prop + "." + p : p);
       }
-      if (isEmpty && prop)
+      /*if (isEmpty && prop) {
         map.set(prop, '{}');
+      }*/
     }
   }
 
