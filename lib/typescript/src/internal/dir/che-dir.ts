@@ -329,6 +329,11 @@ export class CheDir {
     Log.getLogger().info('Generating default', this.cheFile);
 
 
+    try {
+      this.fs.chownSync(this.cheFile, 1000, 1000);
+    } catch (error) {
+      Log.getLogger().debug("Unable to chown che file", this.cheFile);
+    }
 
 
   }
@@ -621,8 +626,15 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
       privateKey = map.get('private');
       publicKey = map.get('public');
       this.fs.writeFileSync(this.dotCheSshPrivateKeyFile, privateKey,  { mode: 0o600 });
-      this.fs.writeFileSync(this.dotCheSshPublicKeyFile, publicKey);   
-    }
+      this.fs.writeFileSync(this.dotCheSshPublicKeyFile, publicKey);
+
+     try {
+       this.fs.chownSync(this.dotCheSshPrivateKeyFile, 1000, 1000);
+     } catch (error) {
+       Log.getLogger().debug("Unable to chown ssh key private file", this.dotCheSshPrivateKeyFile);
+     }
+
+   }
 
     // ok we have the public key, now storing it
     // get dev machine
