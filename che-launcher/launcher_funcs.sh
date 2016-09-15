@@ -382,6 +382,23 @@ server_is_booted() {
   fi
 }
 
+get_server_version() {
+  HTTP_STATUS_CODE=$(curl -X OPTIONS http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' \
+                          "${CHE_SERVER_CONTAINER_NAME}"):8080/api/ -s)
+
+  FIRST=${HTTP_STATUS_CODE//\ /}
+  IFS=','
+  for SINGLE_BIND in $FIRST; do
+    case $SINGLE_BIND in
+      *implementationVersion*)
+        echo ${SINGLE_BIND//\"} | cut -f2 -d":" | cut -f1 -d"}"
+      ;;
+      *)
+      ;;
+    esac
+  done
+}
+
 wait_until_server_is_booted () {
   SERVER_BOOT_TIMEOUT=${1}
 
