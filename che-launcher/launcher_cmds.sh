@@ -47,6 +47,7 @@ start_che_server() {
 
   if server_is_booted; then
     info "${CHE_PRODUCT_NAME}: Booted and reachable"
+    info "${CHE_PRODUCT_NAME}: Ver: $(get_server_version)"
     info "${CHE_PRODUCT_NAME}: Use: http://${CHE_HOST_IP}:${CHE_PORT}"
     info "${CHE_PRODUCT_NAME}: API: http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
 
