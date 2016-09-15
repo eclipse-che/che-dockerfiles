@@ -87,10 +87,10 @@ init_global_variables() {
   CHE_DEBUG_SERVER_SUSPEND=${CHE_DEBUG_SERVER_SUSPEND:-${DEFAULT_CHE_DEBUG_SERVER_SUSPEND}}
   CHE_DOCKER_MACHINE_HOST_EXTERNAL=${CHE_DOCKER_MACHINE_HOST_EXTERNAL:-${DEFAULT_CHE_DOCKER_MACHINE_HOST_EXTERNAL}}
 
-  CHE_CONF_LOCATION="${CHE_CONF_FOLDER}":"/conf" 
-  CHE_STORAGE_LOCATION="${CHE_DATA_FOLDER}/storage":"/home/user/che/storage"
-  CHE_WORKSPACE_LOCATION="${CHE_DATA_FOLDER}/workspaces":"/home/user/che/workspaces"
-  CHE_LOCAL_BINARY_LOCATION="${CHE_LOCAL_BINARY}":"/home/user/che"
+  CHE_CONF_LOCATION="${CHE_CONF_FOLDER}":"/conf:Z"
+  CHE_STORAGE_LOCATION="${CHE_DATA_FOLDER}/storage":"/home/user/che/storage:Z"
+  CHE_WORKSPACE_LOCATION="${CHE_DATA_FOLDER}/workspaces":"/home/user/che/workspaces:Z"
+  CHE_LOCAL_BINARY_LOCATION="${CHE_LOCAL_BINARY}":"/home/user/che:Z"
 
   if [ "${CHE_LOG_LEVEL}" = "debug" ]; then
     CHE_DEBUG_OPTION="--log_level:debug"
