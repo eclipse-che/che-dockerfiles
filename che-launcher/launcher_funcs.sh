@@ -106,8 +106,8 @@ is_docker_for_windows() {
 docker_run() {
    ENV_FILE=$(get_list_of_che_system_environment_variables)
    docker run -d --name "${CHE_SERVER_CONTAINER_NAME}" \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v /home/user/che/lib:/home/user/che/lib-copy \
+    -v /var/run/docker.sock:/var/run/docker.sock:Z \
+    -v /home/user/che/lib:/home/user/che/lib-copy:Z \
     -p "${CHE_PORT}":8080 \
     --restart="${CHE_RESTART_POLICY}" \
     --user="${CHE_USER}" \
