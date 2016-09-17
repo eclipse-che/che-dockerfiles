@@ -10,9 +10,8 @@
 #
 
 start_che_server() {
-  if che_container_exist; then
-    error_exit "
-           A container running ${CHE_PRODUCT_NAME} named \"${CHE_SERVER_CONTAINER_NAME}\" already exists.
+  if che_container_exist_by_name ${CHE_SERVER_CONTAINER_NAME}; then
+    error_exit "A container running ${CHE_PRODUCT_NAME} named \"${CHE_SERVER_CONTAINER_NAME}\" already exists.
              1. Use \"info\" to find it's URL.
              2. Use \"restart\" to stop it and start anew.
              3. Stop it with \"stop\".
@@ -35,19 +34,19 @@ start_che_server() {
                           -s:client \
                           ${CHE_DEBUG_OPTION} \
                           run > /dev/null
-
-  wait_until_container_is_running 10
-  if ! che_container_is_running; then
+  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
+  wait_until_container_is_running 10 ${CURRENT_CHE_SERVER_CONTAINER_ID}
+  if ! che_container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
     error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for ${CHE_PRODUCT_NAME} container to start."
   fi
 
   info "${CHE_PRODUCT_NAME}: Server logs at \"docker logs -f ${CHE_SERVER_CONTAINER_NAME}\""
   info "${CHE_PRODUCT_NAME}: Server booting..."
-  wait_until_server_is_booted 60
+  wait_until_server_is_booted 60 ${CURRENT_CHE_SERVER_CONTAINER_ID}
 
-  if server_is_booted; then
+  if server_is_booted ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
     info "${CHE_PRODUCT_NAME}: Booted and reachable"
-    info "${CHE_PRODUCT_NAME}: Ver: $(get_server_version)"
+    info "${CHE_PRODUCT_NAME}: Ver: $(get_server_version ${CURRENT_CHE_SERVER_CONTAINER_ID})"
     info "${CHE_PRODUCT_NAME}: Use: http://${CHE_HOST_IP}:${CHE_PORT}"
     info "${CHE_PRODUCT_NAME}: API: http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
 
@@ -60,24 +59,26 @@ start_che_server() {
 }
 
 stop_che_server() {
-  if ! che_container_is_running; then
+  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
+  if ! che_container_is_running $CURRENT_CHE_SERVER_CONTAINER_ID; then
     info "${CHE_PRODUCT_NAME}: Container is not running. Nothing to do."
   else
     info "${CHE_PRODUCT_NAME}: Stopping server..."
-    docker exec ${CHE_SERVER_CONTAINER_NAME} /home/user/che/bin/che.sh -c -s:uid stop > /dev/null
-    wait_until_container_is_stopped 60
-    if che_container_is_running; then
+    docker exec ${CURRENT_CHE_SERVER_CONTAINER_ID} /home/user/che/bin/che.sh -c -s:uid stop > /dev/null
+    wait_until_container_is_stopped 60 ${CURRENT_CHE_SERVER_CONTAINER_ID}
+    if che_container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
       error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for the ${CHE_PRODUCT_NAME} container to stop."
     fi
 
     info "${CHE_PRODUCT_NAME}: Removing container"
-    docker rm ${CHE_SERVER_CONTAINER_NAME} > /dev/null
+    docker rm ${CURRENT_CHE_SERVER_CONTAINER_ID} > /dev/null
     info "${CHE_PRODUCT_NAME}: Stopped"
   fi
 }
 
 restart_che_server() {
-  if che_container_is_running; then
+  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
+  if che_container_is_running $CURRENT_CHE_SERVER_CONTAINER_ID; then
     stop_che_server
   fi
   start_che_server
@@ -105,25 +106,34 @@ print_debug_info() {
   info "DOCKER_DAEMON_VERSION     = $(get_docker_daemon_version)"
   info ""
   info ""
-  info "--------- CHE INSTANCE INFO  ----------" 
-  info "CHE CONTAINER EXISTS      = $(che_container_exist && echo "YES" || echo "NO")"
-  info "CHE CONTAINER STATUS      = $(che_container_is_running && echo "running" || echo "stopped")"
-  if che_container_is_running; then
-    info "CHE SERVER STATUS         = $(server_is_booted && echo "running & api reachable" || echo "stopped")"
-    info "CHE VERSION               = $(get_server_version)"
-    info "CHE IMAGE                 = $(get_che_container_image_name)"
-    info "CHE SERVER CONTAINER ID   = $(get_che_server_container_id)"
-    info "CHE CONF FOLDER           = $(get_che_container_conf_folder)"
-    info "CHE DATA FOLDER           = $(get_che_container_data_folder)"
-    CURRENT_CHE_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_NAME})
-    info "CHE USE URL               = http://${CHE_HOST_IP}:${CURRENT_CHE_PORT}"  
-    info "CHE API URL               = http://${CHE_HOST_IP}:${CURRENT_CHE_PORT}/swagger"
-    if has_debug; then
-      CURRENT_CHE_DEBUG_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8000/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_NAME})
-      info "CHE JPDA DEBUG URL      = http://${CHE_HOST_IP}:${CURRENT_CHE_DEBUG_PORT}"  
+  info "--------- CHE INSTANCE LIST  ----------"
+  CURRENT_CHE_INSTANCES=$(docker ps -aq --filter "ancestor=${CHE_SERVER_IMAGE_NAME}:${CHE_VERSION}")
+  IFS=$'\n'
+  for CHE_SERVER_CONTAINER_ID in $CURRENT_CHE_INSTANCES; do
+    info ""
+    info "--------- CHE INSTANCE INFO  ----------" 
+    info "CHE SERVER CONTAINER ID   = $CHE_SERVER_CONTAINER_ID"
+    CURRENT_CHE_SERVER_CONTAINER_NAME=$(docker inspect --format='{{.Name}}' ${CHE_SERVER_CONTAINER_ID} | cut -f2 -d"/") 
+    info "CHE SERVER CONTAINER NANE = $CURRENT_CHE_SERVER_CONTAINER_NAME"
+    info "CHE CONTAINER EXISTS      = $(che_container_exist $CHE_SERVER_CONTAINER_ID && echo "YES" || echo "NO")"
+    info "CHE CONTAINER STATUS      = $(che_container_is_running $CHE_SERVER_CONTAINER_ID && echo "running" || echo "stopped")"
+    if che_container_is_running $CHE_SERVER_CONTAINER_ID; then
+      info "CHE SERVER STATUS         = $(server_is_booted $CHE_SERVER_CONTAINER_ID && echo "running & api reachable" || echo "stopped")"
+      info "CHE VERSION               = $(get_server_version $CHE_SERVER_CONTAINER_ID)"
+      info "CHE IMAGE                 = $(get_che_container_image_name $CHE_SERVER_CONTAINER_ID)"
+      info "CHE CONF FOLDER           = $(get_che_container_conf_folder $CHE_SERVER_CONTAINER_ID)"
+      info "CHE DATA FOLDER           = $(get_che_container_data_folder $CHE_SERVER_CONTAINER_ID)"
+      CURRENT_CHE_HOST_IP=$(get_che_container_host_ip_from_container $CHE_SERVER_CONTAINER_ID)
+      CURRENT_CHE_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_ID})
+      info "CHE USE URL               = http://${CURRENT_CHE_HOST_IP}:${CURRENT_CHE_PORT}"  
+      info "CHE API URL               = http://${CURRENT_CHE_HOST_IP}:${CURRENT_CHE_PORT}/swagger"
+      if has_container_debug $CHE_SERVER_CONTAINER_ID; then
+        CURRENT_CHE_DEBUG_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8000/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_ID})        
+        info "CHE JPDA DEBUG URL        = http://${CURRENT_CHE_HOST_IP}:${CURRENT_CHE_DEBUG_PORT}"  
+      fi
+      info 'CHE LOGS                  = run `docker logs -f '${CURRENT_CHE_SERVER_CONTAINER_NAME}'`'
     fi
-    info 'CHE LOGS                  = run `docker logs -f '${CHE_SERVER_CONTAINER_NAME}'`'
-  fi
+  done
   info ""
   info ""
   info "----  CURRENT COMMAND LINE OPTIONS  ---" 
