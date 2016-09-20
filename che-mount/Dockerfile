@@ -11,13 +11,25 @@
 #  docker build -t codenvy/che-mount .
 #
 # LAUNCH CONTAINER:
-#  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse 
-#             -v /var/run/docker.sock:/var/run/docker.sock
+#  On linux:
+#  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
+#             --name che-mount
+#             -v ${HOME}/.ssh:${HOME}/.ssh
+#             -v ${HOME}/.unison:${HOME}/.unison 
+#             -v /etc/group:/etc/group:ro 
+#             -v /etc/passwd:/etc/passwd:ro 
+#             -u $(id -u ${USER})
+#             -v <host-dir>:/mnthost codenvy/che-mount <ip> <ws-port> 
+#            
+#  On Mac or Windows:
+#  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
+#             --name che-mount 
+#             -v ~/.ssh:/root/.ssh
 #             -v <host-dir>:/mnthost codenvy/che-mount <ip> <ws-port>
 #
 # RUN IN CONTAINER:
 #  echo "secret" | $(echo "yes" | sshfs user@10.0.75.2:/projects /mntssh -p 32774)
-#   
+#
 # TO UNMOUNT IN CONTAINER
 #  fusermount -u /mntssh
 #
@@ -29,15 +41,16 @@ ENV UNISON_VERSION=2.48.4
 
 RUN apk add --update build-base curl bash sshfs && \
     apk add ocaml --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted && \
-    curl -L https://www.seas.upenn.edu/~bcpierce/unison//download/releases/unison-$UNISON_VERSION/unison-$UNISON_VERSION.tar.gz | tar xzv -C /tmp && \
+    curl -L https://www.seas.upenn.edu/~bcpierce/unison/download/releases/unison-$UNISON_VERSION/unison-$UNISON_VERSION.tar.gz | tar xzv -C /tmp && \
     cd /tmp/src && \
     sed -i -e 's/GLIBC_SUPPORT_INOTIFY 0/GLIBC_SUPPORT_INOTIFY 1/' fsmonitor/linux/inotify_stubs.c && \
     make && \
     cp /tmp/src/unison /usr/local/bin && \
+    cp /tmp/src/unison-fsmonitor /usr/local/bin && \
     apk del ocaml curl build-base bash && \
     rm -rf /tmp /var/cache/apk/* && \
-    mkdir /mntssh && \
-    mkdir /mnthost
+    mkdir /mntssh && chmod -R 777 /mntssh && \
+    mkdir /mnthost && chmod -R 777 /mnthost
 
 COPY /sync.sh /bin/sync.sh
 
