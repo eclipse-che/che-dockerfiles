@@ -18,13 +18,27 @@ init_logging() {
 init_global_variables() {
 
   USAGE="
-Usage:
-  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse 
-             -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port>
+Usage on Linux 
+  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
+            --name che-mount
+            -v \${HOME}/.ssh:\${HOME}/.ssh
+            -v \${HOME}/.unison:\${HOME}/.unison 
+            -v /etc/group:/etc/group:ro 
+            -v /etc/passwd:/etc/passwd:ro 
+            -u \$(id -u \${USER})
+            -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port> 
+           
+Usage on Mac or Windows:
+  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
+            --name che-mount 
+            -v ~/.ssh:/root/.ssh
+            -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port>
+
      <local-mount>    Host directory to sync files, must end with a slash '/'
      <ip>             IP address of Che server
      <port>           Port of workspace SSH server - retrieve inside workspace
 "
+ UNISON_REPEAT_DELAY_IN_SEC=2
 }
 
 parse_command_line () {
@@ -60,20 +74,34 @@ error_exit() {
 }
 
 # See: https://sipb.mit.edu/doc/safe-shell/
-set -e
 set -u
 
 init_logging
 init_global_variables
 parse_command_line "$@"
 
+info "INFO: ECLIPSE CHE: Mounting user@$1:/projects with SSHFS"
 sshfs user@$1:/projects /mntssh -p $2
-unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer > /dev/null 2>&1
-
+status=$?
+if [ $status -ne 0 ]; then
+    error "ERROR: Fatal error occurred ($status)"
+    exit 1
+fi
 info "INFO: ECLIPSE CHE: Successfully mounted user@$1:/projects"
- 
-while :
-do
-    unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer > /dev/null 2>&1
-    sleep 1
-done
+info "INFO: ECLIPSE CHE: Intial sync...Please wait."
+unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
+status=$?
+if [ $status -ne 0 ]; then
+    error "ERROR: Fatal error occurred ($status)"
+    exit 1
+fi
+info "INFO: ECLIPSE CHE: Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+
+# -repeat=watch doesn't work because SSHFS doesn't support inotify and 
+# unison-fsmonitor rely on inotify
+unison /mntssh /mnthost -batch -retry 10 -fat -silent -copyonconflict -auto -prefer=newer -repeat=${UNISON_REPEAT_DELAY_IN_SEC} -log=false  > /dev/null 2>&1
+status=$?
+if [ $status -ne 0 ]; then
+    error "ERROR: Fatal error occurred ($status)"
+    exit 1
+fi
