@@ -106,7 +106,7 @@ init_global_variables() {
 Usage:
   docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock ${LAUNCHER_IMAGE_NAME} [COMMAND]
      start                              Starts ${CHE_MINI_PRODUCT_NAME} server
-     stop                               Stops ${CHE_MINI_PRODUCT_NAME} server
+     stop [<container_id>]              Stops ${CHE_MINI_PRODUCT_NAME} server
      restart                            Restart ${CHE_MINI_PRODUCT_NAME} server
      update                             Pull latest version of ${CHE_SERVER_IMAGE_NAME}
      info                               Print some debugging information
@@ -119,21 +119,19 @@ parse_command_line () {
     exit
   fi
 
-  for command_line_option in "$@"; do
-    case ${command_line_option} in
-      start|stop|restart|update|info)
-        CHE_SERVER_ACTION=${command_line_option}
-      ;;
-      -h|--help)
-        usage
-        exit
-      ;;
-      *)
-        # unknown option
-        error_exit "You passed an unknown command line option."
-      ;;
-    esac
-  done
+  case $1 in
+    start|stop|restart|update|info)
+      CHE_SERVER_ACTION=$1
+    ;;
+    -h|--help)
+      usage
+      exit
+    ;;
+    *)
+      # unknown option
+      error_exit "You passed an unknown command line option."
+    ;;
+  esac
 }
 
 # See: https://sipb.mit.edu/doc/safe-shell/
@@ -150,10 +148,12 @@ case ${CHE_SERVER_ACTION} in
     start_che_server
   ;;
   stop)
-    stop_che_server
+    shift
+    stop_che_server $@
   ;;
   restart)
-    restart_che_server
+    shift
+    restart_che_server $@
   ;;
   update)
     update_che_server

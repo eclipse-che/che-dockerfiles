@@ -28,7 +28,7 @@ error() {
 error_exit() {
   echo  "---------------------------------------"
   error "!!!"
-  error "!!! ${1}"
+  error "     ${1}"
   error "!!!"
   echo  "---------------------------------------"
   exit 1
@@ -287,8 +287,17 @@ inside the container. Verify the syntax of the \"docker run\" command."
   fi
 }
 
+che_container_exist_by_name() {
+  docker inspect ${1} > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    return 0
+  else 
+    return 1
+  fi 
+}
+
 che_container_exist() {
-  if [ "$(docker ps -aq  -f "name=${CHE_SERVER_CONTAINER_NAME}" | wc -l)" -eq 0 ]; then
+  if [ "$(docker ps -aq  -f "id=${1}" | wc -l)" -eq 0 ]; then
     return 1
   else
     return 0
@@ -296,7 +305,7 @@ che_container_exist() {
 }
 
 che_container_is_running() {
-  if [ "$(docker ps -qa -f "status=running" -f "name=${CHE_SERVER_CONTAINER_NAME}" | wc -l)" -eq 0 ]; then
+  if [ "$(docker ps -qa -f "status=running" -f "id=${1}" | wc -l)" -eq 0 ]; then
     return 1
   else
     return 0
@@ -304,17 +313,65 @@ che_container_is_running() {
 }
 
 che_container_is_stopped() {
-  if [ "$(docker ps -qa -f "status=exited" -f "name=${CHE_SERVER_CONTAINER_NAME}" | wc -l)" -eq 0 ]; then
+  if [ "$(docker ps -qa -f "status=exited" -f "name=${1}" | wc -l)" -eq 0 ]; then
     return 1
   else
     return 0
   fi
 }
 
+contains() {
+    string="$1"
+    substring="$2"
+    if test "${string#*$substring}" != "$string"
+    then
+        return 0    # $substring is in $string
+    else
+        return 1    # $substring is not in $string
+    fi
+}
+
+has_container_debug () {
+  if $(contains $(get_container_debug $1) "<nil>"); then
+    return 1
+  else
+    return 0
+  fi
+}
+
+get_container_debug() {
+  CURRENT_CHE_DEBUG=$(docker inspect --format='{{.NetworkSettings.Ports}}' ${1})
+  IFS=$' '
+  for SINGLE_BIND in $CURRENT_CHE_DEBUG; do
+    case $SINGLE_BIND in
+      *8000/tcp:*)
+        echo $SINGLE_BIND | cut -f2 -d":"
+      ;;
+      *)
+      ;;
+    esac
+  done
+}
+
+get_che_container_host_ip_from_container() {
+  BINDS=$(docker inspect --format="{{.Config.Cmd}}" "${1}" | cut -d '[' -f 2 | cut -d ']' -f 1)
+
+  IFS=$' '
+  for SINGLE_BIND in $BINDS; do
+    case $SINGLE_BIND in
+      *--remote*)
+        echo $SINGLE_BIND | cut -f2 -d":"
+      ;;
+      *)
+      ;;
+    esac
+  done
+}
 
 get_che_container_host_bind_folder() {
-  BINDS=$(docker inspect --format="{{.HostConfig.Binds}}" "${CHE_SERVER_CONTAINER_NAME}" | cut -d '[' -f 2 | cut -d ']' -f 1)
+  BINDS=$(docker inspect --format="{{.HostConfig.Binds}}" "${2}" | cut -d '[' -f 2 | cut -d ']' -f 1)
 
+  IFS=$' '
   for SINGLE_BIND in $BINDS; do
     case $SINGLE_BIND in
       *$1*)
@@ -327,21 +384,21 @@ get_che_container_host_bind_folder() {
 }
 
 get_che_container_conf_folder() {
-  FOLDER=$(get_che_container_host_bind_folder "/conf")
+  FOLDER=$(get_che_container_host_bind_folder "/conf:Z" $1)
   echo "${FOLDER:=not set}"
 }
 
 get_che_container_data_folder() {
-  FOLDER=$(get_che_container_host_bind_folder "/home/user/che/workspaces")
+  FOLDER=$(get_che_container_host_bind_folder "/home/user/che/workspaces:Z" $1)
   echo "${FOLDER:=not set}"
 }
 
 get_che_container_image_name() {
-  docker inspect --format="{{.Config.Image}}" "${CHE_SERVER_CONTAINER_NAME}"
+  docker inspect --format="{{.Config.Image}}" "${1}"
 }
 
 get_che_server_container_id() {
-  docker ps -q -a -f "name=${CHE_SERVER_CONTAINER_NAME}"
+  docker inspect -f '{{.Id}}' ${1}
 }
 
 get_docker_external_hostname() {
@@ -356,7 +413,7 @@ wait_until_container_is_running() {
   CONTAINER_START_TIMEOUT=${1}
 
   ELAPSED=0
-  until che_container_is_running || [ ${ELAPSED} -eq "${CONTAINER_START_TIMEOUT}" ]; do
+  until che_container_is_running ${2} || [ ${ELAPSED} -eq "${CONTAINER_START_TIMEOUT}" ]; do
     sleep 1
     ELAPSED=$((ELAPSED+1))
   done
@@ -366,14 +423,14 @@ wait_until_container_is_stopped() {
   CONTAINER_STOP_TIMEOUT=${1}
 
   ELAPSED=0
-  until che_container_is_stopped || [ ${ELAPSED} -eq "${CONTAINER_STOP_TIMEOUT}" ]; do
+  until che_container_is_stopped ${2} || [ ${ELAPSED} -eq "${CONTAINER_STOP_TIMEOUT}" ]; do
     sleep 1
     ELAPSED=$((ELAPSED+1))
   done
 }
 
 server_is_booted() {
-  HTTP_STATUS_CODE=$(curl -I http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' "${CHE_SERVER_CONTAINER_NAME}"):8080/api/ \
+  HTTP_STATUS_CODE=$(curl -I http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' "${1}"):8080/api/ \
                      -s -o /dev/null --write-out "%{http_code}")
   if [ "${HTTP_STATUS_CODE}" = "200" ]; then
     return 0
@@ -384,7 +441,7 @@ server_is_booted() {
 
 get_server_version() {
   HTTP_STATUS_CODE=$(curl -X OPTIONS http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' \
-                          "${CHE_SERVER_CONTAINER_NAME}"):8080/api/ -s)
+                          "${1}"):8080/api/ -s)
 
   FIRST=${HTTP_STATUS_CODE//\ /}
   IFS=','
@@ -403,7 +460,7 @@ wait_until_server_is_booted () {
   SERVER_BOOT_TIMEOUT=${1}
 
   ELAPSED=0
-  until server_is_booted || [ ${ELAPSED} -eq "${SERVER_BOOT_TIMEOUT}" ]; do
+  until server_is_booted ${2} || [ ${ELAPSED} -eq "${SERVER_BOOT_TIMEOUT}" ]; do
     sleep 1
     ELAPSED=$((ELAPSED+1))
   done
