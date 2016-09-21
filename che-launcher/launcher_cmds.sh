@@ -34,6 +34,7 @@ start_che_server() {
                           -s:client \
                           ${CHE_DEBUG_OPTION} \
                           run > /dev/null
+
   CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
   wait_until_container_is_running 10 ${CURRENT_CHE_SERVER_CONTAINER_ID}
   if ! che_container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
@@ -59,7 +60,12 @@ start_che_server() {
 }
 
 stop_che_server() {
-  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
+  if [ $# -gt 0 ]; then
+    CURRENT_CHE_SERVER_CONTAINER_ID=$1
+  else
+    CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
+  fi
+
   if ! che_container_is_running $CURRENT_CHE_SERVER_CONTAINER_ID; then
     info "${CHE_PRODUCT_NAME}: Container is not running. Nothing to do."
   else
@@ -77,10 +83,16 @@ stop_che_server() {
 }
 
 restart_che_server() {
-  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
-  if che_container_is_running $CURRENT_CHE_SERVER_CONTAINER_ID; then
-    stop_che_server
+  if [ $# -gt 0 ]; then
+    CURRENT_CHE_SERVER_CONTAINER_ID=$1
+  else
+    CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
   fi
+
+  if che_container_is_running $CURRENT_CHE_SERVER_CONTAINER_ID; then
+    stop_che_server $CURRENT_CHE_SERVER_CONTAINER_ID
+  fi
+
   start_che_server
 }
 

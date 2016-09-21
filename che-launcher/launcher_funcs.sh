@@ -320,13 +320,23 @@ che_container_is_stopped() {
   fi
 }
 
+contains() {
+    string="$1"
+    substring="$2"
+    if test "${string#*$substring}" != "$string"
+    then
+        return 0    # $substring is in $string
+    else
+        return 1    # $substring is not in $string
+    fi
+}
+
 has_container_debug () {
-  if [ $(get_container_debug $1) = "<nil>" ]; then
+  if $(contains $(get_container_debug $1) "<nil>"); then
     return 1
   else
     return 0
   fi
-
 }
 
 get_container_debug() {
