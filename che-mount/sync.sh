@@ -88,15 +88,14 @@ if [ $status -ne 0 ]; then
     exit 1
 fi
 info "INFO: ECLIPSE CHE: Successfully mounted user@$1:/projects"
-info "INFO: ECLIPSE CHE: First syncronisation is happening now and can take a long time. Please wait."
+info "INFO: ECLIPSE CHE: Intial sync...Please wait."
 unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
 status=$?
 if [ $status -ne 0 ]; then
     error "ERROR: Fatal error occurred ($status)"
     exit 1
 fi
-info "INFO: ECLIPSE CHE: First syncronisation completed."
-info "INFO: ECLIPSE CHE: Now synchronization happens continuously every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+info "INFO: ECLIPSE CHE: Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
 
 # -repeat=watch doesn't work because SSHFS doesn't support inotify and 
 # unison-fsmonitor rely on inotify
