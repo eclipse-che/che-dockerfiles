@@ -106,7 +106,7 @@ init_global_variables() {
 Usage:
   docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock ${LAUNCHER_IMAGE_NAME} [COMMAND]
      start                              Starts ${CHE_MINI_PRODUCT_NAME} server
-     stop                               Stops ${CHE_MINI_PRODUCT_NAME} server
+     stop [<container_id>]              Stops ${CHE_MINI_PRODUCT_NAME} server
      restart                            Restart ${CHE_MINI_PRODUCT_NAME} server
      update                             Pull latest version of ${CHE_SERVER_IMAGE_NAME}
      info                               Print some debugging information
