@@ -67,7 +67,7 @@ stop_che_server() {
   fi
 
   if ! che_container_is_running $CURRENT_CHE_SERVER_CONTAINER_ID; then
-    info "${CHE_PRODUCT_NAME}: Container is not running. Nothing to do."
+    info "${CHE_PRODUCT_NAME}: Container $CURRENT_CHE_SERVER_CONTAINER_ID is not running. Nothing to do."
   else
     info "${CHE_PRODUCT_NAME}: Stopping server..."
     docker exec ${CURRENT_CHE_SERVER_CONTAINER_ID} /home/user/che/bin/che.sh -c -s:uid stop > /dev/null
