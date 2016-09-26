@@ -12,7 +12,7 @@
 #
 # To build and run, see README.md
 
-FROM mhart/alpine-node
+FROM mhart/alpine-node:base-6
 
 ENV DOCKER_BUCKET get.docker.com
 ENV DOCKER_VERSION 1.6.0
@@ -23,7 +23,8 @@ RUN set -x \
     curl \
     openssl \
     && curl -sL "https://${DOCKER_BUCKET}/builds/Linux/x86_64/docker-$DOCKER_VERSION" \
-    > /usr/bin/docker; chmod +x /usr/bin/docker
+    > /usr/bin/docker; chmod +x /usr/bin/docker \
+    && apk del curl ca-certificates openssl
 
 
 COPY lib/typescript/lib /lib
