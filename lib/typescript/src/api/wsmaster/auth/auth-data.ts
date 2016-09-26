@@ -44,7 +44,12 @@ export class AuthData {
         if (port) {
             this.port = port;
         } else {
-            this.port = this.DEFAULT_PORT;
+            // handle CHE_PORT if any
+            if (process.env.CHE_PORT) {
+                this.port = process.env.CHE_PORT;
+            } else {
+                this.port = this.DEFAULT_PORT;
+            }
         }
 
 
