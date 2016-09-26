@@ -502,7 +502,7 @@ export class CheDir {
 
 
   up() : Promise<string> {
-
+  let start : number = Date.now();
     // call init if not initialized and then call up
     return this.isInitialized().then((isInitialized) => {
       if (!isInitialized) {
@@ -583,22 +583,24 @@ export class CheDir {
             ideUrl = link.href;
           }
         });
-        if (needToSetupProject) {
-          Log.getLogger().info(this.i18n.get('up.updating-project'));
-          var project:Project = new Project(workspaceDto);
-          // update created project to blank
-          return this.estimateAndUpdateProject(project, this.chefileStructWorkspace.projects[0].type);
-          
-        } else {
-          Promise.resolve('existing project')
-        }
       }).then(() => {
           return this.setupSSHKeys(userWorkspaceDto);
+      }).then(() => {
+        if (needToSetupProject) {
+         Log.getLogger().info(this.i18n.get('up.updating-project'));
+         var project:Project = new Project(userWorkspaceDto);
+         // update created project to blank
+         return this.estimateAndUpdateProject(project, this.chefileStructWorkspace.projects[0].type);
+         } else {
+          Promise.resolve('existing project');
+        }
       }).then(() => {
         return this.executeCommandsFromCurrentWorkspace(userWorkspaceDto);
       }).then(() => {
         Log.getLogger().info(this.i18n.get('up.workspace-booted'));
       }).then(() => {
+        let end : number = Date.now();
+        Log.getLogger().debug("time =", end - start);
         Log.getLogger().info(this.i18n.get('up.workspace-connect-to', ideUrl));
         return ideUrl;
       });
