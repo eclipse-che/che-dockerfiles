@@ -19,6 +19,22 @@ import {Log} from "../log/log";
  */
 export class ArgumentProcessor {
 
+
+    static displayHelp(metadataArguments:Array<ArgumentTypeDesc> , metadataParameters:Array<ParameterTypeDesc>) : void {
+        // display help menu
+        if (metadataParameters) {
+            metadataParameters.forEach((metadataParameter) => {
+                Log.getLogger().info('Parameter ' + metadataParameter.names, '\t\t', metadataParameter.description);
+            });
+        }
+
+        if (metadataArguments) {
+            metadataArguments.forEach((metadataArgument) => {
+                Log.getLogger().info(metadataArgument.fieldName, '\t\t', metadataArgument.description);
+            });
+        }
+    }
+
     static inject(object : any, args: Array<string>) : Array<string> {
         var metadataArguments:Array<ArgumentTypeDesc> = object.__arguments;
         var metadataParameters:Array<ParameterTypeDesc> = object.__parameters;
@@ -30,18 +46,7 @@ export class ArgumentProcessor {
 
         // handle special help feature
         if (updatedArgs.length == 1 && ('--help' === updatedArgs[0] || 'help' === updatedArgs[0])) {
-            // display help menu
-            if (metadataParameters) {
-                metadataParameters.forEach((metadataParameter) => {
-                    Log.getLogger().info('Parameter ' + metadataParameter.names, '\t\t', metadataParameter.description);
-                });
-            }
-
-            if (metadataArguments) {
-                metadataArguments.forEach((metadataArgument) => {
-                    Log.getLogger().info(metadataArgument.fieldName, '\t\t', metadataArgument.description);
-                });
-            }
+            ArgumentProcessor.displayHelp(metadataArguments, metadataParameters);
             process.exit(0);
         }
 
@@ -125,6 +130,7 @@ export class ArgumentProcessor {
                 // we're requiring an argument but it's not there
                 if (updatedArgs.length == 0) {
                     Log.getLogger().error('Expecting mandatory parameter : ' + argument.description);
+                    ArgumentProcessor.displayHelp(metadataArguments, metadataParameters);
                     process.exit(1);
                 }
 
