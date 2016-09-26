@@ -391,7 +391,7 @@ export class CheDir {
         // check workspace exists
         this.workspace = new Workspace(this.authData);
         return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
-      }).then((workspaceDto) => {
+      }).then((workspaceDto : WorkspaceDto) => {
         // found it
         if (!workspaceDto) {
           return Promise.reject('Eclipse Che is running ' + this.buildLocalCheURL() + ' but workspace (' + this.chefileStructWorkspace.name + ') has not been found');
@@ -407,7 +407,7 @@ export class CheDir {
         Log.getLogger().info(this.i18n.get('status.workspace.name', this.chefileStructWorkspace.name));
         Log.getLogger().info(this.i18n.get('status.workspace.url', ideUrl));
         Log.getLogger().info(this.i18n.get('status.instance.id', this.instanceId));
-        return true;
+        return Promise.resolve(true);
       });
     });
 
@@ -481,7 +481,7 @@ export class CheDir {
         this.workspace = new Workspace(this.authData);
         // now, check if there is a workspace
         return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
-      }).then((workspaceDto) => {
+      }).then((workspaceDto : WorkspaceDto) => {
         // exists ?
         if (!workspaceDto) {
           // workspace is not existing
@@ -684,7 +684,7 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
         // check workspace exists
         this.workspace = new Workspace(this.authData);
         return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
-      }).then((workspaceDto) => {
+      }).then((workspaceDto : WorkspaceDto) => {
         // found it
         if (!workspaceDto) {
           return Promise.reject('Eclipse Che is running ' + this.buildLocalCheURL() + ' but workspace (' + this.chefileStructWorkspace.name + ') has not been found');

@@ -62,12 +62,7 @@ export class CheAction {
     run() : Promise<any> {
        let classOfAction: any = this.mapOfActions.get(this.actionName);
        if (classOfAction) {
-           var instance = Object.create(classOfAction.prototype);
-           // here we use an array of array as constructor instance is an array and apply method is also using array to give parameter
-           // so it results in having only the first argument of the array without this hack
-           let arrayOfArray : Array<any> = new Array<any>();
-           arrayOfArray.push(this.args);
-           instance.constructor.apply(instance, arrayOfArray);
+           var instance = new classOfAction(this.args);
            return instance.run();
        } else {
            // The given test name has not been found, display available actions

@@ -1,5 +1,3 @@
-/// <reference path='../typings/tsd.d.ts' />
-
 import {StringUtils} from './string-utils';
 
 let expect = require('chai').expect;
