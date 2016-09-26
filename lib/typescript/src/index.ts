@@ -9,8 +9,6 @@
  *   Codenvy, S.A. - initial API and implementation
  */
 
-/// <reference path='./typings/tsd.d.ts' />
-
 import {Argument} from "./spi/decorator/parameter";
 import {Parameter} from "./spi/decorator/parameter";
 import {ArgumentProcessor} from "./spi/decorator/argument-processor";

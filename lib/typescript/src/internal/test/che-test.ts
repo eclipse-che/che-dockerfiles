@@ -59,12 +59,7 @@ export class CheTest {
            // update logger
            Log.context = ProductName.getShortDisplayName() + '(test/' + this.testName + ')';
 
-           var instance = Object.create(classOfTest.prototype);
-           // here we use an array of array as constructor instance is an array and apply method is also using array to give parameter
-           // so it results in having only the first argument of the array without this hack
-           let arrayOfArray : Array<any> = new Array<any>();
-           arrayOfArray.push(this.args);
-           instance.constructor.apply(instance, arrayOfArray);
+           var instance = new classOfTest(this.args);
            return instance.run();
        } else {
            // The given test name has not been found, display available tests
