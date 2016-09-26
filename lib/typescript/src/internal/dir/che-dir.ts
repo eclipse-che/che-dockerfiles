@@ -82,7 +82,7 @@ export class CheDir {
   mode;
   args : Array<string>;
 
-
+  cheLauncherImageName : string;
 
   websocket: Websocket;
   authData: AuthData;
@@ -111,6 +111,13 @@ export class CheDir {
     this.websocket = new Websocket();
 
     this.authData = new AuthData();
+
+    // che launcher image name
+    if (process.env.CHE_LAUNCHER_IMAGE_NAME) {
+      this.cheLauncherImageName = process.env.CHE_LAUNCHER_IMAGE_NAME
+    } else {
+      this.cheLauncherImageName = 'codenvy/che-launcher';
+    }
   }
 
 
@@ -895,7 +902,7 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
           ' -e CHE_DATA_FOLDER=' + this.workspacesFolder +
           ' -e CHE_CONF_FOLDER=' + this.confFolder +
           ' -e CHE_SERVER_CONTAINER_NAME=' + this.getCheServerContainerName() +
-          ' codenvy/che-launcher:' + containerVersion + ' start';
+          ' ' + this.cheLauncherImageName + ':' + containerVersion + ' start';
 
       Log.getLogger().debug('Executing command line', commandLine);
 
@@ -947,7 +954,7 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
           ' -e CHE_DATA_FOLDER=' + this.workspacesFolder +
           ' -e CHE_CONF_FOLDER=' + this.confFolder +
           ' -e CHE_SERVER_CONTAINER_NAME=' + this.getCheServerContainerName() +
-          ' codenvy/che-launcher:' + containerVersion + ' stop';
+          ' ' + this.cheLauncherImageName + ':' + containerVersion + ' stop';
 
       Log.getLogger().debug('Executing command line', commandLine);
 
