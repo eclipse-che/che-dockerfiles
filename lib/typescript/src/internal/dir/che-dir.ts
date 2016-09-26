@@ -125,7 +125,12 @@ export class CheDir {
   initDefault() {
     this.chefileStruct = new CheFileStruct();
     this.chefileStruct.server.ip = new RemoteIp().getIp();
-    this.chefileStruct.server.port = 8080;
+    // handle CHE_PORT if any
+    if (process.env.CHE_PORT) {
+      this.chefileStruct.server.port = process.env.CHE_PORT;
+    } else {
+      this.chefileStruct.server.port = 8080;
+    }
     this.chefileStruct.server.type =  'local';
 
     this.chefileStructWorkspace = new CheFileStructWorkspace();
