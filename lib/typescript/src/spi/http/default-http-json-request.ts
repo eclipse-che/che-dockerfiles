@@ -11,6 +11,7 @@
 
 import {AuthData} from "../../api/wsmaster/auth/auth-data";
 import {Log} from "../log/log";
+import {org} from "../../api/dto/che-dto";
 /**
  * Implementation of a Request on the remote server
  * @author Florent Benoit
@@ -54,8 +55,12 @@ export class DefaultHttpJsonRequest implements HttpJsonRequest {
     }
 
 
-    setBody(body : any) : DefaultHttpJsonRequest {
-        this.body = body;
+    setBody(value : any) : DefaultHttpJsonRequest {
+        if (value.toJson) {
+            this.body = value.toJson();
+        } else {
+            this.body = value;
+        }
         return this;
     }
 
@@ -134,11 +139,33 @@ export class DefaultHttpJsonResponse implements HttpJsonResponse {
     getData() : any {
         return this.data;
     }
+
+
+    asDto(dtoImplementation : any) : any {
+        //let interfaceName: string = dtoClass.name;
+        return new dtoImplementation(JSON.parse(this.data));
+    }
+
+    asArrayDto(dtoImplementation : any) : Array<any> {
+        let parsed : any = JSON.parse(this.data);
+        let arrayDto:Array<any> = new Array<any>();
+        parsed.forEach((entry) => {
+            let implementationInstance = new dtoImplementation(entry);
+            arrayDto.push(implementationInstance);
+        });
+        return arrayDto;
+    }
+
 }
 
 export interface HttpJsonResponse {
 
     getData() : any;
+
+    asDto(dtoImplementation : any) : any;
+
+    asArrayDto(dtoImplementation : any) : Array<any>;
+
 }
 
 export interface HttpJsonRequest {

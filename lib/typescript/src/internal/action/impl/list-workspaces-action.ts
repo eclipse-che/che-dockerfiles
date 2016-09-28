@@ -11,14 +11,13 @@
 
 
 // imports
-
+import {org} from "../../../api/dto/che-dto"
 import {ArgumentProcessor} from "../../../spi/decorator/argument-processor";
 import {Workspace} from "../../../api/wsmaster/workspace/workspace";
 import {AuthData} from "../../../api/wsmaster/auth/auth-data";
 import {Parameter} from "../../../spi/decorator/parameter";
 import {CreateWorkspaceConfig} from "../../../api/wsmaster/workspace/workspace";
 import {Log} from "../../../spi/log/log";
-import {WorkspaceDto} from "../../../api/wsmaster/workspace/dto/workspacedto";
 
 /**
  * This class list all workspaces
@@ -49,12 +48,11 @@ export class ListWorkspacesAction {
 
         return this.authData.login().then(() => {
             return this.workspace.getWorkspaces()
-                .then((workspaceDtos:Array<WorkspaceDto>) => {
+                .then((workspaceDtos:Array<org.eclipse.che.api.workspace.shared.dto.WorkspaceDto>) => {
                     // then start it
                     Log.getLogger().info('Total workspaces:', workspaceDtos.length);
-
-                    workspaceDtos.forEach((workspaceDto:WorkspaceDto) => {
-                        Log.getLogger().info('Workspace ', workspaceDto.getContent().config.name, '(' + workspaceDto.getId() + ')',"\t", workspaceDto.getContent().status);
+                    workspaceDtos.forEach((workspaceDto : any) => {
+                        Log.getLogger().info('Workspace ', workspaceDto.getConfig().getName(), '(' + workspaceDto.getId() + ')',"\t", workspaceDto.getStatus());
                     })
                 });
         });

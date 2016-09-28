@@ -9,10 +9,9 @@
  *   Codenvy, S.A. - initial API and implementation
  */
 
-
+import {org} from "../../../api/dto/che-dto"
 import {MessageBusSubscriber} from "../../../spi/websocket/messagebus-subscriber";
 import {MessageBus} from "../../../spi/websocket/messagebus";
-import {WorkspaceDto} from "./dto/workspacedto";
 import {Log} from "../../../spi/log/log";
 /**
  * Handle a promise that will be resolved when workspace is stopped.
@@ -22,16 +21,16 @@ import {Log} from "../../../spi/log/log";
 export class WorkspaceStopEventPromiseMessageBusSubscriber implements MessageBusSubscriber {
 
     messageBus : MessageBus;
-    workspaceDto : WorkspaceDto;
+    workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
 
     resolve : any;
     reject : any;
-    promise: Promise<WorkspaceDto>;
+    promise: Promise<org.eclipse.che.api.workspace.shared.dto.WorkspaceDto>;
 
-    constructor(messageBus : MessageBus, workspaceDto : WorkspaceDto) {
+    constructor(messageBus : MessageBus, workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) {
         this.messageBus = messageBus;
         this.workspaceDto = workspaceDto;
-        this.promise = new Promise<WorkspaceDto>((resolve, reject) => {
+        this.promise = new Promise<org.eclipse.che.api.workspace.shared.dto.WorkspaceDto>((resolve, reject) => {
             this.resolve = resolve;
             this.reject = reject;
         });

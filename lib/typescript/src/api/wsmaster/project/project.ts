@@ -9,9 +9,8 @@
  *   Codenvy, S.A. - initial API and implementation
  */
 
-import {ProjectDto} from "./dto/projectdto";
+import {org} from "../../../api/dto/che-dto"
 import {AuthData} from "../auth/auth-data";
-import {WorkspaceDto} from "../workspace/dto/workspacedto";
 import {Log} from "../../../spi/log/log";
 import {HttpJsonRequest} from "../../../spi/http/default-http-json-request";
 import {DefaultHttpJsonRequest} from "../../../spi/http/default-http-json-request";
@@ -36,18 +35,18 @@ export class Project {
     /**
      * Workspace DTO
      */
-    workspaceDTO : WorkspaceDto;
+    workspaceDTO : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
 
     /**
      * Path to the workspace agent
      */
     wsAgentPath : string;
 
-    constructor(workspaceDTO: WorkspaceDto) {
+    constructor(workspaceDTO: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) {
         this.workspaceDTO = workspaceDTO;
 
         // searche the workspace agent link
-        let links : Array<any> = this.workspaceDTO.getContent().runtime.links;
+        let links : Array<any> = this.workspaceDTO.getRuntime().getLinks();
         var hrefWsAgent;
         links.forEach((link) => {
            if ('wsagent' === link.rel) {
@@ -55,7 +54,7 @@ export class Project {
            }
         });
         if (!hrefWsAgent) {
-            throw new Error('unable to find the workspace agent in dto :' + JSON.stringify(this.workspaceDTO.getContent()));
+            throw new Error('unable to find the workspace agent in dto :' + workspaceDTO);
         }
         var urlObject : any = require('url').parse(hrefWsAgent);
 
@@ -72,53 +71,12 @@ export class Project {
     /**
      * Get project details for a given project name
      */
-    getProject(projectName) : Promise<ProjectDto> {
-        var options = {
-            hostname: this.authData.getHostname(),
-            port: this.authData.getPort(),
-            path: this.wsAgentPath + '/project/' + projectName + '?token=' + this.authData.getToken(),
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json;charset=UTF-8'
-            }
-        };
+    getProject(projectName) : Promise<org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto> {
 
-        return new Promise<ProjectDto>((resolve, reject) => {
-            var req = this.http.request(options, (res) => {
-
-                var data:string = '';
-
-                res.on('error', (error) => {
-                    Log.getLogger().error('rejecting as we got error', error);
-                    reject('invalid response' + error)
-                });
-
-                res.on('data', (body) => {
-                    data += body;
-                });
-
-                res.on('end', () => {
-                    if (res.statusCode == 200) {
-                        resolve(new ProjectDto(JSON.parse(data)));
-                    } else {
-                        reject('Invalid response code');
-                    }
-                });
-            });
-
-
-            req.on('error', (err) => {
-                Log.getLogger().error('rejecting as we got error', err);
-                reject('HTTP error: ' + err);
-            });
-
-
-            req.write('{}');
-            req.end();
-
+        var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, this.wsAgentPath + '/project/' + projectName, 200);
+        return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
+            return jsonResponse.asDto(org.eclipse.che.api.workspace.shared.dto.ProjectConfigDtoImpl);
         });
-
     }
 
     /**
@@ -127,11 +85,11 @@ export class Project {
      * @param projectDTO a DTO containing all attributes to set as new attributes
      * @return a promise with the updated Project DTO
      */
-    updateType(projectName, projectType) : Promise<ProjectDto> {
+    updateType(projectName, projectType) : Promise<org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto> {
         // first get project attributes
         return this.getProject(projectName).then((projectDto) => {
             // then update the project type
-            projectDto.getContent().type = projectType;
+            projectDto.setType(projectType);
 
             // and perform update of all these attributes
             return this.update(projectName, projectDto);
@@ -142,10 +100,10 @@ export class Project {
 
     /**
      */
-    estimateType(projectName, projectType) : Promise<any> {
-         var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, this.wsAgentPath + '/project/estimate/' + projectName + '?type=' + projectType, 200);
+    estimateType(projectName, projectType) : Promise<org.eclipse.che.api.project.shared.dto.SourceEstimation> {
+        var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, this.wsAgentPath + '/project/estimate/' + projectName + '?type=' + projectType, 200);
         return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
-            return JSON.parse(jsonResponse.getData());
+            return jsonResponse.asDto(org.eclipse.che.api.project.shared.dto.SourceEstimationImpl);
         });
 
     }
@@ -159,53 +117,11 @@ export class Project {
      * @param projectDTO a DTO containing all attributes to set as new attributes
      * @return a promise with the updated Project DTO
      */
-    update(projectName: string, projectDto: ProjectDto): Promise<ProjectDto> {
+    update(projectName: string, projectDto: org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto): Promise<org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto> {
 
-        var options = {
-            hostname: this.authData.getHostname(),
-            port: this.authData.getPort(),
-            path: this.wsAgentPath + '/project/' + projectName + '?token=' + this.authData.getToken(),
-            method: 'PUT',
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json;charset=UTF-8'
-            }
-        };
-
-
-
-        return new Promise<ProjectDto>((resolve, reject) => {
-            var req = this.http.request(options, (res) => {
-
-                var data:string = '';
-
-                res.on('error', (error) => {
-                    Log.getLogger().error('rejecting as we got error', error);
-                    reject('invalid response' + error)
-                });
-
-                res.on('data', (body) => {
-                    data += body;
-                });
-
-                res.on('end', () => {
-                    if (res.statusCode == 200) {
-                        resolve(new ProjectDto(JSON.parse(data)));
-                    } else {
-                        reject('Invalid response code while updating project with name "' + projectName + '". Error code "' + res.statusCode + '" and response is "' + data + "'.");
-                    }
-                });
-            });
-
-
-            req.on('error', (err) => {
-                Log.getLogger().error('rejecting as we got error', err);
-                reject('HTTP error: ' + err);
-            });
-
-            req.write(JSON.stringify(projectDto.getContent()));
-            req.end();
-
+        var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, this.wsAgentPath + '/project/' + projectName, 200).setMethod("PUT").setBody(projectDto);
+        return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
+            return jsonResponse.asDto(org.eclipse.che.api.workspace.shared.dto.ProjectConfigDtoImpl);
         });
     }
 

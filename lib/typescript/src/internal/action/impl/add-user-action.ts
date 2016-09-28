@@ -11,14 +11,13 @@
 
 
 // imports
-
+import {org} from "../../../api/dto/che-dto"
 import {Argument} from "../../../spi/decorator/parameter";
 import {Parameter} from "../../../spi/decorator/parameter";
 import {AuthData} from "../../../api/wsmaster/auth/auth-data";
 import {User} from "../../../api/wsmaster/user/user";
 import {ArgumentProcessor} from "../../../spi/decorator/argument-processor";
 import {Log} from "../../../spi/log/log";
-import {UserDto} from "../../../api/wsmaster/user/dto/userdto";
 import {Permissions} from "../../../api/wsmaster/permissions/permissions";
 /**
  * This class is handling the add of a user and also consider to add user as being admin.
@@ -62,15 +61,15 @@ export class AddUserAction {
         return this.authData.login().then(() => {
             // then create user
             Log.getLogger().info('Creating user ' + this.userToAdd);
-            return this.user.createUser(this.userToAdd, this.emailToAdd, this.passwordToAdd).then((userDto : UserDto) => {
-                Log.getLogger().info('User', this.userToAdd, 'created with id', userDto.getContent().id);
+            return this.user.createUser(this.userToAdd, this.emailToAdd, this.passwordToAdd).then((userDto : org.eclipse.che.api.user.shared.dto.UserDto) => {
+                Log.getLogger().info('User', this.userToAdd, 'created with id', userDto.getId());
 
                 // if user should not be addes as admin, job is done
                 if (!this.admin) {
                     return Promise.resolve(true);
                 } else {
                     let permissions: Permissions = new Permissions(this.authData);
-                    return permissions.copyCurrentPermissionsToUser(userDto.getContent().id);
+                    return permissions.copyCurrentPermissionsToUser(userDto.getId());
                 }
             })
         });

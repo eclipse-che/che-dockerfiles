@@ -11,7 +11,7 @@
 
 
 // imports
-
+import {org} from "../../../api/dto/che-dto"
 import {Argument} from "../../../spi/decorator/parameter";
 import {Parameter} from "../../../spi/decorator/parameter";
 import {AuthData} from "../../../api/wsmaster/auth/auth-data";
@@ -20,7 +20,6 @@ import {ArgumentProcessor} from "../../../spi/decorator/argument-processor";
 import {Log} from "../../../spi/log/log";
 import {MachineServiceClientImpl} from "../../../api/wsmaster/machine/machine-service-client";
 import {UUID} from "../../../utils/uuid";
-import {MachineProcessDto} from "../../../api/wsmaster/machine/dto/machine-process-dto";
 import {CheFileStructWorkspaceCommand} from "../../dir/chefile-struct/che-file-struct";
 import {CheFileStructWorkspaceCommandImpl} from "../../dir/chefile-struct/che-file-struct";
 /**
@@ -64,12 +63,12 @@ export class ExecuteCommandAction {
             return this.workspace.searchWorkspace(this.workspaceName).then((workspaceDto) => {
 
                 // check status
-                if ('RUNNING' !== workspaceDto.getContent().status) {
-                    throw new Error('Workspace should be in running state. Current state is ' + workspaceDto.getContent().status);
+                if ('RUNNING' !== workspaceDto.getStatus()) {
+                    throw new Error('Workspace should be in running state. Current state is ' + workspaceDto.getStatus());
                 }
 
                 // get dev machine
-                let machineId : string = workspaceDto.getContent().runtime.devMachine.id;
+                let machineId : string = workspaceDto.getRuntime().getDevMachine().getId();
 
                 // now, execute command
                 let uuid : string = UUID.build();
@@ -79,7 +78,7 @@ export class ExecuteCommandAction {
                 let workspaceCommand : CheFileStructWorkspaceCommand = new CheFileStructWorkspaceCommandImpl();
                 workspaceCommand.commandLine = this.args.join(" ");
                 return machineServiceClient.executeCommand(workspaceDto, machineId, workspaceCommand, channel);
-            }).then((machineProcessDto: MachineProcessDto) => {
+            }).then((machineProcessDto: org.eclipse.che.api.machine.shared.dto.MachineProcessDto) => {
                 // command executed
             });
         });

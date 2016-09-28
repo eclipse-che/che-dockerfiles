@@ -11,16 +11,14 @@
 
 
 // imports
-
-
-
+import {org} from "../../../api/dto/che-dto"
 import {Argument} from "../../../spi/decorator/parameter";
 import {Parameter} from "../../../spi/decorator/parameter";
 import {AuthData} from "../../../api/wsmaster/auth/auth-data";
 import {User} from "../../../api/wsmaster/user/user";
 import {ArgumentProcessor} from "../../../spi/decorator/argument-processor";
 import {Log} from "../../../spi/log/log";
-import {UserDto} from "../../../api/wsmaster/user/dto/userdto";
+
 /**
  * This class is handling the removal of a user
  * @author Florent Benoit
@@ -53,7 +51,7 @@ export class RemoveUserAction {
         // first, login
         return this.authData.login().then(() => {
             Log.getLogger().info('Searching user with name ' + this.usernameToDelete);
-            return this.user.findUserName(this.usernameToDelete).then((userDto: UserDto) => {
+            return this.user.findUserName(this.usernameToDelete).then((userDto: org.eclipse.che.api.user.shared.dto.UserDto) => {
                 // then delete user
                 Log.getLogger().info('Removing user with name ' + this.usernameToDelete, 'and id', userDto.getId());
                 return this.user.deleteUser(userDto.getId());
