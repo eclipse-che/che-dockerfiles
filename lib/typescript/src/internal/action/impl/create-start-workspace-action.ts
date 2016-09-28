@@ -60,9 +60,9 @@ export class CreateStartWorkspaceAction {
                     return this.workspace.startWorkspace(workspaceDto.getId(), !this.isQuiet);
                 }).then((workspaceDto) => {
                     var ideUrl: string;
-                    workspaceDto.getContent().links.forEach((link) => {
-                        if ('ide url' === link.rel) {
-                            ideUrl = link.href;
+                    workspaceDto.getLinks().forEach((link) => {
+                        if ('ide url' === link.getRel()) {
+                            ideUrl = link.getHref();
                         }
                     });
 

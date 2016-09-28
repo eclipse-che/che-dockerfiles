@@ -9,13 +9,12 @@
  *   Codenvy, S.A. - initial API and implementation
  */
 
+import {org} from "../../../api/dto/che-dto"
 import {ProcessTerminatedEventPromiseMessageBusSubscriber} from "./process-terminated-event-promise-subscriber";
 import {ProcesLogOutputMessageBusSubscriber} from "./process-log-output-subscriber";
 import {AuthData} from "../auth/auth-data";
 import {Websocket} from "../../../spi/websocket/websocket";
 import {Workspace} from "../workspace/workspace";
-import {WorkspaceDto} from "../workspace/dto/workspacedto";
-import {MachineProcessDto} from "./dto/machine-process-dto";
 import {MessageBusSubscriber} from "../../../spi/websocket/messagebus-subscriber";
 import {MessageBus} from "../../../spi/websocket/messagebus";
 import {HttpJsonRequest} from "../../../spi/http/default-http-json-request";
@@ -51,11 +50,11 @@ export class MachineServiceClientImpl {
     /**
      * Create a workspace and return a promise with content of WorkspaceDto in case of success
      */
-    executeCommand(workspaceDto : WorkspaceDto,
+    executeCommand(workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto,
                    machineId:string,
                    cheFileStructWorkspaceCommand:CheFileStructWorkspaceCommand,
                    outputChannel:string,
-                   asynchronous : boolean = true):Promise<MachineProcessDto> {
+                   asynchronous : boolean = true):Promise<org.eclipse.che.api.machine.shared.dto.MachineProcessDto> {
 
         let command:any = {
             "name" : !cheFileStructWorkspaceCommand.name ? "custom-command" : cheFileStructWorkspaceCommand.name,
@@ -67,7 +66,7 @@ export class MachineServiceClientImpl {
         // get MessageBus
         var displayOutputWorkspaceSubscriber:MessageBusSubscriber = new ProcesLogOutputMessageBusSubscriber();
         let processTerminatedEventPromiseMessageBusSubscriber : ProcessTerminatedEventPromiseMessageBusSubscriber;
-        let userMachineProcessDto : MachineProcessDto;
+        let userMachineProcessDto : org.eclipse.che.api.machine.shared.dto.MachineProcessDto;
         let userMessageBus : MessageBus;
         return this.workspace.getMessageBus(workspaceDto).then((messageBus:MessageBus) => {
             userMessageBus = messageBus;
@@ -83,11 +82,11 @@ export class MachineServiceClientImpl {
             return jsonRequest.request();
         }).then((jsonResponse : HttpJsonResponse) => {
             // return response
-            return new MachineProcessDto(JSON.parse(jsonResponse.getData()));
-        }).then((machineProcessDto : MachineProcessDto) => {
+            return jsonResponse.asDto(org.eclipse.che.api.machine.shared.dto.MachineProcessDtoImpl);
+        }).then((machineProcessDto : org.eclipse.che.api.machine.shared.dto.MachineProcessDto) => {
             userMachineProcessDto = machineProcessDto;
             // get pid
-            let pid: number = machineProcessDto.getContent().pid;
+            let pid: number = machineProcessDto.getPid();
 
             // subscribe to pid event end
             if (asynchronous) {

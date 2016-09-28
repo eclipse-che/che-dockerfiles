@@ -9,12 +9,12 @@
  *   Codenvy, S.A. - initial API and implementation
  */
 
-
+import {org} from "../../../api/dto/che-dto"
 import {AuthData} from "../auth/auth-data";
-import {UserDto} from "./dto/userdto";
 import {HttpJsonRequest} from "../../../spi/http/default-http-json-request";
 import {DefaultHttpJsonRequest} from "../../../spi/http/default-http-json-request";
 import {HttpJsonResponse} from "../../../spi/http/default-http-json-request";
+
 /**
  * Defines communication with remote User API
  * @author Florent Benoit
@@ -35,7 +35,7 @@ export class User {
     /**
      * Create a user and return a promise with content of UserDto in case of success
      */
-    createUser(name: string, email: string, password : string) : Promise<UserDto> {
+    createUser(name: string, email: string, password : string) : Promise<org.eclipse.che.api.user.shared.dto.UserDto> {
 
         var userData = {
             password: password,
@@ -47,7 +47,7 @@ export class User {
         }
         var jsonRequest : HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, '/api/user', 201).setMethod('POST').setBody(userData);
         return jsonRequest.request().then((jsonResponse : HttpJsonResponse) => {
-            return new UserDto(JSON.parse(jsonResponse.getData()));
+            return jsonResponse.asDto(org.eclipse.che.api.user.shared.dto.UserDtoImpl);
         });
     }
 
@@ -69,10 +69,10 @@ export class User {
      * @param username the name of the user (not the id)
      * @returns {Promise<UserDto>}
      */
-    findUserName(username : string) : Promise<UserDto> {
+    findUserName(username : string) : Promise<org.eclipse.che.api.user.shared.dto.UserDto> {
         var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, '/api/user/find?name=' + username, 200);
         return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
-            return new UserDto(JSON.parse(jsonResponse.getData()));
+            return jsonResponse.asDto(org.eclipse.che.api.user.shared.dto.UserDtoImpl);
         });
     }
 

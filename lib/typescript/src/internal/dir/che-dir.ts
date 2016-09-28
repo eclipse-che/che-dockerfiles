@@ -10,6 +10,7 @@
  */
 
 // imports
+import {org} from "../../api/dto/che-dto"
 import {CheFileStructWorkspace} from './chefile-struct/che-file-struct';
 import {CheFileStruct} from './chefile-struct/che-file-struct';
 import {CheFileServerTypeStruct} from "./chefile-struct/che-file-struct";
@@ -29,7 +30,6 @@ import {DefaultHttpJsonRequest} from "../../spi/http/default-http-json-request";
 import {HttpJsonRequest} from "../../spi/http/default-http-json-request";
 import {HttpJsonResponse} from "../../spi/http/default-http-json-request";
 import {UUID} from "../../utils/uuid";
-import {WorkspaceDto} from "../../api/wsmaster/workspace/dto/workspacedto";
 import {MachineServiceClientImpl} from "../../api/wsmaster/machine/machine-service-client";
 import {CheFileStructWorkspaceCommand} from "./chefile-struct/che-file-struct";
 import {CheFileStructWorkspaceCommandImpl} from "./chefile-struct/che-file-struct";
@@ -396,7 +396,7 @@ export class CheDir {
         // check workspace exists
         this.workspace = new Workspace(this.authData);
         return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
-      }).then((workspaceDto : WorkspaceDto) => {
+      }).then((workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) => {
         // found it
         if (!workspaceDto) {
           return Promise.reject('Eclipse Che is running ' + this.buildLocalCheURL() + ' but workspace (' + this.chefileStructWorkspace.name + ') has not been found');
@@ -404,9 +404,9 @@ export class CheDir {
 
         // search IDE url link
         let ideUrl : string = 'N/A';
-        workspaceDto.getContent().links.forEach((link) => {
-          if ('ide url' === link.rel) {
-            ideUrl = link.href;
+        workspaceDto.getLinks().forEach((link) => {
+          if ('ide url' === link.getRel()) {
+            ideUrl = link.getHref();
           }
         });
         Log.getLogger().info(this.i18n.get('status.workspace.name', this.chefileStructWorkspace.name));
@@ -486,7 +486,7 @@ export class CheDir {
         this.workspace = new Workspace(this.authData);
         // now, check if there is a workspace
         return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
-      }).then((workspaceDto : WorkspaceDto) => {
+      }).then((workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) => {
         // exists ?
         if (!workspaceDto) {
           // workspace is not existing
@@ -526,7 +526,7 @@ export class CheDir {
       var ideUrl : string;
 
       var needToSetupProject: boolean = true;
-      var userWorkspaceDto: WorkspaceDto;
+      var userWorkspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
       var workspaceHasBeenCreated : boolean = false;
       return new Promise<string>((resolve, reject) => {
         this.parse();
@@ -590,9 +590,9 @@ export class CheDir {
       }).then((workspaceDto) => {
         userWorkspaceDto = workspaceDto;
         // search IDE url link
-        workspaceDto.getContent().links.forEach((link) => {
-          if ('ide url' === link.rel) {
-            ideUrl = link.href;
+        workspaceDto.getLinks().forEach((link) => {
+          if ('ide url' === link.getRel()) {
+            ideUrl = link.getHref();
           }
         });
       }).then(() => {
@@ -620,7 +620,8 @@ export class CheDir {
     });
   }
 
-setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
+
+setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) : Promise<any> {
 
    let privateKey : string;
    let publicKey : string;
@@ -652,7 +653,7 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
 
     // ok we have the public key, now storing it
     // get dev machine
-    let machineId : string = workspaceDto.getContent().runtime.devMachine.id;
+    let machineId : string = workspaceDto.getRuntime().getDevMachine().getId();
 
     let machineServiceClient:MachineServiceClientImpl = new MachineServiceClientImpl(this.workspace, this.authData);
 
@@ -689,14 +690,14 @@ setupSSHKeys(workspaceDto: WorkspaceDto) : Promise<any> {
         // check workspace exists
         this.workspace = new Workspace(this.authData);
         return this.workspace.existsWorkspace(':' + this.chefileStructWorkspace.name);
-      }).then((workspaceDto : WorkspaceDto) => {
+      }).then((workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) => {
         // found it
         if (!workspaceDto) {
           return Promise.reject('Eclipse Che is running ' + this.buildLocalCheURL() + ' but workspace (' + this.chefileStructWorkspace.name + ') has not been found');
         }
 
 
-        let port: string = workspaceDto.getContent().runtime.devMachine.runtime.servers["22/tcp"].address.split(":")[1];
+        let port: string = workspaceDto.getRuntime().getDevMachine().getRuntime().getServers()["22/tcp"].getAddress().split(":")[1];
         var spawn = require('child_process').spawn;
 
         let username : string = "user@" + this.chefileStruct.server.ip;
@@ -726,7 +727,7 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
   var projectTypeToUse: string;
   // try to estimate
   return project.estimateType(this.folderName, projectType).then((content) => {
-    if (!content.matched) {
+    if (!content.isMatched()) {
       Log.getLogger().warn('Wanted to configure project as ' + projectType + ' but server replied that this project type is not possible. Keep Blank');  
       projectTypeToUse = 'blank'; 
     } else {
@@ -744,13 +745,13 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
 
 
 
-  executeCommandsFromCurrentWorkspace(workspaceDto : WorkspaceDto) : Promise<any> {
+  executeCommandsFromCurrentWorkspace(workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) : Promise<any> {
     // get dev machine
-    let machineId : string = workspaceDto.getContent().runtime.devMachine.id;
+    let machineId : string = workspaceDto.getRuntime().getDevMachine().getId();
 
 
     let promises : Array<Promise<any>> = new Array<Promise<any>>();
-    let workspaceCommands : Array<any> = workspaceDto.getContent().config.commands;
+    let workspaceCommands : Array<any> = workspaceDto.getConfig().getCommands();
     let machineServiceClient:MachineServiceClientImpl = new MachineServiceClientImpl(this.workspace, this.authData);
 
     if (this.chefileStructWorkspace.postload.actions && this.chefileStructWorkspace.postload.actions.length > 0) {

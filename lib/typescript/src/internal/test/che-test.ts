@@ -58,7 +58,6 @@ export class CheTest {
        if (classOfTest) {
            // update logger
            Log.context = ProductName.getShortDisplayName() + '(test/' + this.testName + ')';
-
            var instance = new classOfTest(this.args);
            return instance.run();
        } else {
