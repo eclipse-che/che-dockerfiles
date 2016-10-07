@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Codenvy, S.A.
+ * Copyright (c) 2016-2016 Codenvy, S.A.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,6 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  */
-
 import {org} from "../../../api/dto/che-dto"
 import {AuthData} from "../auth/auth-data";
 import {Log} from "../../../spi/log/log";
@@ -97,7 +96,6 @@ export class Project {
 
     }
 
-
     /**
      */
     estimateType(projectName, projectType) : Promise<org.eclipse.che.api.project.shared.dto.SourceEstimation> {
@@ -107,9 +105,6 @@ export class Project {
         });
 
     }
-
-
-
 
     /**
      * Updates the given project with the provided DTO
