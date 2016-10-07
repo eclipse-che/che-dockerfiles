@@ -8,10 +8,11 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  */
-
 import {ArgumentTypeDesc} from "./parameter";
 import {ParameterTypeDesc} from "./parameter";
 import {Log} from "../log/log";
+import {DefaultAsciiForm} from "../ascii/default-ascii-form";
+import {AsciiForm} from "../ascii/ascii-form";
 
 /**
  * Manage the injection of annotations @Parameter or @Argument

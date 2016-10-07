@@ -37,7 +37,14 @@ export class CheTest {
     /**
      * Map of tests that are available.
      */
-    mapOfTests : Map<string, any>;
+    mapOfTests : Map<string, any> = CheTest.init();
+
+    static init() : Map<string,any> {
+        Log.context = ProductName.getDisplayName() + '(test)';
+        let testMap : Map<string, any> = new Map<string, any>();
+        testMap.set('post-flight-check', PostFlightCheckTest);
+        return testMap;
+    }
 
     /**
      * Analyze the arguments by injecting parameters/arguments and define the list of test classes.
@@ -45,8 +52,6 @@ export class CheTest {
      */
     constructor(args:Array<string>) {
         this.args = ArgumentProcessor.inject(this, args);
-        this.mapOfTests = new Map<string, any>();
-        this.mapOfTests.set('post-flight-check', PostFlightCheckTest);
     }
 
    /**
@@ -57,20 +62,25 @@ export class CheTest {
        let classOfTest: any = this.mapOfTests.get(this.testName);
        if (classOfTest) {
            // update logger
-           Log.context = ProductName.getShortDisplayName() + '(test/' + this.testName + ')';
+           Log.context = ProductName.getDisplayName() + '(test/' + this.testName + ')';
            var instance = new classOfTest(this.args);
            return instance.run();
        } else {
-           // The given test name has not been found, display available tests
-           Log.getLogger().error('No test-name with this value.');
-           var iterator = this.mapOfTests.keys();
-           var current = iterator.next();
-           while (!current.done) {
-               Log.getLogger().info('Available test: ' + current.value);
-               current = iterator.next();
-           }
+           // The given test name has not been found, display available actions
+           Log.getLogger().error("No test exists with provided name '" + this.testName + "'.");
+           this.help();
            process.exit(1);
        }
    }
+
+
+
+    help() : void {
+        Log.getLogger().info("Available tests are : ");
+        for (var [key, value] of this.mapOfTests.entries()) {
+            Log.getLogger().info('\u001b[1m' + key + '\u001b[0m');
+            ArgumentProcessor.help(Object.create(value.prototype));
+        }
+    }
 
 }
