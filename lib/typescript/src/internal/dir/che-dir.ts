@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Codenvy, S.A.
+ * Copyright (c) 2016-2016 Codenvy, S.A.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,6 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  */
-
 // imports
 import {org} from "../../api/dto/che-dto"
 import {CheFileStructWorkspace} from './chefile-struct/che-file-struct';
@@ -38,6 +37,7 @@ import {ArgumentProcessor} from "../../spi/decorator/argument-processor";
 import {Parameter} from "../../spi/decorator/parameter";
 import {ProductName} from "../../utils/product-name";
 import {SSHGenerator} from "../../spi/docker/ssh-generator";
+import {CheFileStructWorkspaceProject} from "./chefile-struct/che-file-struct";
 
 /**
  * Entrypoint for the Chefile handling in a directory.
@@ -173,6 +173,7 @@ export class CheDir {
       } else if ('init' === this.args[1]
                  || 'up' === this.args[1]
                  || 'destroy' === this.args[1]
+                  || 'factory' === this.args[1]
                  || 'down' === this.args[1]
                  || 'ssh' === this.args[1]
                  || 'status' === this.args[1]) {
@@ -186,7 +187,7 @@ export class CheDir {
   }
 
   run() : Promise<string> {
-    Log.context = ProductName.getShortDisplayName() + '(dir)';
+    Log.context = ProductName.getDisplayName() + '(dir)';
 
     // call the method analyzed from the argument
     return this.parseArgument().then((methodName) => {
@@ -281,6 +282,15 @@ export class CheDir {
           this.chefileStructWorkspace.postload.actions.splice(i, 1);
         }
     }
+
+    // now, cleanup invalid projects
+    for (let i : number = this.chefileStructWorkspace.projects.length - 1; i >= 1 ; i--) {
+      // no name, drop it
+      if (!this.chefileStructWorkspace.projects[i].name) {
+        this.chefileStructWorkspace.projects.splice(i, 1);
+      }
+    }
+
 
   }
 
@@ -513,6 +523,19 @@ export class CheDir {
   }
 
 
+  buildWorkspaceConfig() : CreateWorkspaceConfig {
+    let createWorkspaceConfig:CreateWorkspaceConfig = new CreateWorkspaceConfig();
+
+    let recipe: string = new RecipeBuilder(this.currentFolder).getRecipe(this.chefileStructWorkspace);
+    createWorkspaceConfig.machineConfigSource = recipe;
+    createWorkspaceConfig.commands = this.chefileStructWorkspace.commands;
+    createWorkspaceConfig.name = this.chefileStructWorkspace.name;
+    createWorkspaceConfig.ram = this.chefileStructWorkspace.ram;
+
+    return createWorkspaceConfig;
+  }
+
+
   up() : Promise<string> {
   let start : number = Date.now();
     // call init if not initialized and then call up
@@ -565,14 +588,7 @@ export class CheDir {
         if (!workspaceDto) {
           // workspace is not existing
           // now create the workspace
-          let createWorkspaceConfig:CreateWorkspaceConfig = new CreateWorkspaceConfig();
-
-          let recipe: string = new RecipeBuilder(this.currentFolder).getRecipe(this.chefileStructWorkspace);
-          Log.getLogger().debug("Using workspace recipe", recipe);
-          createWorkspaceConfig.machineConfigSource = recipe;
-          createWorkspaceConfig.commands = this.chefileStructWorkspace.commands;
-          createWorkspaceConfig.name = this.chefileStructWorkspace.name;
-          createWorkspaceConfig.ram = this.chefileStructWorkspace.ram;
+          let createWorkspaceConfig:CreateWorkspaceConfig = this.buildWorkspaceConfig();
           Log.getLogger().info(this.i18n.get('up.workspace-created'));
           workspaceHasBeenCreated = true;
           return this.workspace.createWorkspace(createWorkspaceConfig)
@@ -599,12 +615,9 @@ export class CheDir {
           return this.setupSSHKeys(userWorkspaceDto);
       }).then(() => {
         if (needToSetupProject) {
-         Log.getLogger().info(this.i18n.get('up.updating-project'));
-         var project:Project = new Project(userWorkspaceDto);
-         // update created project to blank
-         return this.estimateAndUpdateProject(project, this.chefileStructWorkspace.projects[0].type);
+          return  this.setupProjects(userWorkspaceDto);
          } else {
-          Promise.resolve('existing project');
+          return Promise.resolve('existing project');
         }
       }).then(() => {
         return this.executeCommandsFromCurrentWorkspace(userWorkspaceDto);
@@ -620,6 +633,64 @@ export class CheDir {
     });
   }
 
+
+  setupProjects(workspaceDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) : any {
+    let promises : Array<Promise<any>> = new Array<Promise<any>>();
+    Log.getLogger().info(this.i18n.get('up.updating-project'));
+
+    var projectAPI:Project = new Project(workspaceDto);
+
+    this.chefileStructWorkspace.projects.forEach(project => {
+      // no location, use inner project
+      if (!project.source.location) {
+        promises.push(this.estimateAndUpdateProject(projectAPI, this.folderName, project.type));
+      } else {
+        // need to import project
+        let promise = new Promise((resolve, reject) => {
+
+          let sourceStorageDto : org.eclipse.che.api.workspace.shared.dto.SourceStorageDto = this.getSourceStorageDto(project);
+
+          return projectAPI.importProject(project.name, sourceStorageDto).then(() => {
+            this.estimateAndUpdateProject(projectAPI, project.name, project.type, sourceStorageDto).then(() => {
+              resolve(true);
+            });
+          }, (error) => {
+            reject('Unable to import project ' + project.name + '. Error is : ' + error);
+          });
+        });
+        promises.push(promise);
+      }
+    });
+
+
+    // update created project to given project type
+    return Promise.all(promises);
+
+  }
+
+  /**
+   * get source storage DTO
+   */
+  getSourceStorageDto(project : CheFileStructWorkspaceProject) : org.eclipse.che.api.workspace.shared.dto.SourceStorageDto {
+
+    let sourceStorageDto : org.eclipse.che.api.workspace.shared.dto.SourceStorageDto = new org.eclipse.che.api.workspace.shared.dto.SourceStorageDtoImpl();
+    sourceStorageDto.withLocation(project.source.location).withType(project.source.type);
+    return sourceStorageDto;
+  }
+
+
+  rsyncProject(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) : Promise<any> {
+    var spawn = require('child_process').spawn;
+    let port: string = workspaceDto.getRuntime().getDevMachine().getRuntime().getServers()["22/tcp"].getAddress().split(":")[1];
+    let username : string = "user@" + this.chefileStruct.server.ip;
+
+
+    var execSync = require('child_process').execSync;
+    let containerVersion : string = new ContainerVersion().getVersion();
+    let output:string = execSync('docker run -v ' + this.currentFolder + ':' + this.currentFolder + ' -v ' + this.dotCheSshPrivateKeyFile + ':/tmp/ssh.key' + ' -t florentdemo:rsync rsync -ar -e "ssh -p ' + port + ' -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /tmp/ssh.key" --exclude "node_modules" --exclude "target" ' + this.currentFolder + ' ' + username + ':/projects/');
+
+    return Promise.resolve("ok");
+  }
 
 setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) : Promise<any> {
 
@@ -696,8 +767,15 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
           return Promise.reject('Eclipse Che is running ' + this.buildLocalCheURL() + ' but workspace (' + this.chefileStructWorkspace.name + ') has not been found');
         }
 
+        // Check ssh agent is there
+        let defaultEnv : string = workspaceDto.getConfig().getDefaultEnv();
+        let agents : Array<string> = workspaceDto.getConfig().getEnvironments().get(defaultEnv).getMachines().get("dev-machine").getAgents();
 
-        let port: string = workspaceDto.getRuntime().getDevMachine().getRuntime().getServers()["22/tcp"].getAddress().split(":")[1];
+        if (agents.indexOf('org.eclipse.che.ssh') === - 1) {
+          return Promise.reject("The SSH agent (org.eclipse.che.ssh) has been disabled for this workspace.")
+        }
+
+        let port: string = workspaceDto.getRuntime().getDevMachine().getRuntime().getServers().get("22/tcp").getAddress().split(":")[1];
         var spawn = require('child_process').spawn;
 
         let username : string = "user@" + this.chefileStruct.server.ip;
@@ -721,26 +799,40 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
 
 
 
-estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
-  Log.getLogger().debug('estimateAndUpdateProject with projectType', projectType);
+  estimateAndUpdateProject(projectAPI: Project, projectName: string, projectType: string, sourceStorageDto? : org.eclipse.che.api.workspace.shared.dto.SourceStorageDto) : Promise<any> {
+    Log.getLogger().debug('estimateAndUpdateProject with project', projectName, 'and projectType', projectType);
 
-  var projectTypeToUse: string;
-  // try to estimate
-  return project.estimateType(this.folderName, projectType).then((content) => {
-    if (!content.isMatched()) {
-      Log.getLogger().warn('Wanted to configure project as ' + projectType + ' but server replied that this project type is not possible. Keep Blank');  
-      projectTypeToUse = 'blank'; 
-    } else {
-      projectTypeToUse = projectType;
-    }
-    // matched = true, then continue
-    return true;
-  }).then(() => {
-    // estimate done, update
-    return project.updateType(this.folderName, projectTypeToUse);
-  })
-  
-}
+    var projectTypeToUse: string;
+    // try to estimate
+    return projectAPI.estimateType(projectName, projectType).then((content) => {
+      if (!content.isMatched()) {
+        Log.getLogger().warn('Wanted to configure project as ' + projectType + ' but server replied that this project type is not possible. Keep Blank');
+        projectTypeToUse = 'blank';
+      } else {
+        projectTypeToUse = projectType;
+      }
+      // matched = true, then continue
+      return true;
+    }).then(() => {
+      // grab project DTO
+      return projectAPI.getProject(projectName)
+    }).then((projectDto) => {
+      // then update the project type
+      projectDto.setType(projectTypeToUse);
+
+      // source storage
+      if (sourceStorageDto) {
+        projectDto.setSource(sourceStorageDto);
+      }
+
+      return projectDto;
+    }).then((projectDto) => {
+      // and perform update of all these attributes
+      return projectAPI.update(projectName, projectDto);
+    });
+
+
+  }
 
 
 
@@ -849,7 +941,7 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
     this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
 
     // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock");
+    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock" + ";/Users/benoitf/.m2:/home/user/.m2");
 
   }
 
@@ -901,9 +993,12 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
         commandLine += envProperty;
       }
 
+
+
       // continue with own properties
       commandLine +=
           ' -v /var/run/docker.sock:/var/run/docker.sock' +
+          ' -e CHE_DOCKER_MACHINE_HOST_EXTERNAL=' + this.chefileStruct.server.ip +
           ' -e CHE_PORT=' + this.chefileStruct.server.port +
           ' -e CHE_DATA_FOLDER=' + this.workspacesFolder +
           ' -e CHE_CONF_FOLDER=' + this.confFolder +
@@ -1127,6 +1222,73 @@ estimateAndUpdateProject(project: Project, projectType: string) : Promise<any> {
         map.set(prop, '{}');
       }*/
     }
+  }
+
+  // export as a factory
+  factory() : Promise<any> {
+    return this.isInitialized().then((isInitialized) => {
+      if (!isInitialized) {
+        return Promise.reject('This directory has not been initialized. So, ssh is not available.');
+      }
+
+      return new Promise<string>((resolve, reject) => {
+        this.parse();
+        resolve('parsed');
+      }).then(() => {
+
+        // check workspace exists
+        this.workspace = new Workspace(this.authData);
+
+        // take current Chefile and export it as a factory
+
+
+        let factoryToCreate:org.eclipse.che.api.factory.shared.dto.FactoryDto = new org.eclipse.che.api.factory.shared.dto.FactoryDtoImpl();
+
+
+        // get workspace object
+        let createWorkspaceConfig:CreateWorkspaceConfig = this.buildWorkspaceConfig();
+        let workspaceConfigDto:org.eclipse.che.api.workspace.shared.dto.WorkspaceConfigDto = this.workspace.getWorkspaceConfigDto(createWorkspaceConfig);
+
+        factoryToCreate.withV("4.0").withName(this.folderName).withWorkspace(workspaceConfigDto);
+
+
+        // add project
+        let sourceStorageDTO : org.eclipse.che.api.workspace.shared.dto.SourceStorageDto = new org.eclipse.che.api.workspace.shared.dto.SourceStorageDtoImpl();
+
+        // do we have git there ?
+        let dotGitFolder : string = this.path.resolve(this.currentFolder, '.git');
+        try {
+          this.fs.statSync(dotGitFolder);
+          // we have a .git folder
+          sourceStorageDTO.withType("git");
+
+          // grab the location URL
+          let configContent = this.fs.readFileSync(this.path.resolve(dotGitFolder, "config")).toString();
+
+          var regex = /remote "origin".*?\n.*?url = (.*)/g
+          ///url = (.*)/g;
+          var matches = regex.exec(configContent);
+          if (matches === null) {
+            return Promise.reject("Found a .git/config file but no remote origin found inside.");
+          }
+          let gitURL = matches[1];
+          sourceStorageDTO.withLocation(gitURL) ;
+
+        } catch (e) {
+          return Promise.reject("Factories are only working if there is a project inside. No git metadata has been found");
+        }
+
+        let projectDTO : org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto = new org.eclipse.che.api.workspace.shared.dto.ProjectConfigDtoImpl();
+        projectDTO.setType(this.chefileStructWorkspace.projects[0].type);
+        projectDTO.withName(this.folderName).withPath("/" + this.folderName).withSource(sourceStorageDTO);
+
+        workspaceConfigDto.getProjects().push(projectDTO);
+
+        Log.getLogger().info('Factory JSON is :\n' + JSON.stringify(factoryToCreate.toJson(), null, 2));
+        return Promise.resolve(true);
+      })
+    });
+
   }
 
   isNumber(n) {
