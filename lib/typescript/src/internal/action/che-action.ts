@@ -17,6 +17,7 @@ import {AddUserAction} from "./impl/add-user-action";
 import {ExecuteCommandAction} from "./impl/execute-command-action";
 import {Log} from "../../spi/log/log";
 import {ListWorkspacesAction} from "./impl/list-workspaces-action";
+import {ProductName} from "../../utils/product-name";
 /**
  * Entrypoint for the Actions.
  * @author Florent Benoit
@@ -37,7 +38,7 @@ export class CheAction {
     /**
      * Map of tests that are available.
      */
-    mapOfActions : Map<string, any>;
+    mapOfActions : Map<string, any> = CheAction.init();
 
     /**
      * Analyze the arguments by injecting parameters/arguments and define the list of test classes.
@@ -45,14 +46,18 @@ export class CheAction {
      */
     constructor(args:Array<string>) {
         this.args = ArgumentProcessor.inject(this, args);
-        this.mapOfActions = new Map<string, any>();
-        this.mapOfActions.set('create-start-workspace', CreateStartWorkspaceAction);
-        this.mapOfActions.set('add-user', AddUserAction);
-        this.mapOfActions.set('remove-user', RemoveUserAction);
-        this.mapOfActions.set('execute-command', ExecuteCommandAction);
-        this.mapOfActions.set('list-workspaces', ListWorkspacesAction);
+    }
 
 
+    static init() : Map<string,any> {
+        Log.context = ProductName.getDisplayName() + '(action)';
+        let actionMap : Map<string, any> = new Map<string, any>();
+        actionMap.set('create-start-workspace', CreateStartWorkspaceAction);
+        actionMap.set('add-user', AddUserAction);
+        actionMap.set('remove-user', RemoveUserAction);
+        actionMap.set('execute-command', ExecuteCommandAction);
+        actionMap.set('list-workspaces', ListWorkspacesAction);
+        return actionMap;
     }
 
    /**
@@ -62,19 +67,24 @@ export class CheAction {
     run() : Promise<any> {
        let classOfAction: any = this.mapOfActions.get(this.actionName);
        if (classOfAction) {
+           Log.context = ProductName.getDisplayName() + '(action/' + this.actionName + ')';
            var instance = new classOfAction(this.args);
            return instance.run();
        } else {
-           // The given test name has not been found, display available actions
-           Log.getLogger().error('No action-name with this value.');
-           var iterator = this.mapOfActions.keys();
-           var current = iterator.next();
-           while (!current.done) {
-               Log.getLogger().info('Available action: ' + current.value);
-               current = iterator.next();
-           }
+           // The given action name has not been found, display available actions
+           Log.getLogger().error("No action exists with provided name '" + this.actionName + "'.");
+           this.help();
            process.exit(1);
        }
    }
+
+
+    help() : void {
+        Log.getLogger().info("Available actions are : ");
+        for (var [key, value] of this.mapOfActions.entries()) {
+            Log.getLogger().info('\u001b[1m' + key + '\u001b[0m');
+            ArgumentProcessor.help(Object.create(value.prototype));
+        }
+    }
 
 }
