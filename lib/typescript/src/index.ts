@@ -89,6 +89,9 @@ export class EntryPoint {
                 }
             } catch (e) {
                 Log.getLogger().error(error.toString());
+                if (error instanceof TypeError || error instanceof SyntaxError) {
+                    console.log(error.stack);
+                }
             }
             process.exit(1);
         });
