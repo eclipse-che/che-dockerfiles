@@ -18,6 +18,9 @@ import {AuthData} from "../../../api/wsmaster/auth/auth-data";
 import {Parameter} from "../../../spi/decorator/parameter";
 import {CreateWorkspaceConfig} from "../../../api/wsmaster/workspace/workspace";
 import {Log} from "../../../spi/log/log";
+import {DefaultAsciiArray} from "../../../spi/ascii/default-ascii-array";
+import {AsciiArray} from "../../../spi/ascii/ascii-array";
+import {FormatterMode} from "../../../spi/ascii/formatter-mode";
 
 /**
  * This class list all workspaces
@@ -34,6 +37,16 @@ export class ListWorkspacesAction {
     @Parameter({names: ["-w", "--password"], description: "Defines the password to be used"})
     password : string;
 
+    @Parameter({names: ["--formatter"], description: "Defines the formatter of result"})
+    formatterMode : FormatterMode;
+
+    @Parameter({names: ["--formatter-skip-titles"], description: "Don't display titles in the output"})
+    formatSkipTitles : boolean = false;
+
+    @Parameter({names: ["--formatter-columns"], description: "Specify order and column names that will be displayed"})
+    formatColumns : string;
+
+
     authData: AuthData;
     workspace: Workspace;
 
@@ -49,11 +62,17 @@ export class ListWorkspacesAction {
         return this.authData.login().then(() => {
             return this.workspace.getWorkspaces()
                 .then((workspaceDtos:Array<org.eclipse.che.api.workspace.shared.dto.WorkspaceDto>) => {
-                    // then start it
-                    Log.getLogger().info('Total workspaces:', workspaceDtos.length);
+
+                    // Create Ascii array
+                    let rows : Array<Array<string>> = new Array<Array<string>>();
                     workspaceDtos.forEach((workspaceDto : any) => {
-                        Log.getLogger().info('Workspace ', workspaceDto.getConfig().getName(), '(' + workspaceDto.getId() + ')',"\t", workspaceDto.getStatus());
-                    })
+                        rows.push([workspaceDto.getConfig().getName(), workspaceDto.getId(), workspaceDto.getStatus()]);
+                    });
+
+                    let asciiArray : AsciiArray  = new DefaultAsciiArray().withRows(rows).withFormatter(this.formatterMode).withTitles("name", "id", "status").withShowTitles(!this.formatSkipTitles).withFormatColumns(this.formatColumns);
+
+                    Log.getLogger().direct(asciiArray.toAscii());
+
                 });
         });
     }
