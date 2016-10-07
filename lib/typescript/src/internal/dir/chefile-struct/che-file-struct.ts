@@ -63,15 +63,29 @@ export class CheFileStructWorkspaceCommandImpl implements CheFileStructWorkspace
 }
 
 
+export class CheFileStructWorkspaceProjectSourceImpl  {
+    attributes : Map<string, string>;
+    location: string;
+    type: string;
+
+    constructor() {
+        this.attributes = new Map<string,string>();
+    }
+}
+
 export interface CheFileStructWorkspaceProject {
     type: string;
+    name : string;
+    source : CheFileStructWorkspaceProjectSourceImpl;
 }
 
 export class CheFileStructWorkspaceProjectImpl implements CheFileStructWorkspaceProject{
     type: string;
-
+    name : string;
+    source : CheFileStructWorkspaceProjectSourceImpl;
     constructor() {
         this.type = 'blank';
+        this.source = new CheFileStructWorkspaceProjectSourceImpl();
     }
 }
 
@@ -99,7 +113,10 @@ export class CheFileStructWorkspace {
             this.commands[i] = new CheFileStructWorkspaceCommandImpl();
         }
 
-        this.projects[0] = new CheFileStructWorkspaceProjectImpl();
+        // init some commands
+        for (let i : number = 0; i < 255; i++) {
+            this.projects[i] = new CheFileStructWorkspaceProjectImpl();
+        }
 
     }
 }
