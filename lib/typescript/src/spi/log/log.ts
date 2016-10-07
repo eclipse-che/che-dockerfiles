@@ -18,7 +18,7 @@ import {ProductName} from "../../utils/product-name";
 export class Log {
 
     static debugEnabled : boolean = false;
-    static context : string = ProductName.getShortDisplayName();
+    static context : string = ProductName.getDisplayName();
     static logger : Log;
     static disabledPrefix : boolean = false;
 
@@ -58,8 +58,18 @@ export class Log {
         }
     }
 
-    log(type: LogType, message: string, optional: Array<any>) {
+    /**
+     * Direct option is that it doesn't show any logger trace
+     */
+    direct(message : string, ...optional: Array<any>) {
+        this.log('direct', message, optional);
+    }
+
+
+    log(type: LogType, message: string, optional?: Array<any>) {
+        let useContext : boolean = true;
         var prefix: String;
+        var displayEachLine : boolean = false;
         if ('info' === type) {
             prefix = Log.INFO_PREFIX;
         } else if ('debug' === type) {
@@ -68,9 +78,15 @@ export class Log {
             prefix = Log.WARN_PREFIX;
         } else if ('error' === type) {
             prefix = Log.ERROR_PREFIX;
+        } else if ('direct' === type) {
+            prefix = '';
+            useContext = false;
+        } else if ('multiline:info' === type) {
+            prefix = Log.INFO_PREFIX;
+            displayEachLine = true;
         }
 
-        if (Log.context) {
+        if (useContext && Log.context) {
             prefix += ' ' + Log.context + ': ';
         }
         if (Log.disabledPrefix) {
@@ -84,11 +100,16 @@ export class Log {
             consoleMethod = console.log;
         }
 
-
-        if (optional) {
-            consoleMethod(prefix + message, optional.join(' '));
+        if (displayEachLine) {
+            message.split("\n").forEach((line) => {
+                consoleMethod(prefix + line);
+            })
         } else {
-            consoleMethod(prefix + message);
+            if (optional) {
+                consoleMethod(prefix + message, optional.join(' '));
+            } else {
+                consoleMethod(prefix + message);
+            }
         }
 
     }
@@ -105,4 +126,4 @@ export class Log {
 }
 
 
-export type LogType = 'info' | 'debug' | 'warn' | 'error';
+export type LogType = 'info' | 'debug' | 'warn' | 'error' | 'direct' | 'multiline:info';
