@@ -115,7 +115,7 @@ export class DefaultHttpJsonRequest implements HttpJsonRequest {
             });
 
             let stringified : string = JSON.stringify(this.body);
-            Log.getLogger().debug('Send for request', this.options.path, 'with method', this.options.method, ' body:', stringified);
+            Log.getLogger().debug('Send request', this.options.path, 'with method', this.options.method, "using ip/port", this.authData.hostname + ":" + this.authData.port, ' body:', stringified);
             req.write(stringified);
             req.end();
 
