@@ -57,11 +57,12 @@ export class Workspace {
             return jsonResponse.asArrayDto(org.eclipse.che.api.workspace.shared.dto.WorkspaceDtoImpl);
         });
     }
-    /**
-     * Create a workspace and return a promise with content of WorkspaceDto in case of success
-     */
-    createWorkspace(createWorkspaceConfig:CreateWorkspaceConfig):Promise<org.eclipse.che.api.workspace.shared.dto.WorkspaceDto> {
 
+    /**
+     * Gets a workspace config DTO object from a createWorkspaceConfiguration object
+     * @param createWorkspaceConfig
+     */
+    getWorkspaceConfigDto(createWorkspaceConfig:CreateWorkspaceConfig) : org.eclipse.che.api.workspace.shared.dto.WorkspaceConfigDto {
         let devMachine : org.eclipse.che.api.workspace.shared.dto.ExtendedMachineDto = new org.eclipse.che.api.workspace.shared.dto.ExtendedMachineDtoImpl();
         devMachine.getAgents().push("org.eclipse.che.terminal");
         devMachine.getAgents().push("org.eclipse.che.ws-agent");
@@ -86,6 +87,17 @@ export class Workspace {
         let workspaceConfigDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceConfigDto = new org.eclipse.che.api.workspace.shared.dto.WorkspaceConfigDtoImpl();
         workspaceConfigDto.withDefaultEnv("default").withName(createWorkspaceConfig.name).withCommands(commandsToCreate);
         workspaceConfigDto.getEnvironments().set("default", defaultEnvironment);
+
+        return workspaceConfigDto;
+    }
+
+
+    /**
+     * Create a workspace and return a promise with content of WorkspaceDto in case of success
+     */
+    createWorkspace(createWorkspaceConfig:CreateWorkspaceConfig):Promise<org.eclipse.che.api.workspace.shared.dto.WorkspaceDto> {
+
+        let workspaceConfigDto : org.eclipse.che.api.workspace.shared.dto.WorkspaceConfigDto = this.getWorkspaceConfigDto(createWorkspaceConfig);
 
         // TODO use ram ?
         //createWorkspaceConfig.ram
