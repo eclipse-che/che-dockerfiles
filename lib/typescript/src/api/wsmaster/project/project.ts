@@ -125,4 +125,20 @@ export class Project {
         });
     }
 
+
+    /**
+     *
+     * @param projectName
+     * @param sourceStorageDto
+     * @returns {Promise<TResult>}
+     */
+    importProject(projectName: string, sourceStorageDto : org.eclipse.che.api.workspace.shared.dto.SourceStorageDto) : Promise<void> {
+
+        var jsonRequest:HttpJsonRequest = new DefaultHttpJsonRequest(this.authData, this.wsAgentPath + '/project/import/' + projectName, 204).setMethod("POST").setBody(sourceStorageDto);
+        return jsonRequest.request().then((jsonResponse:HttpJsonResponse) => {
+            return;
+        });
+    }
+
+
 }
