@@ -9,16 +9,15 @@
  *   Codenvy, S.A. - initial API and implementation
  */
 
-
 /**
  * Creates an helper class for getting product name
  * @author Florent Benoit
  */
 export class ProductName {
-    static getShortDisplayName() : string {
-        let productName: string = process.env.CHE_MINI_PRODUCT_NAME;
+    static getDisplayName() : string {
+        let productName: string = process.env.CHE_PRODUCT_NAME;
         if (!productName) {
-            return 'che';
+            return 'Eclipse Che';
         }
         return productName;
     }
