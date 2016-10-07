@@ -22,18 +22,34 @@ export class ArgumentProcessor {
 
     static displayHelp(metadataArguments:Array<ArgumentTypeDesc> , metadataParameters:Array<ParameterTypeDesc>) : void {
         // display help menu
-        if (metadataParameters) {
-            metadataParameters.forEach((metadataParameter) => {
-                Log.getLogger().info('Parameter ' + metadataParameter.names, '\t\t', metadataParameter.description);
+        let asciiFormParameters : AsciiForm = new DefaultAsciiForm();
+        if (metadataParameters && metadataParameters.length > 0) {
+            asciiFormParameters.withEntry("  Parameters:", "");
+             metadataParameters.forEach((metadataParameter) => {
+                 let val = "";
+                 if (metadataParameter.type !== 'Boolean') {
+                     val = "=<value>"
+                 }
+                asciiFormParameters.withEntry("    [" + metadataParameter.names + "]" + val, metadataParameter.description);
             });
         }
 
-        if (metadataArguments) {
+        if (metadataArguments && metadataArguments.length > 0) {
+
+            asciiFormParameters.withEntry("  Arguments:", "");
             metadataArguments.forEach((metadataArgument) => {
-                Log.getLogger().info(metadataArgument.fieldName, '\t\t', metadataArgument.description);
+                asciiFormParameters.withEntry("    <" + metadataArgument.fieldName + ">", metadataArgument.description);
             });
         }
+        Log.getLogger().log("multiline:info", asciiFormParameters.toAscii());
     }
+
+    static help(object : any) : void {
+        var metadataArguments:Array<ArgumentTypeDesc> = object.__arguments;
+        var metadataParameters:Array<ParameterTypeDesc> = object.__parameters;
+        ArgumentProcessor.displayHelp(metadataArguments, metadataParameters);
+    }
+
 
     static inject(object : any, args: Array<string>) : Array<string> {
         var metadataArguments:Array<ArgumentTypeDesc> = object.__arguments;
@@ -80,18 +96,6 @@ export class ArgumentProcessor {
                             i--;
                             Log.getLogger().debug('= match removedOptionsArgs after', updatedArgs, 'with index=', i);
                             Log.getLogger().debug('= match is object[metadataParameter.fieldName] ', object[metadataParameter.fieldName] );
-                        } else if (ArgumentProcessor.startsWith(currentArg, name)) {
-                            // flag is matching exact argument without value
-                            Log.getLogger().debug('exact match is', name);
-                            if (metadataParameter.type === 'Boolean') {
-                                object[metadataParameter.fieldName] = true;
-                            }
-                            Log.getLogger().debug('exact match is object[metadataParameter.fieldName] ', object[metadataParameter.fieldName] );
-                            optionsEnabled.push(name + '(' + metadataParameter.description + ') =>' + object[metadataParameter.fieldName]);
-                            Log.getLogger().debug('exact match removedOptionsArgs before', updatedArgs, 'with index=', i);
-                            updatedArgs.splice(i, 1);
-                            i--;
-                            Log.getLogger().debug('exact match removedOptionsArgs and after we have', updatedArgs);
                         } else if (name === currentArg && ArgumentProcessor.startsWith(currentArg, '-')) {
                             // like -a
                             if (metadataParameter.type === 'Boolean') {
@@ -105,6 +109,18 @@ export class ArgumentProcessor {
                             }
                             optionsEnabled.push(name + '(' + metadataParameter.description + ') =>' + object[metadataParameter.fieldName]);
 
+                        } else if (currentArg === name) {
+                            // flag is matching exact argument without value
+                            Log.getLogger().debug('exact match is', name, 'for currentArg', currentArg);
+                            if (metadataParameter.type === 'Boolean') {
+                                object[metadataParameter.fieldName] = true;
+                            }
+                            Log.getLogger().debug('exact match is object[metadataParameter.fieldName] ', metadataParameter.fieldName);
+                            optionsEnabled.push(name + '(' + metadataParameter.description + ') =>' + object[metadataParameter.fieldName]);
+                            Log.getLogger().debug('exact match removedOptionsArgs before', updatedArgs, 'with index=', i);
+                            updatedArgs.splice(i, 1);
+                            i--;
+                            Log.getLogger().debug('exact match removedOptionsArgs and after we have', updatedArgs);
                         }
 
                     });
@@ -129,8 +145,11 @@ export class ArgumentProcessor {
             metadataArguments.forEach((argument) => {
                 // we're requiring an argument but it's not there
                 if (updatedArgs.length == 0) {
-                    Log.getLogger().error('Expecting mandatory parameter : ' + argument.description);
+                    Log.getLogger().error('Expecting mandatory argument : ' + argument.description);
                     ArgumentProcessor.displayHelp(metadataArguments, metadataParameters);
+                    if (object.help) {
+                        object.help();
+                    }
                     process.exit(1);
                 }
 
@@ -147,6 +166,12 @@ export class ArgumentProcessor {
 
 
     static startsWith(value:string, searchString: string) : boolean {
+        if (!value) {
+            return false;
+        }
+        if (!searchString) {
+            return false;
+        }
         return value.substr(0, searchString.length) === searchString;
     }
 
