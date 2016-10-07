@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Codenvy, S.A.
+ * Copyright (c) 2016-2016 Codenvy, S.A.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,6 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  */
-
 /**
  * Run in the container the command to get image being launched so we can detect the version of the image
  * @author Florent Benoit

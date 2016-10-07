@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Codenvy, S.A.
+ * Copyright (c) 2016-2016 Codenvy, S.A.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,6 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  */
-
 import {Argument} from "../../spi/decorator/parameter";
 import {ArgumentProcessor} from "../../spi/decorator/argument-processor";
 import {CreateStartWorkspaceAction} from "./impl/create-start-workspace-action";
