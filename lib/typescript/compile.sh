@@ -12,7 +12,7 @@ cd $DIR
 echo "Generating DTO"
 ../maven-dto/build.sh
 
-docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app node:6  /bin/bash -c "groupadd user && useradd -g user user && (chown --silent -R user.user /usr/src/app || true) && cd /usr/src/app/dependencies/runtime && npm install && cd /usr/src/app && npm install && cd /usr/src/app/src && find . -name "*.properties" -exec install -D {} /usr/src/app/lib/{} \; && /usr/src/app/node_modules/typescript/bin/tsc --project /usr/src/app && (chown --silent -R user.user /usr/src/app || true)"
+docker run --rm -i -v $(pwd):/usr/src/app -w /usr/src/app node:6  /bin/bash -c "groupadd user && useradd -g user user && (chown --silent -R user.user /usr/src/app || true) && cd /usr/src/app/dependencies/runtime && npm install && cd /usr/src/app && npm install && cd /usr/src/app/src && find . -name "*.properties" -exec install -D {} /usr/src/app/lib/{} \; && /usr/src/app/node_modules/typescript/bin/tsc --project /usr/src/app && (chown --silent -R user.user /usr/src/app || true)"
 
 if [ $? -eq 0 ]; then
     echo 'Compilation of TypeScript is OK'
