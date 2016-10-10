@@ -15,7 +15,6 @@ if uname -r | grep -q 'moby'; then
    fi
 fi
 
-
 if test -z ${NETWORK_IF}; then
   for i in $( ls /sys/class/net ); do
     if [ ${i:0:3} = eth ] ;then
@@ -24,6 +23,13 @@ if test -z ${NETWORK_IF}; then
   done
 fi
 
+# if not found, consider native and use docker0
+if test -z ${NETWORK_IF}
+  then
+   if [ -d "/sys/class/net/docker0" ]; then
+     NETWORK_IF="docker0"
+   fi
+fi
 
 # if not found, throw error
 if test -z ${NETWORK_IF}; then
