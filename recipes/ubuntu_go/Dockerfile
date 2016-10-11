@@ -1,4 +1,4 @@
-FROM codenvy/ubuntu_jre
+FROM eclipse/ubuntu_jre
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends \
     g++ \
     gcc \

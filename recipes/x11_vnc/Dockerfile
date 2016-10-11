@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM codenvy/ubuntu_jdk8
+FROM eclipse/ubuntu_jdk8
 
 RUN sudo apt-get update && \
     sudo apt-get install -y --no-install-recommends supervisor x11vnc xvfb net-tools blackbox rxvt-unicode xfonts-terminus libxi6 libgconf-2-4

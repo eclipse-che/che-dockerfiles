@@ -7,7 +7,7 @@
 # Abel García Dorta <mercuriete@gmail.com> 
 # Roger Narayan <narayanroger@gmail.com>
 
-FROM codenvy/ubuntu_jre
+FROM eclipse/ubuntu_jre
 
 MAINTAINER mercuriete@gmail.com
 

@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM codenvy/ubuntu_jre
+FROM eclipse/ubuntu_jre
 ENV RAILS_VERSION 4.2.6
 ENV RUBY_MAJOR 2.3
 ENV RUBY_VERSION 2.3.0

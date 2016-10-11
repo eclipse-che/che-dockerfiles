@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM codenvy/debian_jdk8
+FROM eclipse/debian_jdk8
 ENV NODE_VERSION=0.12.9 \
     NODE_PATH=/usr/local/lib/node_modules
     

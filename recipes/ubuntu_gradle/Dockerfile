@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM codenvy/ubuntu_jdk8
+FROM eclipse/ubuntu_jdk8
 
 ENV GRADLE_VERSION=2.3
 ENV GRADLE_HOME /home/user/gradle-$GRADLE_VERSION

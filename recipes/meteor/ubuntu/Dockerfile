@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM codenvy/ubuntu_jre
+FROM eclipse/ubuntu_jre
 ENV NPM_CONFIG_LOGLEVEL info
 ENV NODE_VERSION 5.6.0
 ENV LC_ALL=POSIX
