@@ -46,13 +46,12 @@ RUN apt-get update && \
 
 ENV LANG en_GB.UTF-8
 ENV LANG en_US.UTF-8
-RUN echo "export JAVA_HOME=/opt/jre$JAVA_VERSION_PREFIX\nexport PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" >> /home/user/.bashrc && \
-    sudo locale-gen en_US.UTF-8 && \
+USER user
+RUN sudo locale-gen en_US.UTF-8 && \
     svn --version && \
+    cd /home/user && ls -la && \
     sed -i 's/# store-passwords = no/store-passwords = yes/g' /home/user/.subversion/servers && \
     sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
-
-USER user
 EXPOSE 22 4403
 WORKDIR /projects
 ENTRYPOINT ["/home/user/entrypoint.sh"]
