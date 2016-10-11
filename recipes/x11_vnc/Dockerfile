@@ -28,4 +28,4 @@ RUN cat /home/user/entrypoint.sh
 EXPOSE 6080
 ENTRYPOINT ["/home/user/entrypoint.sh"]
 WORKDIR /projects
-CMD tail -f /dev/null
+CMD /usr/bin/supervisord -c /opt/supervisord.conf && tail -f /dev/null

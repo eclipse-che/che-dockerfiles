@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM fedora:23
+FROM fedora:24
 ENV CC arm-linux-gnueabi-gcc
 ENV CXX arm-linux-gnueabi-g++
 ENV JAVA_VERSION=8u65 \
