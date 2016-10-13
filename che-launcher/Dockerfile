@@ -12,10 +12,10 @@
 #  `docker build -t codenvy/che-launcher .`
 #
 # To use it:
-#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che start`
-#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che stop`
-#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che restart`
-#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che update`
+#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-launcher start`
+#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-launcher stop`
+#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-launcher restart`
+#  `docker run -t -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-launcher update`
 #
 
 FROM alpine:3.4
