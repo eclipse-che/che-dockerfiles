@@ -941,7 +941,7 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
     this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
 
     // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock" + ";/Users/benoitf/.m2:/home/user/.m2");
+    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock");
 
   }
 
