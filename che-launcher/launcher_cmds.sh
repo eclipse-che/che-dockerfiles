@@ -28,12 +28,7 @@ start_che_server() {
   fi
 
   info "${CHE_PRODUCT_NAME}: Starting container..."
-  docker_run_with_debug "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" \
-                          --remote:"${CHE_HOST_IP}" \
-                          -s:uid \
-                          -s:client \
-                          ${CHE_DEBUG_OPTION} \
-                          run > /dev/null
+  docker_run_with_debug "${CHE_SERVER_IMAGE_NAME}":"${CHE_VERSION}" > /dev/null
 
   CURRENT_CHE_SERVER_CONTAINER_ID=$(get_che_server_container_id ${CHE_SERVER_CONTAINER_NAME})
   wait_until_container_is_running 10 ${CURRENT_CHE_SERVER_CONTAINER_ID}
@@ -70,7 +65,7 @@ stop_che_server() {
     info "${CHE_PRODUCT_NAME}: Container $CURRENT_CHE_SERVER_CONTAINER_ID is not running. Nothing to do."
   else
     info "${CHE_PRODUCT_NAME}: Stopping server..."
-    docker exec ${CURRENT_CHE_SERVER_CONTAINER_ID} /home/user/che/bin/che.sh -c -s:uid stop > /dev/null
+    docker stop ${CURRENT_CHE_SERVER_CONTAINER_ID} > /dev/null
     wait_until_container_is_stopped 60 ${CURRENT_CHE_SERVER_CONTAINER_ID}
     if che_container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
       error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for the ${CHE_PRODUCT_NAME} container to stop."
@@ -123,8 +118,7 @@ print_debug_info() {
   IFS=$'\n'
   for CHE_SERVER_CONTAINER_ID in $CURRENT_CHE_INSTANCES; do
     info ""
-    info "--------- CHE INSTANCE INFO  ----------" 
-    info "CHE SERVER CONTAINER ID   = $CHE_SERVER_CONTAINER_ID"
+    info "--------- CHE INSTANCE: $CHE_SERVER_CONTAINER_ID" 
     CURRENT_CHE_SERVER_CONTAINER_NAME=$(docker inspect --format='{{.Name}}' ${CHE_SERVER_CONTAINER_ID} | cut -f2 -d"/") 
     info "CHE SERVER CONTAINER NANE = $CURRENT_CHE_SERVER_CONTAINER_NAME"
     info "CHE CONTAINER EXISTS      = $(che_container_exist $CHE_SERVER_CONTAINER_ID && echo "YES" || echo "NO")"
@@ -149,18 +143,18 @@ print_debug_info() {
   info ""
   info ""
   info "----  CURRENT COMMAND LINE OPTIONS  ---" 
-  info "CHE_PORT                  = ${CHE_PORT}"
   info "CHE_VERSION               = ${CHE_VERSION}"
+  info "CHE_DATA                  = ${CHE_DATA}"
+  info "CHE_CONF                  = ${CHE_CONF:-not set}"
+  info "CHE_ASSEMBLY              = ${CHE_ASSEMBLY:-not set}"
+  info "CHE_PORT                  = ${CHE_PORT}"
+  info "CHE_HOST_IP               = ${CHE_HOST_IP}"
   info "CHE_RESTART_POLICY        = ${CHE_RESTART_POLICY}"
   info "CHE_USER                  = ${CHE_USER}"
-  info "CHE_HOST_IP               = ${CHE_HOST_IP}"
   info "CHE_LOG_LEVEL             = ${CHE_LOG_LEVEL}"
   info "CHE_DEBUG_SERVER          = ${CHE_DEBUG_SERVER}"
   info "CHE_DEBUG_SERVER_PORT     = ${CHE_DEBUG_SERVER_PORT}"
   info "CHE_HOSTNAME              = ${CHE_HOSTNAME}"
-  info "CHE_DATA_FOLDER           = ${CHE_DATA_FOLDER}"
-  info "CHE_CONF_FOLDER           = ${CHE_CONF_FOLDER:-not set}"
-  info "CHE_LOCAL_BINARY          = ${CHE_LOCAL_BINARY:-not set}"
   info "CHE_SERVER_CONTAINER_NAME = ${CHE_SERVER_CONTAINER_NAME}"
   info "CHE_SERVER_IMAGE_NAME     = ${CHE_SERVER_IMAGE_NAME}"
 }
