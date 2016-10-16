@@ -74,7 +74,7 @@ error() {
 }
 
 stop_sync() {
-  echo "Recived interrupt signal. Exiting."
+  echo "Received interrupt signal. Exiting."
   exit 1
 }
 
@@ -96,7 +96,7 @@ if [ $status -ne 0 ]; then
     exit 1
 fi
 info "INFO: (che mount): Successfully mounted user@$1:/projects"
-info "INFO: (che mount): Intial sync...Please wait."
+info "INFO: (che mount): Initial sync...Please wait."
 unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
 status=$?
 if [ $status -ne 0 ]; then
@@ -105,19 +105,7 @@ if [ $status -ne 0 ]; then
 fi
 info "INFO: (che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
 info "INFO: (che mount): This terminal will block while the synchronization continues."
-info "INFO: (che mount): To stop, issue a SIGTERM, usually CTRL-C."
+info "INFO: (che mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
 
 # run application
 unison /mntssh /mnthost -batch -retry 10 -fat -silent -copyonconflict -auto -prefer=newer -repeat=${UNISON_REPEAT_DELAY_IN_SEC} -log=false > /dev/null 2>&1
-#PID=$!
-#echo "hi"
-# See: http://veithen.github.io/2014/11/16/sigterm-propagation.html
-#wait $PID
-#wait $PID
-#EXIT_STATUS=$?
-
-# wait forever
-#while true
-#do
-#  tail -f /dev/null & wait ${!}
-#done
