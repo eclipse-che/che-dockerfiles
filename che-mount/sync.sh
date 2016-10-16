@@ -22,16 +22,16 @@ Usage on Linux
   docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
             --name che-mount
             -v \${HOME}/.ssh:\${HOME}/.ssh
-            -v \${HOME}/.unison:\${HOME}/.unison 
             -v /etc/group:/etc/group:ro 
             -v /etc/passwd:/etc/passwd:ro 
+            -v <path-to-sync-profile>:/profile
             -u \$(id -u \${USER})
             -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port> 
            
 Usage on Mac or Windows:
   docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
             --name che-mount 
-            -v ~/.ssh:/root/.ssh
+            -v <path-to-sync-profile>:/profile
             -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port>
 
      <local-mount>    Host directory to sync files, must end with a slash '/'
@@ -44,8 +44,12 @@ Usage on Mac or Windows:
 parse_command_line () {
   if [ $# -eq 0 ]; then
     usage
-    exit
+    return 1
   fi
+
+  # See if profile document was provided
+  mkdir -p $HOME/.unison
+  cp -rf /profile/default.prf $HOME/.unison/default.prf 
 }
 
 usage () {
@@ -61,47 +65,59 @@ debug() {
 }
 
 error() {
-  printf  "${RED}ERROR:${NC} %s\n" "${1}"
-}
-
-error_exit() {
   echo  "---------------------------------------"
   error "!!!"
   error "!!! ${1}"
   error "!!!"
   echo  "---------------------------------------"
+  return 1
+}
+
+stop_sync() {
+  echo "Recived interrupt signal. Exiting."
   exit 1
 }
 
 # See: https://sipb.mit.edu/doc/safe-shell/
 set -u
 
+# on callback, kill the last background process, which is `tail -f /dev/null` and execute the specified handler
+trap 'stop_sync' SIGHUP SIGTERM SIGINT
+
 init_logging
 init_global_variables
 parse_command_line "$@"
 
-info "INFO: ECLIPSE CHE: Mounting user@$1:/projects with SSHFS"
+info "INFO: (che mount): Mounting user@$1:/projects with SSHFS"
 sshfs user@$1:/projects /mntssh -p $2
 status=$?
 if [ $status -ne 0 ]; then
     error "ERROR: Fatal error occurred ($status)"
     exit 1
 fi
-info "INFO: ECLIPSE CHE: Successfully mounted user@$1:/projects"
-info "INFO: ECLIPSE CHE: Intial sync...Please wait."
+info "INFO: (che mount): Successfully mounted user@$1:/projects"
+info "INFO: (che mount): Intial sync...Please wait."
 unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
 status=$?
 if [ $status -ne 0 ]; then
     error "ERROR: Fatal error occurred ($status)"
     exit 1
 fi
-info "INFO: ECLIPSE CHE: Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+info "INFO: (che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+info "INFO: (che mount): This terminal will block while the synchronization continues."
+info "INFO: (che mount): To stop, issue a SIGTERM, usually CTRL-C."
 
-# -repeat=watch doesn't work because SSHFS doesn't support inotify and 
-# unison-fsmonitor rely on inotify
-unison /mntssh /mnthost -batch -retry 10 -fat -silent -copyonconflict -auto -prefer=newer -repeat=${UNISON_REPEAT_DELAY_IN_SEC} -log=false  > /dev/null 2>&1
-status=$?
-if [ $status -ne 0 ]; then
-    error "ERROR: Fatal error occurred ($status)"
-    exit 1
-fi
+# run application
+unison /mntssh /mnthost -batch -retry 10 -fat -silent -copyonconflict -auto -prefer=newer -repeat=${UNISON_REPEAT_DELAY_IN_SEC} -log=false > /dev/null 2>&1
+#PID=$!
+#echo "hi"
+# See: http://veithen.github.io/2014/11/16/sigterm-propagation.html
+#wait $PID
+#wait $PID
+#EXIT_STATUS=$?
+
+# wait forever
+#while true
+#do
+#  tail -f /dev/null & wait ${!}
+#done
