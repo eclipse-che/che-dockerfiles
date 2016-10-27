@@ -107,40 +107,40 @@ docker_run() {
    ENV_FILE=$(get_list_of_che_system_environment_variables)
    docker run -d --name "${CHE_SERVER_CONTAINER_NAME}" \
     -v /var/run/docker.sock:/var/run/docker.sock:Z \
-    -v /home/user/che/lib:/home/user/che/lib-copy:Z \
+    -v "$CHE_DATA_LOCATION" \
     -p "${CHE_PORT}":8080 \
     --restart="${CHE_RESTART_POLICY}" \
     --user="${CHE_USER}" \
-    --env-file=$ENV_FILE \
-    -v "$CHE_STORAGE_LOCATION" "$@"
+    -e "CHE_LOG_LEVEL=${CHE_LOG_LEVEL}" \
+    -e "CHE_IP=$CHE_HOST_IP" \
+    --env-file=$ENV_FILE "$@"
  
    rm -rf $ENV_FILE > /dev/null
 }
 
-docker_run_with_storage() {
+docker_run_if_in_vm() {
+  # If the container will run inside of a VM, additional parameters must be set.
+  # Setting CHE_IN_VM=true will have the che-server container set the values.
   if is_docker_for_mac || is_docker_for_windows || is_boot2docker; then
-    # If on docker for mac or windows, then we have to use these special parameters
-    docker_run -e "CHE_WORKSPACE_STORAGE=$CHE_DATA_FOLDER/workspaces" \
-               -e "CHE_WORKSPACE_STORAGE_CREATE_FOLDERS=false" "$@"
+    docker_run -e "CHE_IN_VM=true" "$@"
   else
-    # Otherwise, mount the full directory
-    docker_run -v "$CHE_WORKSPACE_LOCATION" "$@"
+    docker_run "$@"
   fi
 }
 
-docker_run_with_local_binary() {
-  if has_local_binary_path; then
-    docker_run_with_storage -v "$CHE_LOCAL_BINARY_LOCATION" "$@"
+docker_run_with_assembly() {
+  if has_assembly; then
+    docker_run_if_in_vm -v "$CHE_ASSEMBLY_LOCATION" -e "CHE_ASSEMBLY=${CHE_ASSEMBLY}" "$@"
   else
-    docker_run_with_storage "$@"
+    docker_run_if_in_vm "$@"
   fi
 }
 
 docker_run_with_conf() {
   if has_che_conf_path; then
-    docker_run_with_local_binary -v "$CHE_CONF_LOCATION" -e "CHE_LOCAL_CONF_DIR=/conf" "$@"
+    docker_run_with_assembly -v "$CHE_CONF_LOCATION" -e "CHE_LOCAL_CONF_DIR=${CHE_CONF}" "$@"
   else
-    docker_run_with_local_binary "$@"
+    docker_run_with_assembly "$@"
   fi
 }
 
@@ -154,9 +154,12 @@ docker_run_with_external_hostname() {
 
 docker_run_with_debug() {
   if has_debug && has_debug_suspend; then
-    docker_run_with_external_hostname -p "${CHE_DEBUG_SERVER_PORT}":8000 -e "JPDA_SUSPEND=y" "$@"
+    docker_run_with_external_hostname -p "${CHE_DEBUG_SERVER_PORT}":8000 \
+                                      -e "CHE_DEBUG_SERVER=true" \
+                                      -e "JPDA_SUSPEND=y" "$@"
   elif has_debug; then
-    docker_run_with_external_hostname -p "${CHE_DEBUG_SERVER_PORT}":8000 "$@"
+    docker_run_with_external_hostname -p "${CHE_DEBUG_SERVER_PORT}":8000 \
+                                      -e "CHE_DEBUG_SERVER=true" "$@"
   else
     docker_run_with_external_hostname "$@"
   fi
@@ -179,15 +182,15 @@ has_debug() {
 }
 
 has_che_conf_path() {
-  if [ "${CHE_CONF_FOLDER}" = "" ]; then
+  if [ "${CHE_CONF}" = "" ]; then
     return 1
   else
     return 0
   fi
 }
 
-has_local_binary_path() {
-  if [ "${CHE_LOCAL_BINARY}" = "" ]; then
+has_assembly() {
+  if [ "${CHE_ASSEMBLY}" = "" ]; then
     return 1
   else
     return 0
@@ -354,13 +357,13 @@ get_container_debug() {
 }
 
 get_che_container_host_ip_from_container() {
-  BINDS=$(docker inspect --format="{{.Config.Cmd}}" "${1}" | cut -d '[' -f 2 | cut -d ']' -f 1)
+  BINDS=$(docker inspect --format="{{.Config.Env}}" "${1}" | cut -d '[' -f 2 | cut -d ']' -f 1)
 
   IFS=$' '
   for SINGLE_BIND in $BINDS; do
     case $SINGLE_BIND in
-      *--remote*)
-        echo $SINGLE_BIND | cut -f2 -d":"
+      *CHE_IP*)
+        echo $SINGLE_BIND | cut -f2 -d=
       ;;
       *)
       ;;

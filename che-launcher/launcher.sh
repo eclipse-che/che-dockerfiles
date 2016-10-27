@@ -59,16 +59,25 @@ init_global_variables() {
   DEFAULT_CHE_RESTART_POLICY="no"
   DEFAULT_CHE_USER="root"
   DEFAULT_CHE_LOG_LEVEL="info"
-  DEFAULT_CHE_DATA_FOLDER="/home/user/che"
   DEFAULT_CHE_DEBUG_SERVER="false"
   DEFAULT_CHE_DEBUG_SERVER_PORT="8000"
   DEFAULT_CHE_DEBUG_SERVER_SUSPEND="false"
   DEFAULT_CHE_DOCKER_MACHINE_HOST_EXTERNAL=$(get_docker_external_hostname)
 
   # Clean eventual user provided paths
-  CHE_CONF_FOLDER=${CHE_CONF_FOLDER:+$(get_converted_and_clean_path "${CHE_CONF_FOLDER}")}
-  CHE_DATA_FOLDER=${CHE_DATA_FOLDER:+$(get_converted_and_clean_path "${CHE_DATA_FOLDER}")}
-  CHE_LOCAL_BINARY=${CHE_LOCAL_BINARY:+$(get_converted_and_clean_path "${CHE_LOCAL_BINARY}")}
+  CHE_CONF=${CHE_CONF:+$(get_converted_and_clean_path "${CHE_CONF}")}
+  CHE_CONF_LOCATION="${CHE_CONF}":"${CHE_CONF}:Z"
+  # "<-- Added comment with quote to fix broken syntax highlighting
+
+  DEFAULT_CHE_DATA_FOLDER="/home/user/che"
+  CHE_DATA=${CHE_DATA:+$(get_converted_and_clean_path "${CHE_DATA}")}
+  CHE_DATA=${CHE_DATA:-${DEFAULT_CHE_DATA_FOLDER}}
+  CHE_DATA_LOCATION="${CHE_DATA}":"/data:Z"
+  # "<-- Added comment with quote to fix broken syntax highlighting
+
+  CHE_ASSEMBLY=${CHE_ASSEMBLY:+$(get_converted_and_clean_path "${CHE_ASSEMBLY}")}
+  CHE_ASSEMBLY_LOCATION="${CHE_ASSEMBLY}":"${CHE_ASSEMBLY}:Z"
+  # "<-- Added comment with quote to fix broken syntax highlighting
 
   CHE_PRODUCT_NAME=${CHE_PRODUCT_NAME:-${DEFAULT_CHE_PRODUCT_NAME}}
   CHE_MINI_PRODUCT_NAME=${CHE_MINI_PRODUCT_NAME:-${DEFAULT_CHE_MINI_PRODUCT_NAME}}
@@ -81,26 +90,10 @@ init_global_variables() {
   CHE_USER=${CHE_USER:-${DEFAULT_CHE_USER}}
   CHE_HOST_IP=${CHE_HOST_IP:-${DEFAULT_DOCKER_HOST_IP}}
   CHE_LOG_LEVEL=${CHE_LOG_LEVEL:-${DEFAULT_CHE_LOG_LEVEL}}
-  CHE_DATA_FOLDER=${CHE_DATA_FOLDER:-${DEFAULT_CHE_DATA_FOLDER}}
   CHE_DEBUG_SERVER=${CHE_DEBUG_SERVER:-${DEFAULT_CHE_DEBUG_SERVER}}
   CHE_DEBUG_SERVER_PORT=${CHE_DEBUG_SERVER_PORT:-${DEFAULT_CHE_DEBUG_SERVER_PORT}}
   CHE_DEBUG_SERVER_SUSPEND=${CHE_DEBUG_SERVER_SUSPEND:-${DEFAULT_CHE_DEBUG_SERVER_SUSPEND}}
   CHE_DOCKER_MACHINE_HOST_EXTERNAL=${CHE_DOCKER_MACHINE_HOST_EXTERNAL:-${DEFAULT_CHE_DOCKER_MACHINE_HOST_EXTERNAL}}
-
-  CHE_CONF_LOCATION="${CHE_CONF_FOLDER}":"/conf:Z"
-  CHE_STORAGE_LOCATION="${CHE_DATA_FOLDER}/storage":"/home/user/che/storage:Z"
-  CHE_WORKSPACE_LOCATION="${CHE_DATA_FOLDER}/workspaces":"/home/user/che/workspaces:Z"
-  CHE_LOCAL_BINARY_LOCATION="${CHE_LOCAL_BINARY}":"/home/user/che:Z"
-
-  if [ "${CHE_LOG_LEVEL}" = "debug" ]; then
-    CHE_DEBUG_OPTION="--log_level:debug"
-  else
-    CHE_DEBUG_OPTION=""
-  fi
-
-  if [ "${CHE_DEBUG_SERVER}" = "true" ]; then
-    CHE_DEBUG_OPTION="${CHE_DEBUG_OPTION} --debug"
-  fi
 
   USAGE="
 Usage:
