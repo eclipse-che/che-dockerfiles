@@ -66,7 +66,7 @@ init_global_variables() {
 
   # Clean eventual user provided paths
   CHE_CONF=${CHE_CONF:+$(get_converted_and_clean_path "${CHE_CONF}")}
-  CHE_CONF_LOCATION="${CHE_CONF}":"${CHE_CONF}:Z"
+  CHE_CONF_LOCATION="${CHE_CONF}":"/conf:Z"
   # "<-- Added comment with quote to fix broken syntax highlighting
 
   DEFAULT_CHE_DATA_FOLDER="/home/user/che"
