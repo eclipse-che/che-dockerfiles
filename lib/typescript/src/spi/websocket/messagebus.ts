@@ -29,13 +29,11 @@ export class MessageBus {
     websocketClient : any;
     closed : boolean;
     websocket : Websocket;
-    workspaceId : string;
 
-    constructor(websocketClient : any, url: string, workspaceId : string, websocket: Websocket, resolve : any, reject : any) {
+    constructor(websocketClient : any, url: string, websocket: Websocket, resolve : any, reject : any) {
 
         this.websocketClient = websocketClient;
         this.websocket = websocket;
-        this.workspaceId = workspaceId;
 
         this.closed = false;
         this.delaySend = [];
@@ -95,7 +93,6 @@ export class MessageBus {
 
     close() {
         this.closed = true;
-        this.websocket.cleanup(this.workspaceId);
         this.websocketConnection.close();
     }
 

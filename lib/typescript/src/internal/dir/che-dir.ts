@@ -332,7 +332,9 @@ export class CheDir {
     let flatChe = this.flatJson('che', che);
     flatChe.forEach((value, key) => {
       Log.getLogger().debug( 'the value is ' + value.toString() + ' for key' + key);
-      content += key + '=' + value.toString() + '\n';
+      if (key !== 'che.server.ip') {
+        content += key + '=' + value.toString() + '\n';
+      }
     });
 
     // make flat the workspace object
@@ -593,12 +595,6 @@ export class CheDir {
         return this.workspace.getWorkspace(workspaceDto.getId())
       }).then((workspaceDto) => {
         userWorkspaceDto = workspaceDto;
-        // search IDE url link
-        workspaceDto.getLinks().forEach((link) => {
-          if ('ide url' === link.getRel()) {
-            ideUrl = link.getHref();
-          }
-        });
       }).then(() => {
           return this.setupSSHKeys(userWorkspaceDto);
       }).then(() => {
@@ -614,7 +610,7 @@ export class CheDir {
       }).then(() => {
         let end : number = Date.now();
         Log.getLogger().debug("time =", end - start);
-        Log.getLogger().info(this.i18n.get('up.workspace-connect-to', ideUrl));
+        Log.getLogger().info(this.i18n.get('up.workspace-connect-to', this.buildLocalIDEUrl()));
         return ideUrl;
       });
 
@@ -872,8 +868,20 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
 
 
   buildLocalCheURL() : string {
-    return 'http://' + this.chefileStruct.server.ip + ':' + this.chefileStruct.server.port;
+
+    // handle special docerk4 mac, docker for windows ip
+    let ip : string = this.chefileStruct.server.ip;
+    if (ip === '192.168.65.2' || ip === '10.0.75.2') {
+      ip = 'localhost';
+    }
+
+    return 'http://' + ip + ':' + this.chefileStruct.server.port;
   }
+
+  buildLocalIDEUrl() : string {
+    return this.buildLocalCheURL() + "/dashboard/#/ide/che/local";
+  }
+
 
   initCheFolders() {
 
@@ -929,7 +937,6 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
       // continue with own properties
       commandLine +=
           ' -v /var/run/docker.sock:/var/run/docker.sock' +
-          ' -e CHE_DOCKER_MACHINE_HOST_EXTERNAL=' + this.chefileStruct.server.ip +
           ' -e CHE_PORT=' + this.chefileStruct.server.port +
           ' -e CHE_DATA=' + this.workspacesFolder +
           ' -e CHE_SERVER_CONTAINER_NAME=' + this.getCheServerContainerName() +
