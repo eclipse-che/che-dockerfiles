@@ -65,18 +65,21 @@ init_global_variables() {
   DEFAULT_CHE_DOCKER_MACHINE_HOST_EXTERNAL=$(get_docker_external_hostname)
 
   # Clean eventual user provided paths
+  # This is a user-provided override
   CHE_CONF=${CHE_CONF:+$(get_converted_and_clean_path "${CHE_CONF}")}
-  CHE_CONF_LOCATION="${CHE_CONF}":"${CHE_CONF}:Z"
+  CHE_CONF_LOCATION="${CHE_CONF}":"/conf:Z"
+  # "<-- Added comment with quote to fix broken syntax highlighting
+
+  # This is a user-provided override
+  # If this is not provided by the user, we will not volume mount it and use the internal values
+  CHE_ASSEMBLY=${CHE_ASSEMBLY:+$(get_converted_and_clean_path "${CHE_ASSEMBLY}")}
+  CHE_ASSEMBLY_LOCATION="${CHE_ASSEMBLY}":"/assembly:Z"
   # "<-- Added comment with quote to fix broken syntax highlighting
 
   DEFAULT_CHE_DATA_FOLDER="/home/user/che"
-  CHE_DATA=${CHE_DATA:+$(get_converted_and_clean_path "${CHE_DATA}")}
   CHE_DATA=${CHE_DATA:-${DEFAULT_CHE_DATA_FOLDER}}
+  CHE_DATA=$(get_converted_and_clean_path "${CHE_DATA}")
   CHE_DATA_LOCATION="${CHE_DATA}":"/data:Z"
-  # "<-- Added comment with quote to fix broken syntax highlighting
-
-  CHE_ASSEMBLY=${CHE_ASSEMBLY:+$(get_converted_and_clean_path "${CHE_ASSEMBLY}")}
-  CHE_ASSEMBLY_LOCATION="${CHE_ASSEMBLY}":"${CHE_ASSEMBLY}:Z"
   # "<-- Added comment with quote to fix broken syntax highlighting
 
   CHE_PRODUCT_NAME=${CHE_PRODUCT_NAME:-${DEFAULT_CHE_PRODUCT_NAME}}

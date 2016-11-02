@@ -127,8 +127,8 @@ print_debug_info() {
       info "CHE SERVER STATUS         = $(server_is_booted $CHE_SERVER_CONTAINER_ID && echo "running & api reachable" || echo "stopped")"
       info "CHE VERSION               = $(get_server_version $CHE_SERVER_CONTAINER_ID)"
       info "CHE IMAGE                 = $(get_che_container_image_name $CHE_SERVER_CONTAINER_ID)"
-      info "CHE CONF FOLDER           = $(get_che_container_conf_folder $CHE_SERVER_CONTAINER_ID)"
-      info "CHE DATA FOLDER           = $(get_che_container_data_folder $CHE_SERVER_CONTAINER_ID)"
+      info "CHE CONF                  = $(get_che_container_conf_folder $CHE_SERVER_CONTAINER_ID)"
+      info "CHE DATA                  = $(get_che_container_data_folder $CHE_SERVER_CONTAINER_ID)"
       CURRENT_CHE_HOST_IP=$(get_che_container_host_ip_from_container $CHE_SERVER_CONTAINER_ID)
       CURRENT_CHE_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort }}' ${CHE_SERVER_CONTAINER_ID})
       info "CHE USE URL               = http://${CURRENT_CHE_HOST_IP}:${CURRENT_CHE_PORT}"  
