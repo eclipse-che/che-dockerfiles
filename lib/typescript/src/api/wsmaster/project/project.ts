@@ -44,16 +44,18 @@ export class Project {
     constructor(workspaceDTO: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto) {
         this.workspaceDTO = workspaceDTO;
 
-        // searche the workspace agent link
-        let links : Array<any> = this.workspaceDTO.getRuntime().getLinks();
+        // search the workspace agent link
+        let servers : Map<string, org.eclipse.che.api.machine.shared.dto.ServerDto> = this.workspaceDTO.getRuntime().getDevMachine().getRuntime().getServers();
+
         var hrefWsAgent;
-        links.forEach((link) => {
-           if ('wsagent' === link.rel) {
-               hrefWsAgent = link.href;
-           }
-        });
+        for (let server of servers.values()) {
+            if (server.getRef() === 'wsagent') {
+                hrefWsAgent = server.getProperties().getInternalUrl();
+            }
+        }
+
         if (!hrefWsAgent) {
-            throw new Error('unable to find the workspace agent in dto :' + workspaceDTO);
+            throw new Error('unable to find the workspace agent link from workspace :' + workspaceDTO.getConfig().getName() + " with JSON " + workspaceDTO.toJson());
         }
         var urlObject : any = require('url').parse(hrefWsAgent);
 

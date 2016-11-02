@@ -200,7 +200,7 @@ export class Workspace {
             }
         });
 
-        return this.websocket.getMessageBus(link + '?token=' + this.authData.getToken(), workspaceId);
+        return this.websocket.getMessageBus(link + '?token=' + this.authData.getToken());
     }
 
 

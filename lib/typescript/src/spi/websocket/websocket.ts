@@ -25,14 +25,13 @@ export class Websocket {
     /**
      * Map of bus per workspace ID.
      */
-    websocketConnections: Map<string, MessageBus>;
+    messageBus : MessageBus;
 
     /**
      * Default constructor initializing websocket.
      */
     constructor() {
         this.wsClient = require('websocket').client;
-        this.websocketConnections = new Map<string, MessageBus>();
     }
 
     /**
@@ -40,27 +39,20 @@ export class Websocket {
      * @param websocketURL the remote host base WS url
      * @param workspaceId the workspaceID used as suffix for the URL
      */
-    getMessageBus(websocketURL, workspaceId) : Promise<MessageBus> {
-        var bus: MessageBus = this.websocketConnections.get(workspaceId);
-        if (bus) {
-            return Promise.resolve(bus);
+    getMessageBus(websocketURL) : Promise<MessageBus> {
+        if (this.messageBus) {
+            return Promise.resolve(this.messageBus);
         }
         var webSocketClient: any = new this.wsClient();
         var remoteWebsocketUrl: string = websocketURL;
         let promise : Promise<MessageBus> = new Promise<MessageBus>((resolve, reject) => {
-            bus = new MessageBus(webSocketClient, remoteWebsocketUrl, workspaceId, this, resolve, reject);
-            this.websocketConnections.set(workspaceId, bus);
+            this.messageBus = new MessageBus(webSocketClient, remoteWebsocketUrl, this, resolve, reject);
         });
 
         return promise.then(() => {
-            return bus;
+            return this.messageBus;
         });
 
-    }
-
-
-    cleanup(workspaceId) {
-        this.websocketConnections.delete(workspaceId);
     }
 
 }
