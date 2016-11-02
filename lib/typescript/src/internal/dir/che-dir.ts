@@ -71,9 +71,7 @@ export class CheDir {
   folderName: any;
   cheFile : any;
   dotCheFolder : any;
-  confFolder : any;
   workspacesFolder : any;
-  chePropertiesFile : any;
   dotCheIdFile : any;
   dotCheSshPrivateKeyFile : any;
   dotCheSshPublicKeyFile : any;
@@ -102,9 +100,7 @@ export class CheDir {
     this.dotCheIdFile = this.path.resolve(this.dotCheFolder, 'id');
     this.dotCheSshPrivateKeyFile = this.path.resolve(this.dotCheFolder, 'ssh-key.private');
     this.dotCheSshPublicKeyFile = this.path.resolve(this.dotCheFolder, 'ssh-key.public');
-    this.confFolder = this.path.resolve(this.dotCheFolder, 'conf');
     this.workspacesFolder = this.path.resolve(this.dotCheFolder, 'workspaces');
-    this.chePropertiesFile = this.path.resolve(this.confFolder, 'che.properties');
 
     this.initDefault();
 
@@ -301,7 +297,7 @@ export class CheDir {
   isInitialized() : Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       try {
-        this.fs.statSync(this.chePropertiesFile);
+        this.fs.statSync(this.dotCheFolder);
         resolve(true);
       } catch (e) {
         resolve(false);
@@ -368,7 +364,6 @@ export class CheDir {
       } else {
         // needs to create folders
         this.initCheFolders();
-        this.setupConfigFile();
 
         // write a default chefile if there is none
         try {
@@ -553,13 +548,6 @@ export class CheDir {
       var workspaceHasBeenCreated : boolean = false;
       return new Promise<string>((resolve, reject) => {
         this.parse();
-
-        // test if conf is existing
-        try {
-          var statsPropertiesFile = this.fs.statSync(this.chePropertiesFile);
-        } catch (e) {
-          reject(this.i18n.get('up.notconfigured'));
-        }
         resolve('parsed');
       }).then(() => {
         return this.checkCheIsNotRunning();
@@ -906,24 +894,6 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
       // already exist
     }
 
-    // create .che/conf folder
-
-    try {
-      this.fs.mkdirSync(this.confFolder, 0o744);
-    } catch (e) {
-      // already exist
-    }
-
-
-    // copy configuration file
-
-    try {
-      var stats = this.fs.statSync(this.chePropertiesFile);
-    } catch (e) {
-      // file does not exist, copy it
-      this.fs.writeFileSync(this.chePropertiesFile, this.fs.readFileSync(this.path.resolve(__dirname, 'che.properties')));
-    }
-
   }
 
   writeInstanceId() {
@@ -933,47 +903,6 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
       // already exist
     }
   }
-
-  setupConfigFile() {
-    // need to setup che.properties file with workspaces folder
-
-    // update che.user.workspaces.storage
-    this.updateConfFile('che.user.workspaces.storage', this.workspacesFolder);
-
-    // update extra volumes
-    this.updateConfFile('machine.server.extra.volume', this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock");
-
-  }
-
-  updateConfFile(propertyName, propertyValue) {
-
-    var content = '';
-    var foundLine = false;
-    this.fs.readFileSync(this.chePropertiesFile).toString().split('\n').forEach((line) => {
-
-      var updatedLine;
-
-
-
-      if (this.startsWith(line, propertyName)) {
-        foundLine = true;
-        updatedLine = propertyName + '=' + propertyValue + '\n';
-      } else {
-        updatedLine = line  + '\n';
-      }
-
-      content += updatedLine;
-    });
-
-    // add property if not present
-    if (!foundLine) {
-      content += propertyName + '=' + propertyValue + '\n';
-    }
-
-    this.fs.writeFileSync(this.chePropertiesFile, content);
-
-  }
-
 
   getCheServerContainerName() : string {
     return 'che-server-' + this.instanceId;
@@ -988,20 +917,21 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
       var commandLine: string = 'docker run --rm';
 
       // add extra properties
+      // need to setup che.properties file with workspaces folder
+      this.chefileStruct.server.properties["CHE_WORKSPACE_VOLUME"] = this.currentFolder + ':/projects/' + this.folderName + ";/var/run/docker.sock:/var/run/docker.sock";
+      this.chefileStruct.server.properties["CHE_WORKSPACE_STORAGE"] = this.workspacesFolder;
+
       for(var property in this.chefileStruct.server.properties){
         let envProperty : string = ' --env ' + property + '=\"' + this.chefileStruct.server.properties[property] + '\"';
         commandLine += envProperty;
       }
-
-
 
       // continue with own properties
       commandLine +=
           ' -v /var/run/docker.sock:/var/run/docker.sock' +
           ' -e CHE_DOCKER_MACHINE_HOST_EXTERNAL=' + this.chefileStruct.server.ip +
           ' -e CHE_PORT=' + this.chefileStruct.server.port +
-          ' -e CHE_DATA_FOLDER=' + this.workspacesFolder +
-          ' -e CHE_CONF_FOLDER=' + this.confFolder +
+          ' -e CHE_DATA=' + this.workspacesFolder +
           ' -e CHE_SERVER_CONTAINER_NAME=' + this.getCheServerContainerName() +
           ' ' + this.cheLauncherImageName + ':' + containerVersion + ' start';
 
@@ -1052,8 +982,7 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
       var commandLine: string = 'docker run --rm' +
           ' -v /var/run/docker.sock:/var/run/docker.sock' +
           ' -e CHE_PORT=' + this.chefileStruct.server.port +
-          ' -e CHE_DATA_FOLDER=' + this.workspacesFolder +
-          ' -e CHE_CONF_FOLDER=' + this.confFolder +
+          ' -e CHE_DATA=' + this.workspacesFolder +
           ' -e CHE_SERVER_CONTAINER_NAME=' + this.getCheServerContainerName() +
           ' ' + this.cheLauncherImageName + ':' + containerVersion + ' stop';
 
