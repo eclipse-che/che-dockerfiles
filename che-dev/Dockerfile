@@ -58,7 +58,7 @@ RUN sudo apt-get update && \
 
 EXPOSE 3000 5000 9000
 RUN sudo npm install -g npm@latest
-RUN sudo npm install --unsafe-perm -g gulp bower
+RUN sudo npm install --unsafe-perm -g gulp bower typings
 RUN mkdir ~/gopath && \
     cd /home/user && wget -q https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz && \
     sudo tar -xvf go1.6.2.linux-amd64.tar.gz -C /opt/ && \
