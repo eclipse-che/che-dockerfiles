@@ -19,7 +19,9 @@ RUN apt-get update && \
 
 USER user
 
-RUN cd /home/user && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+RUN cd /home/user && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - && \
+    wget -q http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip && \
+    unzip -q chromedriver_linux64.zip -d /home/user && rm chromedriver_linux64.zip
 
 USER root
 
@@ -87,11 +89,11 @@ RUN echo "export JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX\nexport M2_HOME=/home/us
 
 WORKDIR /projects
 
-CMD if [ -z ${WEBDRIVER_VERSION+x} ]; then WEBDRIVER_VERSION=$(curl -s http://chromedriver.storage.googleapis.com/LATEST_RELEASE); fi && \
-    echo "WEBDRIVER_VERSION: "${WEBDRIVER_VERSION} && \
-    wget -O /home/user/chromedriver_linux64.zip -q http://chromedriver.storage.googleapis.com/${WEBDRIVER_VERSION}/chromedriver_linux64.zip && \
-    unzip -q /home/user/chromedriver_linux64.zip  -d /home/user && \
-    rm /home/user/chromedriver_linux64.zip && \
+CMD if [ ! -z ${WEBDRIVER_VERSION+x} ]; then \
+        wget -O /home/user/chromedriver_linux64.zip -q http://chromedriver.storage.googleapis.com/${WEBDRIVER_VERSION}/chromedriver_linux64.zip; \
+        unzip -o -q /home/user/chromedriver_linux64.zip  -d /home/user; \
+        rm /home/user/chromedriver_linux64.zip; \
+    fi && \
     /usr/bin/supervisord -c /opt/supervisord.conf & \
     cd /home/user && sleep 3 && \
     /home/user/chromedriver --port=4444 --whitelisted-ips='' & \
