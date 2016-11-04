@@ -17,6 +17,7 @@ import {ExecuteCommandAction} from "./impl/execute-command-action";
 import {Log} from "../../spi/log/log";
 import {ListWorkspacesAction} from "./impl/list-workspaces-action";
 import {ProductName} from "../../utils/product-name";
+import {WorkspaceSshAction} from "./impl/workspace-ssh-action";
 /**
  * Entrypoint for the Actions.
  * @author Florent Benoit
@@ -56,6 +57,7 @@ export class CheAction {
         actionMap.set('remove-user', RemoveUserAction);
         actionMap.set('execute-command', ExecuteCommandAction);
         actionMap.set('list-workspaces', ListWorkspacesAction);
+        actionMap.set('workspace-ssh', WorkspaceSshAction);
         return actionMap;
     }
 
