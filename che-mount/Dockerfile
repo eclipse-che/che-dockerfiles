@@ -52,6 +52,18 @@ RUN apk add --update build-base curl bash sshfs && \
     mkdir /mntssh && chmod -R 777 /mntssh && \
     mkdir /mnthost && chmod -R 777 /mnthost
 
+ENV DOCKER_BUCKET get.docker.com
+ENV DOCKER_VERSION 1.6.0
+
+RUN set -x \
+    && apk add --no-cache \
+    ca-certificates \
+    curl \
+    openssl \
+    && curl -sL "https://${DOCKER_BUCKET}/builds/Linux/x86_64/docker-$DOCKER_VERSION" \
+    > /usr/bin/docker; chmod +x /usr/bin/docker \
+    && apk del curl ca-certificates openssl
+
 COPY /sync.sh /bin/sync.sh
 
 ENTRYPOINT ["/bin/sync.sh"]
