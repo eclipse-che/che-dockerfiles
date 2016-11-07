@@ -104,7 +104,7 @@ export class Log {
                 consoleMethod(prefix + line);
             })
         } else {
-            if (optional) {
+            if (optional && optional.length > 0) {
                 consoleMethod(prefix + message, optional.join(' '));
             } else {
                 consoleMethod(prefix + message);
