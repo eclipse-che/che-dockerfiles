@@ -26,19 +26,21 @@ Usage on Linux
             -v /etc/passwd:/etc/passwd:ro 
             -v <path-to-sync-profile>:/profile
             -u \$(id -u \${USER})
-            -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port> 
-           
+            -v <local-mount>/:/mnthost codenvy/che-mount <workspace-id|workspace-name>
+
+     <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
+
 Usage on Mac or Windows:
   docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
             --name che-mount 
             -v <path-to-sync-profile>:/profile
-            -v <local-mount>/:/mnthost codenvy/che-mount <ip> <port>
+            -v <local-mount>/:/mnthost codenvy/che-mount <workspace-id|workspace-name>
 
-     <local-mount>    Host directory to sync files, must end with a slash '/'
-     <ip>             IP address of Che server
-     <port>           Port of workspace SSH server - retrieve inside workspace
+     <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
 "
  UNISON_REPEAT_DELAY_IN_SEC=2
+ WORKSPACE_NAME=
+ COMMAND_EXTRA_ARGS=
 }
 
 parse_command_line () {
@@ -49,7 +51,11 @@ parse_command_line () {
 
   # See if profile document was provided
   mkdir -p $HOME/.unison
-  cp -rf /profile/default.prf $HOME/.unison/default.prf 
+  cp -rf /profile/default.prf $HOME/.unison/default.prf
+
+  WORKSPACE_NAME=$1
+  shift
+  COMMAND_EXTRA_ARGS="$*"
 }
 
 usage () {
@@ -66,9 +72,9 @@ debug() {
 
 error() {
   echo  "---------------------------------------"
-  error "!!!"
-  error "!!! ${1}"
-  error "!!!"
+  echo "!!!"
+  echo "!!! ${1}"
+  echo "!!!"
   echo  "---------------------------------------"
   return 1
 }
@@ -87,15 +93,35 @@ trap 'stop_sync' SIGHUP SIGTERM SIGINT
 init_logging
 init_global_variables
 parse_command_line "$@"
+status=$?
+if [ $status -ne 0 ]; then
+    exit 1
+fi
 
-info "INFO: (che mount): Mounting user@$1:/projects with SSHFS"
-sshfs user@$1:/projects /mntssh -p $2
+docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
+if [ $? -ne 0 ]; then
+    error "ERROR: Error when trying to get workspace data for workspace named ${WORKSPACE_NAME}"
+    echo "List of workspaces are:"
+    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action:${CHE_VERSION} list-workspaces
+    return 1
+fi
+
+source $HOME/env
+
+# store private key
+mkdir $HOME/.ssh
+echo "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
+chmod 600 $HOME/.ssh/id_rsa
+
+info "INFO: (che mount): Mounting ${SSH_USER}@${SSH_IP}:/projects with SSHFS"
+sshfs ${SSH_USER}@${SSH_IP}:/projects /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+
 status=$?
 if [ $status -ne 0 ]; then
     error "ERROR: Fatal error occurred ($status)"
     exit 1
 fi
-info "INFO: (che mount): Successfully mounted user@$1:/projects"
+info "INFO: (che mount): Successfully mounted ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT})"
 info "INFO: (che mount): Initial sync...Please wait."
 unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
 status=$?

@@ -1164,7 +1164,7 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
   factory() : Promise<any> {
     return this.isInitialized().then((isInitialized) => {
       if (!isInitialized) {
-        return Promise.reject('This directory has not been initialized. So, ssh is not available.');
+        return Promise.reject('This directory has not been initialized. So, factory export is not available.');
       }
 
       return new Promise<string>((resolve, reject) => {
