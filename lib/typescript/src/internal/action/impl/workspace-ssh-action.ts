@@ -27,7 +27,7 @@ import {Ssh} from "../../../api/wsmaster/ssh/ssh";
  */
 export class WorkspaceSshAction {
 
-    @Argument({description: "Defines the workspace to be used. use workspaceId or :workspaceName as argument"})
+    @Argument({description: "Defines the workspace to be used. use workspaceId, workspaceName or namespace:workspaceName as argument"})
     workspaceName : string;
 
 
@@ -48,6 +48,8 @@ export class WorkspaceSshAction {
     path = require('path');
 
 
+    private machineName : string;
+
     workspace : Workspace;
     constructor(args:Array<string>) {
         this.args = ArgumentProcessor.inject(this, args);
@@ -56,6 +58,15 @@ export class WorkspaceSshAction {
         this.authData.printInfo = false;
         Log.disablePrefix();
         this.workspace = new Workspace(this.authData);
+
+
+        // if extra args it's the machine name
+        if (this.args.length > 0) {
+            this.machineName = this.args[0];
+        } else {
+            // default to dev-machine if not defined
+            this.machineName = "dev-machine";
+        }
     }
 
     run() : Promise<any> {
@@ -63,6 +74,8 @@ export class WorkspaceSshAction {
         return this.authData.login().then(() => {
 
             let foundWorkspaceDTO : org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
+
+            let foundConfigMachineDTO;
 
             // then, search workspace
             return this.workspace.searchWorkspace(this.workspaceName).then((workspaceDto) => {
@@ -74,7 +87,13 @@ export class WorkspaceSshAction {
 
                 // Check ssh agent is there
                 let defaultEnv:string = workspaceDto.getConfig().getDefaultEnv();
-                let agents:Array<string> = workspaceDto.getConfig().getEnvironments().get(defaultEnv).getMachines().get("dev-machine").getAgents();
+
+                let machineConfig : org.eclipse.che.api.workspace.shared.dto.ExtendedMachineDto = workspaceDto.getConfig().getEnvironments().get(defaultEnv).getMachines().get(this.machineName);
+                if (!machineConfig) {
+                    throw new Error("Unable to find a machine named " + this.machineName + " in the workspace '" + this.workspaceName)
+                }
+
+                let agents:Array<string> = machineConfig.getAgents();
 
                 if (agents.indexOf('org.eclipse.che.ssh') === -1) {
                     return Promise.reject("The SSH agent (org.eclipse.che.ssh) has been disabled for this workspace.")
@@ -89,7 +108,8 @@ export class WorkspaceSshAction {
                 return ssh.getPair("workspace", foundWorkspaceDTO.getId());
             }).then((sshPairDto : org.eclipse.che.api.ssh.shared.dto.SshPairDto) => {
 
-                let runtime : org.eclipse.che.api.machine.shared.dto.MachineRuntimeInfoDto = foundWorkspaceDTO.getRuntime().getDevMachine().getRuntime();
+                let machines : Array<org.eclipse.che.api.machine.shared.dto.MachineDto> = foundWorkspaceDTO.getRuntime().getMachines();
+                let runtime: org.eclipse.che.api.machine.shared.dto.MachineRuntimeInfoDto = this.getSelectedMachine(machines).getRuntime();
                 let user : string = runtime.getProperties().get("config.user");
                 if (user === "") {
                     // user is root if not defined
@@ -118,5 +138,15 @@ export class WorkspaceSshAction {
             });
         });
     }
+
+    private getSelectedMachine(machines : Array<org.eclipse.che.api.machine.shared.dto.MachineDto>) : org.eclipse.che.api.machine.shared.dto.MachineDto {
+        for(let i : number=0; i<machines.length; i++) {
+            if (machines[i].getConfig().getName() === this.machineName) {
+              return machines[i];
+            }
+        }
+        throw new Error("Unable to find a machine named " + this.machineName + " in the workspace '" + this.workspaceName);
+    }
+
 
 }
