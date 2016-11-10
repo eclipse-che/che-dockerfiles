@@ -10,9 +10,11 @@ NETWORK_IF=
 
 # handle docker for windows/mac
 if uname -r | grep -q 'moby'; then
-  if [ -d "/sys/class/net/eth0" ]; then
+  if [ -d "/sys/class/net/hvint0" ]; then
+    NETWORK_IF=hvint0
+  elif [ -d "/sys/class/net/eth0" ]; then
     NETWORK_IF=eth0
-   fi
+  fi
 fi
 
 if test -z ${NETWORK_IF}; then
