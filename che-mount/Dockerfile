@@ -19,13 +19,13 @@
 #             -v /etc/group:/etc/group:ro 
 #             -v /etc/passwd:/etc/passwd:ro 
 #             -u $(id -u ${USER})
-#             -v <host-dir>:/mnthost codenvy/che-mount <ip> <ws-id|ws-name> 
+#             -v <host-dir>:/mnthost codenvy/che-mount <ws-id|ws-name> 
 #            
 #  On Mac or Windows:
 #  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
 #             --name che-mount 
 #             -v ~/.ssh:/root/.ssh
-#             -v <host-dir>:/mnthost codenvy/che-mount <ip> <ws-id|ws-name> 
+#             -v <host-dir>:/mnthost codenvy/che-mount <ws-id|ws-name> 
 #
 # RUN IN CONTAINER:
 #  echo "secret" | $(echo "yes" | sshfs user@10.0.75.2:/projects /mntssh -p 32774)
