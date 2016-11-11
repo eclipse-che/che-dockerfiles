@@ -8,16 +8,16 @@ $ build.sh  (on Unix)
 
 ## Run a test
 ```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-test <name-of-test>
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-test <name-of-test>
 ```
 
 ## Get available tests
 ```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-test
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-test
 ```
 
 ## Get help on a test
 ```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-test <name-of-test> --help
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-test <name-of-test> --help
 ```
 

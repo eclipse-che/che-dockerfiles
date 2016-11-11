@@ -22,7 +22,7 @@ export class RemoteIp {
         if (!RemoteIp.ip) {
             var execSync = require('child_process').execSync;
             let containerVersion : string = new ContainerVersion().getVersion();
-            RemoteIp.ip = execSync('docker run --net host --rm codenvy/che-ip:' + containerVersion).toString().replace(/[\n\r]/g, '');
+            RemoteIp.ip = execSync('docker run --net host --rm eclipse/che-ip:' + containerVersion).toString().replace(/[\n\r]/g, '');
         }
     }
 

@@ -26,7 +26,7 @@ Usage on Linux
             -v /etc/passwd:/etc/passwd:ro 
             -v <path-to-sync-profile>:/profile
             -u \$(id -u \${USER})
-            -v <local-mount>/:/mnthost codenvy/che-mount <workspace-id|workspace-name>
+            -v <local-mount>/:/mnthost eclipse/che-mount <workspace-id|workspace-name>
 
      <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
 
@@ -34,7 +34,7 @@ Usage on Mac or Windows:
   docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
             --name che-mount 
             -v <path-to-sync-profile>:/profile
-            -v <local-mount>/:/mnthost codenvy/che-mount <workspace-id|workspace-name>
+            -v <local-mount>/:/mnthost eclipse/che-mount <workspace-id|workspace-name>
 
      <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
 "
@@ -98,11 +98,11 @@ if [ $status -ne 0 ]; then
     exit 1
 fi
 
-docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
+docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
 if [ $? -ne 0 ]; then
     error "ERROR: Error when trying to get workspace data for workspace named ${WORKSPACE_NAME}"
     echo "List of workspaces are:"
-    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action:${CHE_VERSION} list-workspaces
+    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} list-workspaces
     return 1
 fi
 

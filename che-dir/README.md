@@ -26,7 +26,7 @@ $ cd web-java-spring-petclinic
 Run script
 ```
 docker run -v /var/run/docker.sock:/var/run/docker.sock \
-           -v "$PWD":"$PWD" --rm codenvy/che-file \
+           -v "$PWD":"$PWD" --rm eclipse/che-file \
            $PWD <init|up>
 ```
 

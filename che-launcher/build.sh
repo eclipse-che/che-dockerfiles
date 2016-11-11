@@ -11,4 +11,4 @@ else
   TAG="nightly"
 fi
 
-docker build -t codenvy/che-launcher:$TAG .
+docker build -t eclipse/che-launcher:$TAG .

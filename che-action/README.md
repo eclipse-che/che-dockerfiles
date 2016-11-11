@@ -8,15 +8,15 @@ $ build.sh  (on Unix)
 
 ## Run container
 ```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action <name-of-action>
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action <name-of-action>
 ```
 
 ## Get available actions
 ```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action
 ```
 
 ## Get help on a test
 ```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock codenvy/che-action <name-of-action> --help
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action <name-of-action> --help
 ```

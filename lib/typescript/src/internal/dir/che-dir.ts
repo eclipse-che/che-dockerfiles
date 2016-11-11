@@ -112,7 +112,7 @@ export class CheDir {
     if (process.env.CHE_LAUNCHER_IMAGE_NAME) {
       this.cheLauncherImageName = process.env.CHE_LAUNCHER_IMAGE_NAME
     } else {
-      this.cheLauncherImageName = 'codenvy/che-launcher';
+      this.cheLauncherImageName = 'eclipse/che-launcher';
     }
   }
 

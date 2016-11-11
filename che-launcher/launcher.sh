@@ -51,7 +51,7 @@ init_global_variables() {
   DEFAULT_CHE_PRODUCT_NAME="ECLIPSE CHE"
   DEFAULT_CHE_MINI_PRODUCT_NAME="che"
   DEFAULT_CHE_SERVER_CONTAINER_NAME="che-server"
-  DEFAULT_CHE_SERVER_IMAGE_NAME="codenvy/che-server"
+  DEFAULT_CHE_SERVER_IMAGE_NAME="eclipse/che-server"
   DEFAULT_DOCKER_HOST_IP=$(get_docker_host_ip)
   DEFAULT_CHE_HOSTNAME=$(get_che_hostname)
   DEFAULT_CHE_PORT="8080"

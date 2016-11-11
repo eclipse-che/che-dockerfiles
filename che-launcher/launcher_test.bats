@@ -149,7 +149,7 @@ source ./launcher_funcs.sh
 @test "get che get che launcher version with nightly" {
   # Given
   export CHE_SERVER_CONTAINER_NAME="che-test-get-che-launcher-version"
-  long_id=$(docker run -d --name ${CHE_SERVER_CONTAINER_NAME} --entrypoint=true codenvy/che-launcher:nightly)
+  long_id=$(docker run -d --name ${CHE_SERVER_CONTAINER_NAME} --entrypoint=true eclipse/che-launcher:nightly)
 
   get_che_launcher_container_id() {
     echo ${long_id:0:12}
@@ -166,7 +166,7 @@ source ./launcher_funcs.sh
 @test "get che get che launcher version with no specific version" {
   # Given
   export CHE_SERVER_CONTAINER_NAME="che-test-get-che-launcher-version"
-  long_id=$(docker run -d --name ${CHE_SERVER_CONTAINER_NAME} --entrypoint=true codenvy/che-launcher)
+  long_id=$(docker run -d --name ${CHE_SERVER_CONTAINER_NAME} --entrypoint=true eclipse/che-launcher)
 
   get_che_launcher_container_id() {
     echo ${long_id:0:12}
