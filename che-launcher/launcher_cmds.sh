@@ -66,7 +66,6 @@ stop_che_server() {
   else
     info "${CHE_PRODUCT_NAME}: Stopping server..."
     docker stop -t 300 ${CURRENT_CHE_SERVER_CONTAINER_ID}
-    wait_until_container_is_stopped 60 ${CURRENT_CHE_SERVER_CONTAINER_ID}
     if che_container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
       error_exit "${CHE_PRODUCT_NAME}: Timeout waiting for the ${CHE_PRODUCT_NAME} container to stop."
     fi
