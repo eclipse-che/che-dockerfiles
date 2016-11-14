@@ -43,8 +43,13 @@ start_che_server() {
   if server_is_booted ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
     info "${CHE_PRODUCT_NAME}: Booted and reachable"
     info "${CHE_PRODUCT_NAME}: Ver: $(get_server_version ${CURRENT_CHE_SERVER_CONTAINER_ID})"
-    info "${CHE_PRODUCT_NAME}: Use: http://${CHE_HOST_IP}:${CHE_PORT}"
-    info "${CHE_PRODUCT_NAME}: API: http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
+    if ! is_docker_for_mac; then
+      info "${CHE_PRODUCT_NAME}: Use: http://${CHE_HOST_IP}:${CHE_PORT}"
+      info "${CHE_PRODUCT_NAME}: API: http://${CHE_HOST_IP}:${CHE_PORT}/swagger"
+    else
+      info "${CHE_PRODUCT_NAME}: Use: http://localhost:${CHE_PORT}"
+      info "${CHE_PRODUCT_NAME}: API: http://localhost:${CHE_PORT}/swagger"
+    fi
 
     if has_debug; then
       info "${CHE_PRODUCT_NAME}: JPDA Debug - http://${CHE_HOST_IP}:${CHE_DEBUG_SERVER_PORT}"
