@@ -716,7 +716,7 @@ setupSSHKeys(workspaceDto: org.eclipse.che.api.workspace.shared.dto.WorkspaceDto
     let channel:string = 'process:output:' + uuid;
 
     let customCommand:CheFileStructWorkspaceCommand = new CheFileStructWorkspaceCommandImpl();
-    customCommand.commandLine = 'mkdir $HOME/.ssh && echo "' + publicKey + '"> $HOME/.ssh/authorized_keys';
+    customCommand.commandLine = '(mkdir $HOME/.ssh || true) && echo "' + publicKey + '">> $HOME/.ssh/authorized_keys';
     customCommand.name = 'setup ssh';
     customCommand.type = 'custom';
     
