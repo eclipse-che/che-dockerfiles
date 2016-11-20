@@ -12,9 +12,9 @@ FROM eclipse/ubuntu_jre
 MAINTAINER narayanroger@gmail.com
 
 RUN echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ trusty main" | sudo tee --append /etc/apt/sources.list.d/dotnetdev.list && \
-    sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893 &&\
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893 &&\
     sudo apt-get update && \
-    sudo apt-get install dotnet-dev-1.0.0-preview2-003131 -y && \
+    sudo apt-get install dotnet-dev-1.0.0-preview2.1-003177 -y && \
     sudo apt-get clean && \
     sudo apt-get -y autoremove && \
     sudo apt-get -y clean && \
