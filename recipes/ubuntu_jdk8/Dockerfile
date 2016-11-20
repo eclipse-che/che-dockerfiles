@@ -20,9 +20,9 @@ LABEL che:server:8080:ref=tomcat8 che:server:8080:protocol=http che:server:8000:
 
 
 ENV MAVEN_VERSION=3.3.9 \
-    JAVA_VERSION=8u101 \
+    JAVA_VERSION=8u102 \
     JAVA_BUILD=13 \
-    JAVA_VERSION_PREFIX=1.8.0_101 \
+    JAVA_VERSION_PREFIX=1.8.0_102 \
     TOMCAT_HOME=/home/user/tomcat8 \
     TERM=xterm
 ENV JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX
