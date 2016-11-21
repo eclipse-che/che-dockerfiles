@@ -3,7 +3,6 @@
 ## Build container
 ```
 $ build.sh  (on Unix)
-> build.bat (on Windows)
 ```
 
 ## Run a test

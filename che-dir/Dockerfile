@@ -4,29 +4,12 @@
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
 #
-# Contributors:
-#   Codenvy, S.A. - Initial implementation
+# build:
+#   docker build -t eclipse/che-dir .
 #
-# Prerequisite : typescript library compiled
-# see ../lib/typescript/README.md folder
-#
-# To build and run, see README.md
+# use:
+#    docker run - /var/run/docker.sock:/var/run/docker.sock eclipse/che-dir [command]
 
-FROM mhart/alpine-node:base-6
-
-ENV DOCKER_BUCKET get.docker.com
-ENV DOCKER_VERSION 1.6.0
-
-RUN set -x \
-    && apk add --no-cache \
-    ca-certificates \
-    curl \
-    openssl \
-    && curl -sL "https://${DOCKER_BUCKET}/builds/Linux/x86_64/docker-$DOCKER_VERSION" \
-    > /usr/bin/docker; chmod +x /usr/bin/docker \
-    && apk del curl ca-certificates openssl
-
-COPY lib/typescript/lib /lib
-COPY lib/typescript/dependencies/runtime/node_modules /lib/node_modules
+FROM eclipse/che-lib-typescript:nightly
 
 ENTRYPOINT ["node", "/lib/index.js", "che-dir"]

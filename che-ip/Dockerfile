@@ -4,14 +4,13 @@
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
 #
-# To build, in this directory:
-#  `docker build -t codenvy/che-ip .`
+# build:
+#   docker build -t eclipse/che-ip .
 #
-# To use it:
-#  `docker run --rm --net=host codenvy/che-ip`
+# use:
+#    docker run --rm --net=host eclipse/che-ip
 
 FROM alpine:3.4
 
-COPY getip.sh /bin/getip.sh
-
-CMD ["/bin/getip.sh"]
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/bin/entrypoint.sh"]
