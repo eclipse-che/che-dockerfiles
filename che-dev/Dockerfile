@@ -8,10 +8,10 @@
 #   Codenvy, S.A. - initial API and implementation
 #   Mario Loriedo
 #
-# To build, in this directory:
-#  docker build -t codenvy/che-dev .
+# build:
+#   docker build -t eclipse/che-dev .
 #
-# Use it to Build Che using Docker on Linux or Mac. Run int the repository root:
+# use:
 #   docker run -it --rm --name build-che
 #              -v "$HOME/.m2:/home/user/.m2"
 #              -v "$PWD":/home/user/che-build
