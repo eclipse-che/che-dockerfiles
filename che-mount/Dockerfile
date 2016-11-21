@@ -7,10 +7,10 @@
 # Contributors:
 #   Tyler Jewell - Initial implementation
 #
-# BUILD:
-#  docker build -t codenvy/che-mount .
+# build:
+#   docker build -t eclipse/che-mount .
 #
-# LAUNCH CONTAINER:
+# use:
 #  On linux:
 #  docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
 #             --name che-mount
@@ -64,6 +64,6 @@ RUN set -x \
     > /usr/bin/docker; chmod +x /usr/bin/docker \
     && apk del curl ca-certificates openssl
 
-COPY /sync.sh /bin/sync.sh
+COPY /entrypoint.sh /bin/entrypoint.sh
 
-ENTRYPOINT ["/bin/sync.sh"]
+ENTRYPOINT ["/bin/entrypoint.sh"]
