@@ -27,5 +27,6 @@ COPY . /lib-typescript/
 
 RUN cd /lib-typescript/ && npm install \
     && cd /runtime && npm install && /lib-typescript/node_modules/.bin/tsc --project /lib-typescript/ \
-    && mv /lib-typescript/lib /che-lib && rm -rf /lib-typescript && mv /runtime/node_modules /che-lib && rm -rf /runtime
+    && mv /lib-typescript/lib /che-lib && cd /lib-typescript/src && find . -name "*.properties" -exec install -D {} /che-lib/{} \;\
+    && rm -rf /lib-typescript && mv /runtime/node_modules /che-lib && rm -rf /runtime
 
