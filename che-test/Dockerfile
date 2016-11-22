@@ -12,4 +12,4 @@
 
 FROM eclipse/che-lib-typescript:nightly
 
-ENTRYPOINT ["node", "/lib/index.js", "che-test"]
+ENTRYPOINT ["node", "/che-lib/index.js", "che-test"]
