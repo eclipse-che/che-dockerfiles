@@ -66,4 +66,6 @@ RUN set -x \
 
 COPY /entrypoint.sh /bin/entrypoint.sh
 
+RUN chmod 744 /bin/entrypoint.sh
+
 ENTRYPOINT ["/bin/entrypoint.sh"]
