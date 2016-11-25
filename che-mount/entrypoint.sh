@@ -54,9 +54,6 @@ Usage on Mac or Windows:
  UNISON_REPEAT_DELAY_IN_SEC=2
  WORKSPACE_NAME=
  COMMAND_EXTRA_ARGS=
- # This allow for testing without effecting nightly
- # TODO - build this into image building script to allow all images to have different image name.
- REPO=eclipse
 }
 
 parse_command_line () {
@@ -115,19 +112,25 @@ init_global_variables
 parse_command_line "$@"
 [ "$(ls -A /mnthost )" ] && EMPTY=false || EMPTY=true
 if [ $EMPTY = false ]; then
-    warn "(che mount): Local folder is not empty. This could overwrite folders/files on local desktop machine or remote workspace machine. Are you sure you want to continue?"
+    warn "(che mount): Local folder is not empty. Are you sure?[Y/n]"
     read yn
     case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) info "(che mount): Please answer yes or no.";;
+        [Yy]*) 
+            break
+            ;;
+        [Nn]*) 
+            exit
+            ;;
+        *) 
+            info "(che mount): Please answer yes or no."
+            ;;
     esac
 fi
-docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock $REPO/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
+docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
 if [ $? -ne 0 ]; then
     error "ERROR: Error when trying to get workspace data for workspace named ${WORKSPACE_NAME}"
     echo "List of workspaces are:"
-    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock $REPO/che-action:${CHE_VERSION} list-workspaces ${COMMAND_EXTRA_ARGS}
+    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} list-workspaces ${COMMAND_EXTRA_ARGS} --sync-agent
     return 1
 fi
 source $HOME/env
@@ -136,46 +139,23 @@ source $HOME/env
 mkdir -p $HOME/.ssh
 echo "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
 chmod 700 $HOME/.ssh/id_rsa
-if [ ${CHE_SYNC_AGENT} = "true" ]; then
+if [ "${CHE_SYNC_AGENT}" = "true" ]; then
     info "(che mount): Syncing ${SSH_USER}@${SSH_IP}:${SSH_PORT}/projects with workspace sync agent."
-    status=$?
-    if [ $status -ne 0 ]; then
-        error "Fatal error occurred ($status)"
-        exit 1
-    fi
-    ssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_IP} /usr/bin/unison -version > $HOME/unison_version
-    if [ ! -s $HOME/unison_version ]; then
-        error "Enable 'File Sync' agent in workspace machine: ${WORKSPACE_NAME}"
-        exit 1
-    fi
-    REMOTE_UNISON_VERSION=$(cat $HOME/unison_version )
-    if [ ! "unison version 2.48.3" = "$REMOTE_UNISON_VERSION" ]; then
-        error "$REMOTE_UNISON_VERSION workspace machine: ${WORKSPACE_NAME} must be version 2.48.3\nMake sure to enable the workspace 'File Sync' agent and remove all other unison versions from stack."
-        exit 1
-    fi
-else
-    info "(che mount): Mounting ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT}) with SSHFS"
-    sshfs ${SSH_USER}@${SSH_IP}:/projects /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
-    status=$?
-    if [ $status -ne 0 ]; then
-        error "Fatal error occurred ($status)"
-        exit 1
-    fi
-fi
-
-# run application
-if [ $CHE_SYNC_AGENT = "true" ]; then
-	info "(che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
-	info "(che mount): Initial sync...Please wait."
+	info "(che mount): Initial sync... Please wait."
     START_TIME=$(date +%s)
     unison /mnthost ssh://${SSH_USER}@${SSH_IP}:${SSH_PORT}//../../projects/ -batch -retry 10 \
             -fat -silent -copyonconflict -auto -prefer=newer -log=false \
             -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'> /dev/null 2>&1 
+    status=$?
+	if [ $status -ne 0 ]; then
+	    error "ERROR: Fatal error occurred ($status)"
+	    exit 1
+	fi
     ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
-    info "(che mount): Initial Unison sync took using sync agent $ELAPSED_TIME seconds."    
+    info "(che mount): Initial Unison sync took using sync agent $ELAPSED_TIME seconds."
+    info "(che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
     info "(che mount): This terminal will block while the synchronization continues."
     info "(che mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
-    info "(che mount): Initial Unison sync using sync agent."
     while [ 1 ]
     do
         sleep ${UNISON_REPEAT_DELAY_IN_SEC}
@@ -189,7 +169,15 @@ if [ $CHE_SYNC_AGENT = "true" ]; then
 	    exit 1
 	fi
 else
-	info "(che mount): Successfully mounted ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT})"
+    info "(che mount): Sync agent not detected using SSHFS."
+    info "(che mount): Mounting ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT}) with SSHFS."
+    sshfs ${SSH_USER}@${SSH_IP}:/projects /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+    status=$?
+    if [ $status -ne 0 ]; then
+        error "Fatal error occurred ($status)"
+        exit 1
+    fi
+    info "(che mount): Successfully mounted ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT})"
     info "(che mount): Initial sync...Please wait."
     START_TIME=$(date +%s)
     unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
@@ -200,7 +188,6 @@ else
 	fi
     ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
     info "INFO: (che mount): Initial Unison sync took $ELAPSED_TIME seconds."
-    #ELAPSED_TIME=$(expr $ELAPSED_TIME / 60)
     info "(che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
     info "(che mount): This terminal will block while the synchronization continues."
     info "(che mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."

@@ -40,6 +40,7 @@ export class GetSshDataAction {
     @Parameter({names: ["-w", "--password"], description: "Defines the password to be used"})
     password : string;
 
+    syncAgent = "false";
 
     args: Array<string>;
     authData: AuthData;
@@ -79,6 +80,9 @@ export class GetSshDataAction {
                 if (agents.indexOf('org.eclipse.che.ssh') === -1) {
                     return Promise.reject("The SSH agent (org.eclipse.che.ssh) has been disabled for this workspace.")
                 }
+                if (agents.indexOf('org.eclipse.che.unison') !== -1) {
+                    this.syncAgent = "true";
+                }
 
                 foundWorkspaceDTO = workspaceDto;
 
@@ -105,7 +109,7 @@ export class GetSshDataAction {
                 Log.getLogger().direct("SSH_PRIVATE_KEY='");
                 Log.getLogger().direct(sshPairDto.getPrivateKey());
                 Log.getLogger().direct("'");
-
+                Log.getLogger().direct("CHE_SYNC_AGENT=" + this.syncAgent);
 
                 return Promise.resolve("ok");
             });
