@@ -51,8 +51,44 @@ cmd_start() {
   # Start Eclipse Che
   # Note bug in docker requires relative path, not absolute path to compose file
   info "start" "Starting containers..."
-  log "docker_compose --file=\"${REFERENCE_CONTAINER_COMPOSE_FILE}\" -p=$CHE_MINI_PRODUCT_NAME up -d >> \"${LOGS}\" 2>&1"
-  docker_compose --file="${REFERENCE_CONTAINER_COMPOSE_FILE}" \
-                 -p=$CHE_MINI_PRODUCT_NAME up -d >> "${LOGS}" 2>&1
+  COMPOSE_UP_COMMAND="docker_compose --file=\"${REFERENCE_CONTAINER_COMPOSE_FILE}\" -p=\"${CHE_MINI_PRODUCT_NAME}\" up -d"
+
+  if [ "${CHE_DEVELOPMENT_MODE}" != "on" ]; then
+    COMPOSE_UP_COMMAND+=" >> \"${LOGS}\" 2>&1"
+  fi
+
+  log ${COMPOSE_UP_COMMAND}
+  eval ${COMPOSE_UP_COMMAND}
   check_if_booted
 }
+
+
+cmd_stop() {
+  debug $FUNCNAME
+
+  if [ $# -gt 0 ]; then
+    error "${CHE_MINI_PRODUCT_NAME} stop: You passed unknown options. Aborting."
+    return
+  fi
+
+  info "stop" "Stopping containers..."
+  if is_initialized; then
+    log "docker_compose --file=\"${REFERENCE_CONTAINER_COMPOSE_FILE}\" -p=$CHE_MINI_PRODUCT_NAME stop -t ${CHE_COMPOSE_STOP_TIMEOUT} >> \"${LOGS}\" 2>&1 || true"
+    docker_compose --file="${REFERENCE_CONTAINER_COMPOSE_FILE}" \
+                   -p=$CHE_MINI_PRODUCT_NAME stop -t ${CHE_COMPOSE_STOP_TIMEOUT} >> "${LOGS}" 2>&1 || true
+    info "stop" "Removing containers..."
+    log "docker_compose --file=\"${REFERENCE_CONTAINER_COMPOSE_FILE}\" -p=$CHE_MINI_PRODUCT_NAME rm >> \"${LOGS}\" 2>&1 || true"
+    docker_compose --file="${REFERENCE_CONTAINER_COMPOSE_FILE}" \
+                   -p=$CHE_MINI_PRODUCT_NAME rm --force >> "${LOGS}" 2>&1 || true
+  fi
+}
+
+cmd_restart() {
+  debug $FUNCNAME
+
+  FORCE_UPDATE=${1:-"--no-force"}
+    info "restart" "Restarting..."
+    cmd_stop
+    cmd_start ${FORCE_UPDATE}
+}
+

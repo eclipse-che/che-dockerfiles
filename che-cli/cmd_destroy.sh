@@ -35,12 +35,32 @@ cmd_destroy() {
   cmd_stop
 
   info "destroy" "Deleting instance and config..."
-  log "docker_run -v \"${CHE_HOST_CONFIG}\":/${CHE_MINI_PRODUCT_NAME}-config -v \"${CHE_HOST_INSTANCE}\":/${CHE_MINI_PRODUCT_NAME}-instance alpine:3.4 sh -c \"rm -rf /root/codenvy-instance/* && rm -rf /root/codenvy-config/*\""
-  docker_run -v "${CHE_HOST_CONFIG}":/root/${CHE_MINI_PRODUCT_NAME}-config \
-             -v "${CHE_HOST_INSTANCE}":/root/${CHE_MINI_PRODUCT_NAME}-instance \
-                alpine:3.4 sh -c "rm -rf /root/${CHE_MINI_PRODUCT_NAME}-instance/* && rm -rf /root/${CHE_MINI_PRODUCT_NAME}-config/*"
 
-  rm -rf "${CHE_CONTAINER_CONFIG}"
+  log "docker_run -v \"${CHE_HOST_CONFIG}\":${CHE_CONTAINER_ROOT} \
+                    alpine:3.4 sh -c \"rm -rf /root${CHE_CONTAINER_ROOT}/docs \
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/che.env\""
+
+  docker_run -v "${CHE_HOST_CONFIG}":/root${CHE_CONTAINER_ROOT} \
+                alpine:3.4 sh -c "rm -rf /root${CHE_CONTAINER_ROOT}/docs \
+                               && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
+                               && rm -rf /root${CHE_CONTAINER_ROOT}/che.env" > /dev/null 2>&1  || true
+
+  # Super weird bug.  For some reason on windows, this command has to be run 3x for everything
+  # to be destroyed properly if you are in dev mode.
+  if has_docker_for_windows_client; then
+    if [[ "${CHE_DEVELOPMENT_MODE}" = "on" ]]; then
+      docker_run -v "${CHE_HOST_CONFIG}":/root${CHE_CONTAINER_ROOT} \
+                    alpine:3.4 sh -c "rm -rf /root${CHE_CONTAINER_ROOT}/docs \
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/che.env" > /dev/null 2>&1  || true
+      docker_run -v "${CHE_HOST_CONFIG}":/root${CHE_CONTAINER_ROOT} \
+                    alpine:3.4 sh -c "rm -rf /root${CHE_CONTAINER_ROOT}/docs \
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/che.env" > /dev/null 2>&1  || true
+    fi
+  fi
+
   rm -rf "${CHE_CONTAINER_INSTANCE}"
 
   # Sometimes users want the CLI after they have destroyed their instance
