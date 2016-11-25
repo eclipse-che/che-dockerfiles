@@ -6,7 +6,7 @@
 # http://www.eclipse.org/legal/epl-v10.html
 
 IMAGE_NAME="eclipse/che-lib-typescript"
-source $(cd "$(dirname "$0")"; pwd)/../build.include
+. $(cd "$(dirname "$0")"; pwd)/../build.include
 
 DIR=$(cd "$(dirname "$0")"; pwd)
 
