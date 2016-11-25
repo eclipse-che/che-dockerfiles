@@ -9,7 +9,7 @@
 set -e
 set -u
 
-source build.include
+. build.include
 init
 
 # loop on all directories and call build.sh script if present
