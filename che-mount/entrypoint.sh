@@ -26,7 +26,6 @@ Usage on Linux
             -v /etc/passwd:/etc/passwd:ro 
             -v <path-to-sync-profile>:/profile
             -u \$(id -u \${USER})
-            [-e CHE_SYNC_AGENT=<sync-agent>]
             -v <local-mount>/:/mnthost 
             eclipse/che-mount <workspace-id|workspace-name> 
             	[--url=<url>]
@@ -37,7 +36,6 @@ Usage on Mac or Windows:
   docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
             --name che-mount 
             -v <path-to-sync-profile>:/profile
-            [-e CHE_SYNC_AGENT=<sync-agent>]
             -v <local-mount>/:/mnthost 
             eclipse/che-mount <workspace-id|workspace-name> 
             	[--url=<url>]
@@ -48,7 +46,6 @@ Usage on Mac or Windows:
      <url>            Defines the url to be used
      <user>           Username used to authenticate with server if required
      <password>       Password used to authenticate with server if required
-     <sync-agent>     True/False value to use workspace machine unison sync agent(Default 'false')
      <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
 "
  UNISON_REPEAT_DELAY_IN_SEC=2
