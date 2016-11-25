@@ -14,6 +14,8 @@ init_constants() {
   GREEN='\033[0;32m'
   RED='\033[0;31m'
   YELLOW='\033[38;5;220m'
+  BOLD='\033[1m'
+  UNDERLINE='\033[4m'
   NC='\033[0m'
   LOG_INITIALIZED=false
 
@@ -23,6 +25,9 @@ init_constants() {
   # Name used in CLI statements
   DEFAULT_CHE_MINI_PRODUCT_NAME="che"
   CHE_MINI_PRODUCT_NAME=${CHE_MINI_PRODUCT_NAME:-${DEFAULT_CHE_MINI_PRODUCT_NAME}}
+
+  DEFAULT_CHE_FORMAL_PRODUCT_NAME="Eclipse Che"
+  CHE_FORMAL_PRODUCT_NAME=${CHE_FORMAL_PRODUCT_NAME:-${DEFAULT_CHE_FORMAL_PRODUCT_NAME}}
 
   # Path to root folder inside the container
   DEFAULT_CHE_CONTAINER_ROOT="/che"
@@ -43,47 +48,48 @@ init_constants() {
   # Activates console output
   DEFAULT_CHE_CLI_LOG="true"
   CHE_CLI_LOG=${CLI_LOG:-${DEFAULT_CHE_CLI_LOG}}
+}
 
+init_usage() {
   USAGE="
-Usage: docker run -it --rm 
+Usage: docker run -it --rm
                   -v /var/run/docker.sock:/var/run/docker.sock
-                  -v <host-path-for-${CHE_MINI_PRODUCT_NAME}-data>:${CHE_CONTAINER_ROOT}
-                  eclipse/che-cli:<version> [COMMAND]
+                  -v <LOCAL_DATA_PATH>:${CHE_CONTAINER_ROOT}
+                  ${CHE_IMAGE_NAME} [COMMAND]
 
     help                                 This message
     version                              Installed version and upgrade paths
-    init                                 Initializes a directory with a ${CHE_MINI_PRODUCT_NAME} install
+    init                                 Initializes a directory with a ${CHE_FORMAL_PRODUCT_NAME} install
          [--no-force                         Default - uses cached local Docker images
-          --pull                             Checks for newer images from DockerHub  
+          --pull                             Checks for newer images from DockerHub
           --force                            Removes all images and re-pulls all images from DockerHub
           --offline                          Uses images saved to disk from the offline command
-          --accept-license                   Auto accepts the ${CHE_PRODUCT_NAME} license during installation
+          --accept-license                   Auto accepts the ${CHE_FORMAL_PRODUCT_NAME} license during installation
           --reinit]                          Reinstalls using existing $CHE_MINI_PRODUCT_NAME.env configuration
-    start [--pull | --force | --offline] Starts ${CHE_MINI_PRODUCT_NAME} services
-    stop                                 Stops ${CHE_MINI_PRODUCT_NAME} services
-    restart [--pull | --force]           Restart ${CHE_MINI_PRODUCT_NAME} services
-    destroy                              Stops services, and deletes ${CHE_MINI_PRODUCT_NAME} instance data
+    start [--pull | --force | --offline] Starts ${CHE_FORMAL_PRODUCT_NAME} services
+    stop                                 Stops ${CHE_FORMAL_PRODUCT_NAME} services
+    restart [--pull | --force]           Restart ${CHE_FORMAL_PRODUCT_NAME} services
+    destroy                              Stops services, and deletes ${CHE_FORMAL_PRODUCT_NAME} instance data
             [--quiet                         Does not ask for confirmation before destroying instance data
              --cli]                          If :/cli is mounted, will destroy the cli.log
     rmi [--quiet]                        Removes the Docker images for <version>, forcing a repull
-    config                               Generates a ${CHE_MINI_PRODUCT_NAME} config from vars; run on any start / restart
-    upgrade                              Upgrades ${CHE_PRODUCT_NAME} from one version to another with migrations and backups
-    download [--pull|--force|--offline]  Pulls Docker images for the current ${CHE_PRODUCT_NAME} version
-    backup [--quiet | --skip-data]           Backups ${CHE_MINI_PRODUCT_NAME} configuration and data to ${CHE_CONTAINER_ROOT}/backup volume mount
-    restore [--quiet]                    Restores ${CHE_MINI_PRODUCT_NAME} configuration and data from ${CHE_CONTAINER_ROOT}/backup mount
-    offline                              Saves ${CHE_MINI_PRODUCT_NAME} Docker images into TAR files for offline install
-    info                                 Displays info about ${CHE_MINI_PRODUCT_NAME} and the CLI 
+    config                               Generates a ${CHE_FORMAL_PRODUCT_NAME} config from vars; run on any start / restart
+    upgrade                              Upgrades ${CHE_FORMAL_PRODUCT_NAME} from one version to another with migrations and backups
+    download [--pull|--force|--offline]  Pulls Docker images for the current ${CHE_FORMAL_PRODUCT_NAME} version
+    backup [--quiet | --skip-data]       Backups $${CHE_FORMAL_PRODUCT_NAME} configuration and data to ${CHE_CONTAINER_ROOT}/backup volume mount
+    restore [--quiet]                    Restores ${CHE_FORMAL_PRODUCT_NAME} configuration and data from ${CHE_CONTAINER_ROOT}/backup mount
+    offline                              Saves ${CHE_FORMAL_PRODUCT_NAME} Docker images into TAR files for offline install
+    info                                 Displays info about ${CHE_FORMAL_PRODUCT_NAME} and the CLI
          [ --all                             Run all debugging tests
            --debug                           Displays system information
-           --network]                        Test connectivity between ${CHE_MINI_PRODUCT_NAME} sub-systems
+           --network]                        Test connectivity between ${CHE_FORMAL_PRODUCT_NAME} sub-systems
     ssh <wksp-name> [machine-name]       SSH to a workspace if SSH agent enabled
     mount <wksp-name>                    Synchronize workspace with current working directory
-    action <action-name> [--help]        Start action on ${CHE_MINI_PRODUCT_NAME} instance
-    compile <mvn-command>                SDK - Builds Che source code or modules
-    test <test-name> [--help]            Start test on ${CHE_MINI_PRODUCT_NAME} instance
+    action <action-name> [--help]        Start action on ${CHE_FORMAL_PRODUCT_NAME} instance
+    test <test-name> [--help]            Start test on ${CHE_FORMAL_PRODUCT_NAME} instance
 
 Variables:
-    CHE_HOST                             IP address or hostname where ${CHE_MINI_PRODUCT_NAME} will serve its users
+    CHE_HOST                             IP address or hostname where ${CHE_FORMAL_PRODUCT_NAME} will serve its users
     CLI_DEBUG                            Default=false. Prints stack trace during execution
     CLI_INFO                             Default=true. Prints out INFO messages to standard out
     CLI_WARN                             Default=true. Prints WARN messages to standard out
@@ -124,11 +130,11 @@ info() {
     PRINT_STATEMENT=$2
   fi
   if is_info; then
-    printf "${GREEN}INFO:${NC} %s%s\n" \
+    printf "${GREEN}INFO:${NC} %b%b\n" \
               "${PRINT_COMMAND}" \
               "${PRINT_STATEMENT}"
   fi
-  log $(printf "INFO: %s %s\n" \
+  log $(printf "INFO: %b %b\n" \
         "${PRINT_COMMAND}" \
         "${PRINT_STATEMENT}")
 }
@@ -219,7 +225,6 @@ is_debug() {
   fi
 }
 
-
 check_docker() {
   if ! has_docker; then
     error "Docker not found. Get it at https://docs.docker.com/engine/installation/."
@@ -228,17 +233,17 @@ check_docker() {
 
   # If DOCKER_HOST is not set, then it should bind mounted
   if [ -z "${DOCKER_HOST+x}" ]; then
-      if ! docker ps > /dev/null 2>&1; then
-        info "Welcome to ${CHE_PRODUCT_NAME} !"
-        info ""
-        info "We did not detect a valid DOCKER_HOST."
-        info ""
-        info "Rerun the CLI:"
-        info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock "
-        info "                      -v <local-path>:${CHE_CONTAINER_ROOT} "
-        info "                         eclipse/che-cli [COMMAND]"
-        return 2;
-      fi
+    if ! docker ps > /dev/null 2>&1; then
+      info "Welcome to ${CHE_FORMAL_PRODUCT_NAME}!"
+      info ""
+      info "$CHE_FORMAL_PRODUCT_NAME commands require additional parameters:"
+      info "  Mounting 'docker.sock', which let's us access Docker"
+      info ""
+      info "Syntax:"
+      info "  docker run -it --rm ${BOLD} -v /var/run/docker.sock:/var/run/docker.sock${NC}"
+      info "                  $CHE_MINI_PRODUCT_NAME/cli $*"
+      return 2;
+    fi
   fi
 
   DOCKER_VERSION=($(docker version |  grep  "Version:" | sed 's/Version://'))
@@ -271,54 +276,53 @@ check_mounts() {
   # Verify that we can write to the host file system from the container
   check_host_volume_mount
 
-  DATA_MOUNT=$(get_container_bind_folder)
-  CONFIG_MOUNT=$(get_container_config_folder)
-  INSTANCE_MOUNT=$(get_container_instance_folder)
-  BACKUP_MOUNT=$(get_container_backup_folder)
-  REPO_MOUNT=$(get_container_repo_folder)
-  CLI_MOUNT=$(get_container_cli_folder)
-  SYNC_MOUNT=$(get_container_sync_folder)
-  UNISON_PROFILE_MOUNT=$(get_container_unison_folder)
-   
-  TRIAD=""
-  if [[ "${CONFIG_MOUNT}" != "not set" ]] && \
-     [[ "${INSTANCE_MOUNT}" != "not set" ]] && \
-     [[ "${BACKUP_MOUNT}" != "not set" ]]; then
-     TRIAD="set"
-  fi
+  DATA_MOUNT=$(get_container_folder ":${CHE_CONTAINER_ROOT}")
+  INSTANCE_MOUNT=$(get_container_folder ":${CHE_CONTAINER_ROOT}/instance")
+  BACKUP_MOUNT=$(get_container_folder ":${CHE_CONTAINER_ROOT}/backup")
+  REPO_MOUNT=$(get_container_folder ":/repo")
+  CLI_MOUNT=$(get_container_folder ":/cli")
+  SYNC_MOUNT=$(get_container_folder ":/sync")
+  UNISON_PROFILE_MOUNT=$(get_container_folder ":/unison")
 
-  if [[ "${DATA_MOUNT}" != "not set" ]]; then
-    DEFAULT_CHE_CONFIG="${DATA_MOUNT}"/config
-    DEFAULT_CHE_INSTANCE="${DATA_MOUNT}"/instance
-    DEFAULT_CHE_BACKUP="${DATA_MOUNT}"/backup
-  elif [[ "${DATA_MOUNT}" = "not set" ]] && [[ "$TRIAD" = "set" ]]; then  
-    DEFAULT_CHE_CONFIG="${CONFIG_MOUNT}"
-    DEFAULT_CHE_INSTANCE="${INSTANCE_MOUNT}"
-    DEFAULT_CHE_BACKUP="${BACKUP_MOUNT}"
-  else
-    info "Welcome to ${CHE_PRODUCT_NAME} !"
+  if [[ "${DATA_MOUNT}" = "not set" ]]; then
+    info "Welcome to $CHE_FORMAL_PRODUCT_NAME!"
     info ""
-    info "We did not detect a host mounted data directory."
+    info "We need some information before we can start ${CHE_FORMAL_PRODUCT_NAME}."
     info ""
-    info "Rerun with a single path:"
+    info "$CHE_FORMAL_PRODUCT_NAME commands require additional parameters:"
+    info "  1: Mounting 'docker.sock', which let's us access Docker"
+    info "  2: A local path where ${CHE_FORMAL_PRODUCT_NAME} will save user data"
+    info ""
+    info "Simplest syntax:"
     info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
-    info "                      -v <local-path>:/che"
-    info "                         eclipse/che-cli:${CHE_VERSION} [COMMAND]"
+    info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
+    info "                         ${CHE_IMAGE_NAME} $*"
     info ""
     info ""
-    info "Or rerun with paths for config, instance, and backup (all required):"
+    info "Or run with overrides for instance and/or backup:"
     info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
-    info "                      -v <local-config-path>:${CHE_CONTAINER_ROOT}/config"
-    info "                      -v <local-instance-path>:${CHE_CONTAINER_ROOT}/instance"
-    info "                      -v <local-backup-path>:${CHE_CONTAINER_ROOT}/backup"
-    info "                         eclipse/che-cli:${CHE_VERSION} [COMMAND]"
+    info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
+    info "                      -v <YOUR_INSTANCE_PATH>:${CHE_CONTAINER_ROOT}/instance"
+    info "                      -v <YOUR_BACKUP_PATH>:${CHE_CONTAINER_ROOT}/backup"
+    info "                         ${CHE_IMAGE_NAME} $*"
     return 2;
   fi
 
-  # if CONFIG_MOUNT && INSTANCE_MOUNT both set, then use those values.
+  DEFAULT_CHE_CONFIG="${DATA_MOUNT}"
+  DEFAULT_CHE_INSTANCE="${DATA_MOUNT}"/instance
+  DEFAULT_CHE_BACKUP="${DATA_MOUNT}"/backup
+
+  if [[ "${INSTANCE_MOUNT}" != "not set" ]]; then
+    DEFAULT_CHE_INSTANCE="${INSTANCE_MOUNT}"
+  fi
+
+  if [[ "${BACKUP_MOUNT}" != "not set" ]]; then
+    DEFAULT_CHE_BACKUP="${BACKUP_MOUNT}"
+  fi
+
   #   Set offline to CONFIG_MOUNT
   CHE_HOST_CONFIG=${CHE_CONFIG:-${DEFAULT_CHE_CONFIG}}
-  CHE_CONTAINER_CONFIG="${CHE_CONTAINER_ROOT}/config"
+  CHE_CONTAINER_CONFIG="${CHE_CONTAINER_ROOT}"
 
   CHE_HOST_INSTANCE=${CHE_INSTANCE:-${DEFAULT_CHE_INSTANCE}}
   CHE_CONTAINER_INSTANCE="${CHE_CONTAINER_ROOT}/instance"
@@ -337,47 +341,38 @@ check_mounts() {
     CHE_ASSEMBLY="${CHE_HOST_INSTANCE}/dev"
 
     if [[ ! -d "${CHE_CONTAINER_DEVELOPMENT_REPO}"  ]] || [[ ! -d "${CHE_CONTAINER_DEVELOPMENT_REPO}/assembly" ]]; then
-      info "Welcome to Eclipse Che!"
+      info "Welcome to $CHE_FORMAL_PRODUCT_NAME!"
       info ""
-      info "You volume mounted :/repo, but we did not detect a valid Eclipse Che source repo."
+      info "You volume mounted ':/repo', but we did not detect a valid ${CHE_FORMAL_PRODUCT_NAME} source repo."
       info ""
-      info "Rerun with a single path:"
+      info "Volume mounting ':/repo' activate dev mode, using assembly and CLI files from $CHE_FORMAL_PRODUCT_NAME repo."
+      info ""
+      info "Please check the path you mounted to verify that is a valid $CHE_FORMAL_PRODUCT_NAME git repository."
+      info ""
+      info "Simplest syntax::"
       info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
-      info "                      -v <local-path>:/che"
-      info "                      -v <local-repo>:/repo"
-      info "                         eclipse/che-cli:${CHE_VERSION} [COMMAND]"
+      info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
+      info "                      -v <YOUR_${CHE_PRODUCT_NAME}_REPO>:/repo"
+      info "                         ${CHE_IMAGE_NAME} $*"
       info ""
       info ""
-      info "Or rerun with paths for config, instance, and backup (all required):"
-      info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock "
-      info "                      -v <local-config-path>${NC}:/che/config "
-      info "                      -v <local-instance-path>${NC}:/che/instance "
-      info "                      -v <local-backup-path>${NC}:/che/backup "
-      info "                      -v <local-repo>:/repo"
-      info "                         eclipse/che-cli:${CHE_VERSION} [COMMAND]"
+      info "Or run with overrides for instance, and backup (all required):"
+      info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
+      info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
+      info "                      -v <YOUR_INSTANCE_PATH>:${CHE_CONTAINER_ROOT}/instance"
+      info "                      -v <YOUR_BACKUP_PATH>:${CHE_CONTAINER_ROOT}/backup"
+      info "                      -v <YOUR_${CHE_PRODUCT_NAME}_REPO>:/repo"
+      info "                         ${CHE_IMAGE_NAME} $*"
       return 2
     fi
     if [[ ! -d $(echo ${CHE_CONTAINER_DEVELOPMENT_REPO}/${DEFAULT_CHE_ASSEMBLY}) ]]; then
-      info "Welcome to Eclipse Che!"
+      info "Welcome to $CHE_FORMAL_PRODUCT_NAME!"
       info ""
-      info "You volume mounted a Eclipse Che repo to :/repo, but we could not find a Tomcat assembly."
+      info "You volume mounted a valid $CHE_FORMAL_PRODUCT_NAME repo to ':/repo', but we could not find a Tomcat assembly."
       info "Have you built /assembly/assembly-main with 'mvn clean install'?"
       return 2
     fi
   fi
-}
-
-check_host_volume_mount() {
-  echo 'test' > ${CHE_CONTAINER_ROOT}/test
-  
-  if [[ ! -f ${CHE_CONTAINER_ROOT}/test ]]; then
-    error "Docker installed, but unable to write files to your host."
-    error "Have you enabled Docker to allow mounting host directories?"
-    error "Did our CLI not have user rights to create files on your host?"
-    return 2;
-  fi
-
-  rm -rf ${CHE_CONTAINER_ROOT}/test
 }
 
 init_logging() {
@@ -396,10 +391,6 @@ init_logging() {
 init() {
   init_constants
 
-  if [[ $# == 0 ]]; then
-    usage;
-  fi
-
   SCRIPTS_BASE_CONTAINER_SOURCE_DIR="/scripts/base"
   # add helper scripts
   for COMMAND_FILE in "${SCRIPTS_BASE_CONTAINER_SOURCE_DIR}"/*.sh
@@ -409,6 +400,11 @@ init() {
 
   # Make sure Docker is working and we have /var/run/docker.sock mounted or valid DOCKER_HOST
   check_docker "$@"
+
+  init_usage
+  if [[ $# == 0 ]]; then
+    usage;
+  fi
 
   # Only verify mounts after Docker is confirmed to be working.
   check_mounts "$@"

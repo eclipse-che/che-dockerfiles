@@ -30,7 +30,7 @@ cmd_config() {
     # if dev mode is on, pick configuration sources from repo.
     # please note that in production mode update of configuration sources must be only on update.
     docker_run -v "${CHE_HOST_CONFIG}":/copy \
-               -v "${CHE_HOST_DEVELOPMENT_REPO}/che-init":/files \
+               -v "${CHE_HOST_DEVELOPMENT_REPO}"/che-init:/files \
                   $IMAGE_INIT
 
     # in development mode to avoid permissions issues we copy tomcat assembly to ${CHE_INSTANCE}
@@ -70,32 +70,34 @@ generate_configuration_with_puppet() {
 
   if [ "${CHE_DEVELOPMENT_MODE}" = "on" ]; then
     # Note - bug in docker requires relative path for env, not absolute
-    GENERATE_CONFIG_COMMAND="docker_run -it  --env-file=\"${REFERENCE_CONTAINER_ENVIRONMENT_FILE}\" \
+    GENERATE_CONFIG_COMMAND="docker_run -it \
+                  --env-file=\"${REFERENCE_CONTAINER_ENVIRONMENT_FILE}\" \
                   --env-file=/version/$CHE_VERSION/images \
                   -v \"${CHE_HOST_INSTANCE}\":/opt/${CHE_MINI_PRODUCT_NAME}:rw \
-                  -v \"${CHE_HOST_CONFIG_MANIFESTS_FOLDER}\":/etc/puppet/manifests:ro \
-                  -v \"${CHE_HOST_CONFIG_MODULES_FOLDER}\":/etc/puppet/modules:ro \
+                  -v \"${CHE_HOST_DEVELOPMENT_REPO}/che-init/manifests\":/etc/puppet/manifests:ro \
+                  -v \"${CHE_HOST_DEVELOPMENT_REPO}/che-init/modules\":/etc/puppet/modules:ro \
                   -e \"CHE_ENV_FILE=${CHE_ENV_FILE}\" \
                   -e \"CHE_ENVIRONMENT=development\" \
-                  -e \"CHE_CONFIG=${CHE_HOST_CONFIG}\" \
+                  -e \"CHE_CONFIG=${CHE_HOST_INSTANCE}\" \
                   -e \"CHE_INSTANCE=${CHE_HOST_INSTANCE}\" \
                   -e \"CHE_DEVELOPMENT_REPO=${CHE_HOST_DEVELOPMENT_REPO}\" \
                   -e \"CHE_ASSEMBLY=${CHE_ASSEMBLY}\" \
-                      $IMAGE_PUPPET \
+                  --entrypoint=/usr/bin/puppet \
+                      $IMAGE_INIT \
                           apply --modulepath \
                                 /etc/puppet/modules/ \
                                 /etc/puppet/manifests/${CHE_MINI_PRODUCT_NAME}.pp --show_diff"
   else
-    GENERATE_CONFIG_COMMAND="docker_run -it  --env-file=\"${REFERENCE_CONTAINER_ENVIRONMENT_FILE}\" \
+    GENERATE_CONFIG_COMMAND="docker_run -it \
+                  --env-file=\"${REFERENCE_CONTAINER_ENVIRONMENT_FILE}\" \
                   --env-file=/version/$CHE_VERSION/images \
                   -v \"${CHE_HOST_INSTANCE}\":/opt/${CHE_MINI_PRODUCT_NAME}:rw \
-                  -v \"${CHE_HOST_CONFIG_MANIFESTS_FOLDER}\":/etc/puppet/manifests:ro \
-                  -v \"${CHE_HOST_CONFIG_MODULES_FOLDER}\":/etc/puppet/modules:ro \
                   -e \"CHE_ENV_FILE=${CHE_ENV_FILE}\" \
                   -e \"CHE_ENVIRONMENT=production\" \
-                  -e \"CHE_CONFIG=${CHE_HOST_CONFIG}\" \
+                  -e \"CHE_CONFIG=${CHE_HOST_INSTANCE}\" \
                   -e \"CHE_INSTANCE=${CHE_HOST_INSTANCE}\" \
-                      $IMAGE_PUPPET \
+                  --entrypoint=/usr/bin/puppet \
+                      $IMAGE_INIT \
                           apply --modulepath \
                                 /etc/puppet/modules/ \
                                 /etc/puppet/manifests/${CHE_MINI_PRODUCT_NAME}.pp --show_diff >> \"${LOGS}\""

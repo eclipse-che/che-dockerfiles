@@ -15,13 +15,12 @@ cmd_backup() {
   # possibility to skip che projects backup
   SKIP_BACKUP_CHE_DATA=${1:-"--no-skip-data"}
   if [[ "${SKIP_BACKUP_CHE_DATA}" == "--skip-data" ]]; then
-    TAR_EXTRA_EXCLUDE="--exclude=data/che"
+    TAR_EXTRA_EXCLUDE="--exclude=instance/data/che"
   else
     TAR_EXTRA_EXCLUDE=""
   fi
 
-  if [[ ! -d "${CHE_CONTAINER_CONFIG}" ]] || \
-     [[ ! -d "${CHE_CONTAINER_INSTANCE}" ]]; then
+  if [[ ! -d "${CHE_CONTAINER_CONFIG}" ]]; then
     error "Cannot find existing CHE_CONFIG or CHE_INSTANCE."
     return;
   fi
@@ -36,35 +35,19 @@ cmd_backup() {
   fi
 
   # check if backups already exist and if so we move it with time stamp in name
-  if [[ -f "${CHE_CONTAINER_BACKUP}/${CHE_CONFIG_BACKUP_FILE_NAME}" ]]; then
-    mv "${CHE_CONTAINER_BACKUP}/${CHE_CONFIG_BACKUP_FILE_NAME}" \
-        "${CHE_CONTAINER_BACKUP}/moved-$(get_current_date)-${CHE_CONFIG_BACKUP_FILE_NAME}"
-  fi
-  if [[ -f "${CHE_CONTAINER_BACKUP}/${CHE_INSTANCE_BACKUP_FILE_NAME}" ]]; then
-    mv "${CHE_CONTAINER_BACKUP}/${CHE_INSTANCE_BACKUP_FILE_NAME}" \
-        "${CHE_CONTAINER_BACKUP}/moved-$(get_current_date)-${CHE_INSTANCE_BACKUP_FILE_NAME}"
+  if [[ -f "${CHE_CONTAINER_BACKUP}/${CHE_BACKUP_FILE_NAME}" ]]; then
+    mv "${CHE_CONTAINER_BACKUP}/${CHE_BACKUP_FILE_NAME}" \
+        "${CHE_CONTAINER_BACKUP}/moved-$(get_current_date)-${CHE_BACKUP_FILE_NAME}"
   fi
 
-  info "backup" "Saving configuration..."
-  docker_run -v "${CHE_HOST_CONFIG}":/root/che-config \
-             -v "${CHE_HOST_BACKUP}":/root/backup \
-                 alpine:3.4 sh -c "tar czf /root/backup/${CHE_CONFIG_BACKUP_FILE_NAME} -C /root/che-config ."
-
-  info "backup" "Saving instance data..."
+  info "backup" "Saving che data..."
   # if windows we backup data volume
-  if has_docker_for_windows_client; then
-    docker_run -v "${CHE_HOST_INSTANCE}":/root/che-instance \
+  docker_run -v "${CHE_HOST_CONFIG}":/root/che \
                -v "${CHE_HOST_BACKUP}":/root/backup \
-                 alpine:3.4 sh -c "tar czf /root/backup/${CHE_INSTANCE_BACKUP_FILE_NAME} -C /root/che-instance . --exclude=logs ${TAR_EXTRA_EXCLUDE}"
-  else
-    docker_run -v "${CHE_HOST_INSTANCE}":/root/che-instance \
-              -v "${CHE_HOST_BACKUP}":/root/backup \
-                 alpine:3.4 sh -c "tar czf /root/backup/${CHE_INSTANCE_BACKUP_FILE_NAME} -C /root/che-instance . --exclude=logs ${TAR_EXTRA_EXCLUDE}"
-  fi
+                 alpine:3.4 sh -c "tar czf /root/backup/${CHE_BACKUP_FILE_NAME} -C /root/che . --exclude='backup' --exclude='instance/dev' --exclude='instance/logs' ${TAR_EXTRA_EXCLUDE}"
 
   info ""
-  info "backup" "Configuration data saved in ${CHE_HOST_BACKUP}/${CHE_CONFIG_BACKUP_FILE_NAME}"
-  info "backup" "Instance data saved in ${CHE_HOST_BACKUP}/${CHE_INSTANCE_BACKUP_FILE_NAME}"
+  info "backup" "Codenvy data saved in ${CHE_HOST_BACKUP}/${CHE_BACKUP_FILE_NAME}"
 }
 
 

@@ -7,6 +7,19 @@
 
 # Contains path utilities
 
+check_host_volume_mount() {
+  echo 'test' > ${CHE_CONTAINER_ROOT}/test
+
+  if [[ ! -f ${CHE_CONTAINER_ROOT}/test ]]; then
+    error "Docker installed, but unable to write files to your host."
+    error "Have you enabled Docker to allow mounting host directories?"
+    error "Did you give our CLI rights to create files on your host?"
+    return 2;
+  fi
+
+  rm -rf ${CHE_CONTAINER_ROOT}/test
+}
+
 get_mount_path() {
   debug $FUNCNAME
   FULL_PATH=$(get_full_path "${1}")

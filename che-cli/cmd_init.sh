@@ -32,12 +32,9 @@ cmd_init() {
   done
 
   if [ "${FORCE_UPDATE}" == "--no-force" ]; then
-    # If codenvy.environment file exists, then fail
+    # If che.environment file exists, then fail
     if is_initialized; then
-      if [[ "${REINIT}" = "true" ]]; then
-        # Save the environment file.
-        cp -rf "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}" "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}".reinit
-      else       
+      if [[ "${REINIT}" = "false" ]]; then
         info "init" "Already initialized."
         return 2
       fi
@@ -79,21 +76,17 @@ cmd_init() {
     docker_run -v "${CHE_HOST_CONFIG}":/copy $IMAGE_INIT
   fi
 
-  if [[ "${REINIT}" = "true" ]]; then
-    # If this is a reinit, grab the .reinit file and use it as the environment file
-    mv -f "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}".reinit "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}"
-  else       
+  # If this is a reinit, we should not overwrite these core template files.
+  # If this is an initial init, then we have to override some values
+  if [[ "${REINIT}" = "false" ]]; then
     # Otherwise, we are using the templated version and making some modifications.
     sed -i'.bak' "s|#CHE_HOST=.*|CHE_HOST=${CHE_HOST}|" "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}"
-    sed -i'.bak' "s|#CHE_PORT=.*|CHE_PORT=${CHE_PORT}|" "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}"
     rm -rf "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}".bak > /dev/null 2>&1
 
     info "init" "  CHE_HOST=${CHE_HOST}"
-    info "init" "  CHE_PORT=${CHE_PORT}"
     info "init" "  CHE_VERSION=${CHE_VERSION}"
     info "init" "  CHE_CONFIG=${CHE_HOST_CONFIG}"
     info "init" "  CHE_INSTANCE=${CHE_HOST_INSTANCE}"
-
     if [ "${CHE_DEVELOPMENT_MODE}" == "on" ]; then
       info "init" "  CHE_ENVIRONMENT=development"
       info "init" "  CHE_DEVELOPMENT_REPO=${CHE_HOST_DEVELOPMENT_REPO}"
@@ -104,7 +97,7 @@ cmd_init() {
   fi
 
   # Encode the version that we initialized into the version file
-  echo "$CHE_VERSION" > "${CHE_CONTAINER_CONFIG}/${CHE_VERSION_FILE}"
+  echo "$CHE_VERSION" > "${CHE_CONTAINER_INSTANCE}/${CHE_VERSION_FILE}"
 }
 
 require_license() {

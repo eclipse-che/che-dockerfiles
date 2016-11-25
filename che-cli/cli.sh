@@ -18,9 +18,9 @@ cli_init() {
   CHE_ENVIRONMENT_FILE="${CHE_MINI_PRODUCT_NAME}.env"
   CHE_COMPOSE_FILE="docker-compose-container.yml"
   CHE_SERVER_CONTAINER_NAME="che"
-  CHE_CONFIG_BACKUP_FILE_NAME="${CHE_MINI_PRODUCT_NAME}_config_backup.tar"
-  CHE_INSTANCE_BACKUP_FILE_NAME="${CHE_MINI_PRODUCT_NAME}_instance_backup.tar"
+  CHE_CONFIG_BACKUP_FILE_NAME="${CHE_MINI_PRODUCT_NAME}_config_backup.tar.gz"
   DOCKER_CONTAINER_NAME_PREFIX="${CHE_MINI_PRODUCT_NAME}_"
+  CHE_COMPOSE_STOP_TIMEOUT="180"
 
   grab_offline_images "$@"
   grab_initial_images
@@ -37,16 +37,16 @@ cli_init() {
   CHE_PORT=${CHE_PORT:-${DEFAULT_CHE_PORT}}
 
   if [[ "${CHE_HOST}" = "" ]]; then
-    info "Welcome to ${CHE_PRODUCT_NAME}!"
+    info "Welcome to $CHE_FORMAL_PRODUCT_NAME!"
     info ""
     info "We did not auto-detect a valid HOST or IP address."
-    info "Pass CHE_HOST with your hostname or IP address."
+    info "Pass ${CHE_PRODUCT_NAME}_HOST with your hostname or IP address."
     info ""
     info "Rerun the CLI:"
     info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
-    info "                      -v <local-path>:/codenvy"
+    info "                      -v <local-path>:${CHE_CONTAINER_ROOT}"
     info "                      -e CHE_HOST=<your-ip-or-host>"
-    info "                         eclipse/che-cli:${CHE_IMAGE_VERSION} $@"
+    info "                         $CHE_IMAGE_NAME $*"
     return 2;
   fi
 
@@ -83,7 +83,7 @@ cli_init() {
 }
 
 grab_offline_images(){
-  # If you are using codenvy in offline mode, images must be loaded here
+  # If you are using che in offline mode, images must be loaded here
   # This is the point where we know that docker is working, but before we run any utilities
   # that require docker.
   if [[ "$@" == *"--offline"* ]]; then
@@ -145,12 +145,16 @@ grab_initial_images() {
 cli_parse () {
   debug $FUNCNAME
   COMMAND="cmd_$1"
-  COMMAND_CONTAINER_FILE="${SCRIPTS_CONTAINER_SOURCE_DIR}"/$COMMAND.sh
 
-  if [ ! -f "${COMMAND_CONTAINER_FILE}" ]; then
-    error "You passed an unknown command line option."
-    return 2;
-  fi
+  case $1 in
+      init|config|start|stop|restart|backup|restore|info|offline|destroy|download|rmi|upgrade|version|ssh|mount|action|test|compile|help)
+      ;;
+      *)
+         error "You passed an unknown command."
+         usage
+         return 2
+      ;;
+  esac
 
   # Need to load all files in advance so commands can invoke other commands.
   for COMMAND_FILE in "${SCRIPTS_CONTAINER_SOURCE_DIR}"/cmd_*.sh
@@ -161,65 +165,6 @@ cli_parse () {
   shift
   eval $COMMAND "$@"
 }
-
-get_docker_install_type() {
-  debug $FUNCNAME
-  if is_boot2docker; then
-    echo "boot2docker"
-  elif is_docker_for_windows; then
-    echo "docker4windows"
-  elif is_docker_for_mac; then
-    echo "docker4mac"
-  else
-    echo "native"
-  fi
-}
-
-has_docker_for_windows_client(){
-  debug $FUNCNAME
-  if [[ "${GLOBAL_HOST_IP}" = "10.0.75.2" ]]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-is_boot2docker() {
-  debug $FUNCNAME
-  if uname -r | grep -q 'boot2docker'; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-is_docker_for_windows() {
-  debug $FUNCNAME
-  if uname -r | grep -q 'moby' && has_docker_for_windows_client; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-is_docker_for_mac() {
-  debug $FUNCNAME
-  if uname -r | grep -q 'moby' && ! has_docker_for_windows_client; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-is_native() {
-  debug $FUNCNAME
-  if [ $(get_docker_install_type) = "native" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
 
 has_env_variables() {
   debug $FUNCNAME
@@ -269,102 +214,6 @@ update_image() {
     return 2;
   fi
   text "\n"
-}
-
-port_open(){
-  debug $FUNCNAME
-
-  docker run -d -p $1:$1 --name fake alpine:3.4 httpd -f -p $1 -h /etc/ > /dev/null 2>&1
-  NETSTAT_EXIT=$?
-  docker rm -f fake > /dev/null 2>&1
-
-  if [ $NETSTAT_EXIT = 125 ]; then
-    return 1
-  else
-    return 0
-  fi
-}
-
-container_exist_by_name(){
-  docker inspect ${1} > /dev/null 2>&1
-  if [ "$?" == "0" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-get_server_container_id() {
-  log "docker inspect -f '{{.Id}}' ${1}"
-  docker inspect -f '{{.Id}}' ${1}
-}
-
-wait_until_container_is_running() {
-  CONTAINER_START_TIMEOUT=${1}
-
-  ELAPSED=0
-  until container_is_running ${2} || [ ${ELAPSED} -eq "${CONTAINER_START_TIMEOUT}" ]; do
-    log "sleep 1"
-    sleep 1
-    ELAPSED=$((ELAPSED+1))
-  done
-}
-
-container_is_running() {
-  if [ "$(docker ps -qa -f "status=running" -f "id=${1}" | wc -l)" -eq 0 ]; then
-    return 1
-  else
-    return 0
-  fi
-}
-
-wait_until_server_is_booted () {
-  SERVER_BOOT_TIMEOUT=${1}
-
-  ELAPSED=0
-  until server_is_booted ${2} || [ ${ELAPSED} -eq "${SERVER_BOOT_TIMEOUT}" ]; do
-    log "sleep 2"
-    sleep 2
-    ELAPSED=$((ELAPSED+1))
-  done
-}
-
-server_is_booted() {
-  HTTP_STATUS_CODE=$(curl -I -k $CHE_HOST:$CHE_PORT/api/ \
-                     -s -o "${LOGS}" --write-out "%{http_code}")
-  if [[ "${HTTP_STATUS_CODE}" = "200" ]] || [[ "${HTTP_STATUS_CODE}" = "302" ]]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_if_booted() {
-  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_server_container_id $CHE_SERVER_CONTAINER_NAME)
-  wait_until_container_is_running 20 ${CURRENT_CHE_SERVER_CONTAINER_ID}
-  if ! container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
-    error "(${CHE_MINI_PRODUCT_NAME} start): Timeout waiting for ${CHE_MINI_PRODUCT_NAME} container to start."
-    return 2
-  fi
-
-  info "start" "Server logs at \"docker logs -f ${CHE_SERVER_CONTAINER_NAME}\""
-  info "start" "Server booting..."
-  wait_until_server_is_booted 60 ${CURRENT_CHE_SERVER_CONTAINER_ID}
-
-  if server_is_booted ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
-    info "start" "Booted and reachable"
-    info "start" "Ver: $(get_installed_version)"
-    if ! is_docker_for_mac; then
-      info "start" "Use: http://${CHE_HOST}:${CHE_PORT}"
-      info "start" "API: http://${CHE_HOST}:${CHE_PORT}/swagger"
-    else
-      info "start" "Use: http://localhost:${CHE_PORT}"
-      info "start" "API: http://localhost:${CHE_PORT}/swagger"
-    fi
-  else
-    error "(${CHE_MINI_PRODUCT_NAME} start): Timeout waiting for server. Run \"docker logs ${CHE_SERVER_CONTAINER_NAME}\" to inspect the issue."
-    return 2
-  fi
 }
 
 is_initialized() {
@@ -427,18 +276,10 @@ get_image_manifest() {
 }
 
 get_installed_version() {
-  if ! is_configured; then
+  if ! is_initialized; then
     echo "<not-configed>"
   else
     cat "${CHE_CONTAINER_INSTANCE}"/$CHE_VERSION_FILE
-  fi
-}
-
-get_configured_version() {
-  if ! is_initialized; then
-    echo "<not-initialized>"
-  else
-     cat "${CHE_CONTAINER_CONFIG}"/$CHE_VERSION_FILE
   fi
 }
 
@@ -457,118 +298,92 @@ less_than() {
   return 1
 }
 
-compare_cli_version_to_configured_version() {
+compare_cli_version_to_installed_version() {
   IMAGE_VERSION=$(get_image_version)
-  CONFIGURED_VERSION=$(get_configured_version)
-
-  ## First, compare the CLI image version to what version was initialized in /config/*.ver.do_not_modify
-  ##      - If they match, good
-  ##      - If they don't match and one is nightly, fail
-  ##      - If they don't match, then if CLI is older fail with message to get proper CLI
-  ##      - If they don't match, then if CLI is newer fail with message to run upgrade first
-  if [[ "$CONFIGURED_VERSION" = "$IMAGE_VERSION" ]]; then
-    echo "match"
-  elif [ "$CONFIGURED_VERSION" = "nightly" ] ||
-       [ "$IMAGE_VERSION" = "nightly" ]; then
-    echo "nightly"
-  elif less_than $CONFIGURED_VERSION $IMAGE_VERSION; then
-    echo "config-less-cli"
-  else
-    echo "cli-less-config"
-  fi
-}
-
-compare_installed_version_to_configured_version() {
-  CONFIGURED_VERSION=$(get_configured_version)
   INSTALLED_VERSION=$(get_installed_version)
 
-  ## Second, compare /config/*.ver.donotmofiy to /instance/*.ver.donotmodify
-  ##      - If they match, then continue
-  ##      - If they do not match, then if .env is newer, then fail with message to run upgrade first
-  ##      - If they do not match, then if .env is older, then fail with message that this is not good
-  if [[ "$CONFIGURED_VERSION" = "$INSTALLED_VERSION" ]]; then
+  if [[ "$INSTALLED_VERSION" = "$IMAGE_VERSION" ]]; then
     echo "match"
-  elif less_than $CONFIGURED_VERSION $INSTALLED_VERSION; then
-    echo "config-less-install"
+  elif [ "$INSTALLED_VERSION" = "nightly" ] ||
+       [ "$IMAGE_VERSION" = "nightly" ]; then
+    echo "nightly"
+  elif less_than $INSTALLED_VERSION $IMAGE_VERSION; then
+    echo "install-less-cli"
   else
-    echo "install-less-config"
+    echo "cli-less-install"
   fi
 }
 
 verify_version_compatibility() {
-  ## Two levels of checks
-  ## First, compare the CLI image version to what version was initialized in /config/*.ver.do_not_modify
+  ## If ! is_initialized, then the system hasn't been installed
+  ## First, compare the CLI image version to what version was initialized in /config/*.ver.donotmodify
   ##      - If they match, good
   ##      - If they don't match and one is nightly, fail
   ##      - If they don't match, then if CLI is older fail with message to get proper CLI
   ##      - If they don't match, then if CLLI is newer fail with message to run upgrade first
-  ## Second, compare /config/*.ver.donotmofiy to /instance/*.ver.do_not_modify
-  ##      - If they match, then continue
-  ##      - If they do not match, then if .env is newer, then fail with message to run upgrade first
-  ##      - If they do not match, then if .env is older, then fail with message that this is not good 
 
   CHE_IMAGE_VERSION=$(get_image_version)
 
   if is_initialized; then
-    COMPARE_CLI_ENV=$(compare_cli_version_to_configured_version)
-    CONFIGURED_VERSION=$(get_configured_version)
+    COMPARE_CLI_ENV=$(compare_cli_version_to_installed_version)
+    INSTALLED_VERSION=$(get_installed_version)
 
     case "${COMPARE_CLI_ENV}" in
-      "match") 
+      "match")
       ;;
       "nightly")
         error ""
-        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' does not match your configured version '$CONFIGURED_VERSION'."
+        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' does not match your installed version '$INSTALLED_VERSION'."
         error ""
-        error "The 'nightly' CLI is only compatible with 'nightly' configured versions."
-        error "You may not '${CHE_MINI_PRODUCT_NAME} upgrade' from 'nightly' to a tagged version."
+        error "The 'nightly' CLI is only compatible with 'nightly' installed versions."
+        error "You may not '${CHE_MINI_PRODUCT_NAME} upgrade' from 'nightly' to a numbered (tagged) version."
         error ""
         error "Run the CLI as '${CHE_MINI_PRODUCT_NAME}/cli:<version>' to install a tagged version."
         return 2
       ;;
-      "config-less-cli")
+      "install-less-cli")
         error ""
-        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is newer than your configured version '$CONFIGURED_VERSION'."
+        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is newer than your installed version '$INSTALLED_VERSION'."
         error ""
         error "Run '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION upgrade' to migrate your installation to '$CHE_IMAGE_VERSION'."
-        error "Or, run the CLI with '${CHE_MINI_PRODUCT_NAME}/cli:$CONFIGURED_VERSION' to have the CLI match your existing installed version."
+        error "Or, run the CLI with '${CHE_MINI_PRODUCT_NAME}/cli:$INSTALLED_VERSION' to match the CLI with your installed version."
         return 2
       ;;
-      "cli-less-config")
+      "cli-less-install")
         error ""
-        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is older than your configured version '$CONFIGURED_VERSION'."
+        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is older than your installed version '$INSTALLED_VERSION'."
         error ""
-        error "You cannot use an older CLI with a newer configuration."
+        error "You cannot use an older CLI with a newer installation."
         error ""
-        error "Run the CLI with '${CHE_MINI_PRODUCT_NAME}/cli:$CONFIGURED_VERSION' to have the CLI match your existing installed version."
+        error "Run the CLI with '${CHE_MINI_PRODUCT_NAME}/cli:$INSTALLED_VERSION' to match the CLI with your existing installed version."
         return 2
       ;;
     esac
   fi
 
+  # Per request of the engineers, check to see if the locally cached nightly version is older
+  # than the one stored on DockerHub.
+  if [[ "${CHE_IMAGE_VERSION}" = "nightly" ]]; then
 
-  # Scenario #2 should only be checked if the system is already configured
-  if is_configured; then
-    COMPARE_INSTALL_ENV=$(compare_installed_version_to_configured_version)
-    INSTALLED_VERSION=$(get_installed_version)
-    case "${COMPARE_INSTALL_ENV}" in
-      "match")
-      ;;
-      "config-less-install"|"install-less-config")
-        error ""
-        error "Your CLI version '$CHE_IMAGE_VERSION' matches your configed version (good), but:"
-        error "   Configured version = '$CONFIGURED_VERSION'"
-        error "   Installed version  = '$INSTALLED_VERSION'"
-        error ""
-        error "The configured and installed versions must match before other operations proceed."
-        error ""
-        error "Run '$CHE_MINI_PRODUCT_NAME/cli:${INSTALLED_VERSION} init --reinit' to configure the proper version."
-        error ""
-        error "We could automatically do this for you."
-        error "However, having configured and installed versions mismatch is unusual and should be checked by a human."
-        return 2
-      ;;
-    esac
+    #TODO: Florent, there are two places where we use URLs like this (another is in version)
+    #      This URL will be different for ARTIK, Che, Codenvy
+    REMOTE_NIGHTLY_JSON=$(curl -s https://hub.docker.com/v2/repositories/eclipse/che-cli/tags/nightly/)
+
+    # Retrieve info on current nightly
+    LOCAL_CREATION_DATE=$(docker inspect --format="{{.Created }}" ${CHE_IMAGE_NAME})
+    REMOTE_CREATION_DATE=$(echo $REMOTE_NIGHTLY_JSON | jq ".last_updated")
+    REMOTE_CREATION_DATE="${REMOTE_CREATION_DATE//\"}"
+
+    # Unfortunatley, the "last_updated" date on DockerHub is the date it was uploaded, not created.
+    # So after you download the image locally, then the local image "created" value reflects when it
+    # was originally built, creating a istuation where the local cached version is always older than
+    # what is on DockerHub, even if you just pulled it.
+    # Solution is to compare the dates, and only print warning message if the locally created ate
+    # is less than the updated date on dockerhub.
+    if $(less_than ${LOCAL_CREATION_DATE:8:2} ${REMOTE_CREATION_DATE:8:2}); then
+      warning "Your local ${CHE_IMAGE_NAME} image is older than the version on DockerHub."
+      warning "Run 'docker pull ${CHE_IMAGE_NAME}' to update your CLI."
+    fi
   fi
 }
 
@@ -579,74 +394,44 @@ verify_version_upgrade_compatibility() {
   ##      - If they don't match and one is nightly, fail upgrade is not supported for nightly
   ##      - If they don't match, then if CLI is older fail with message that we do not support downgrade
   ##      - If they don't match, then if CLI is newer then good
-  ## Second, compare proposed .env version to already installed version
-  ##      - If they match, then ok to upgrade, we will update the ENV file 
-  ##      - If they do not match, then if .env is newer, then fail with message that ENV file & install must match before upgrade
-  ##      - If they do not match, then if .env is older, then fail with message that ENV file & install must match before upgrade 
-
   CHE_IMAGE_VERSION=$(get_image_version)
 
-  if ! is_initialized || ! is_configed; then 
+  if ! is_initialized || ! is_configured; then
     info "upgrade" "$CHE_MINI_PRODUCT_NAME is not installed or configured. Nothing to upgrade."
     return 2
   fi
 
   if is_initialized; then
-    COMPARE_CLI_ENV=$(compare_cli_version_to_envfile_version)
-    ENV_FILE_VERSION=$(get_envfile_version)
+    COMPARE_CLI_ENV=$(compare_cli_version_to_installed_version)
+    CONFIGURED_VERSION=$(get_installed_version)
 
     case "${COMPARE_CLI_ENV}" in
-      "match") 
+      "match")
         error ""
-        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is identical to your configured version '$ENV_FILE_VERSION'."
+        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is identical to your installed version '$INSTALLED_VERSION'."
         error ""
-        error "Run '$CHE_MINI_PRODUCT_NAME/cli:<version> upgrade>' with a newer version to upgrade."
-        error "View all available versions: https://hub.docker.com/r/$CHE_MINI_PRODUCT_NAME/cli/tags/."
+        error "Run '$CHE_MINI_PRODUCT_NAME/cli:<version> upgrade' with a newer version to upgrade."
+        error "View available versions with '$CHE_MINI_PRODUCT_NAME version'."
         return 2
       ;;
       "nightly")
         error ""
-        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' or configured version '$ENV_FILE_VERSION' is nightly."
+        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' or installed version '$INSTALLED_VERSION' is nightly."
         error ""
-        error "You may not '${CHE_MINI_PRODUCT_NAME} upgrade' from 'nightly' to a non-nightly version."
+        error "You may not '${CHE_MINI_PRODUCT_NAME} upgrade' from 'nightly' to a numbered (tagged) version."
         error "You can 'docker pull ${CHE_MINI_PRODUCT_NAME}/cli:nightly' to get a newer nightly version."
         return 2
       ;;
-      "envfile-less-cli")
+      "install-less-cli")
       ;;
-      "cli-less-envfile")
+      "cli-less-install")
         error ""
-        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is older than your configured version '$ENV_FILE_VERSION'."
+        error "Your CLI version '${CHE_MINI_PRODUCT_NAME}/cli:$CHE_IMAGE_VERSION' is older than your installed version '$INSTALLED_VERSION'."
         error ""
-        error "You cannot upgrade to an older version."
+        error "You cannot use '${CHE_MINI_PRODUCT_NAME} upgrade' to downgrade versions."
         error ""
-        error "Run '$CHE_MINI_PRODUCT_NAME/cli:<version> upgrade>' with a newer version to upgrade."
-        error "View all available versions: https://hub.docker.com/r/$CHE_MINI_PRODUCT_NAME/cli/tags/."
-        return 2
-      ;;
-    esac
-  fi
-
-  # Scenario #2 should only be checked if the system is already configured
-  if is_configed; then
-    COMPARE_INSTALL_ENV=$(compare_installed_version_to_envfile_version)
-    INSTALLED_VERSION=$(get_installed_version)
-    case "${COMPARE_INSTALL_ENV}" in
-      "match") 
-      ;;
-      "envfile-less-install"|"install-less-envfile")
-        error ""
-        error "Your CLI version '$CHE_IMAGE_VERSION' is newer (good), but:"
-        error "   Configured version = '$ENV_FILE_VERSION'"
-        error "   Installed version  = '$INSTALLED_VERSION'"
-        error ""
-        error "The configured and installed versions must match before upgrade proceeds."
-        error ""
-        error "Modify '${CHE_HOST_CONFIG}/${CHE_ENVIRONMENT_FILE}' to match your configured version to your installed version '$INSTALLED_VERSION'."
-        error "Then run '$CHE_MINI_PRODUCT_NAME/cli:<version> upgrade>' with a newer Docker image to initiate an upgrade."
-        error ""
-        error "We could automatically make this change."
-        error "However, having configured and installed version be different is unusual and should be checked by a human."
+        error "Run '$CHE_MINI_PRODUCT_NAME/cli:<version> upgrade' with a newer version to upgrade."
+        error "View available versions with '$CHE_MINI_PRODUCT_NAME version'."
         return 2
       ;;
     esac
@@ -671,5 +456,93 @@ confirm_operation() {
     else
       return 0;
     fi
+  fi
+}
+
+port_open(){
+  debug $FUNCNAME
+
+  docker run -d -p $1:$1 --name fake alpine:3.4 httpd -f -p $1 -h /etc/ > /dev/null 2>&1
+  NETSTAT_EXIT=$?
+  docker rm -f fake > /dev/null 2>&1
+
+  if [ $NETSTAT_EXIT = 125 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+
+wait_until_container_is_running() {
+  CONTAINER_START_TIMEOUT=${1}
+
+  ELAPSED=0
+  until container_is_running ${2} || [ ${ELAPSED} -eq "${CONTAINER_START_TIMEOUT}" ]; do
+    log "sleep 1"
+    sleep 1
+    ELAPSED=$((ELAPSED+1))
+  done
+}
+
+
+wait_until_server_is_booted () {
+  SERVER_BOOT_TIMEOUT=${1}
+
+  ELAPSED=0
+  until server_is_booted ${2} || [ ${ELAPSED} -eq "${SERVER_BOOT_TIMEOUT}" ]; do
+    log "sleep 2"
+    sleep 2
+    ELAPSED=$((ELAPSED+1))
+  done
+}
+
+server_is_booted() {
+  HTTP_STATUS_CODE=$(curl -I -k $CHE_HOST:$CHE_PORT/api/ \
+                     -s -o "${LOGS}" --write-out "%{http_code}")
+  if [[ "${HTTP_STATUS_CODE}" = "200" ]] || [[ "${HTTP_STATUS_CODE}" = "302" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check_if_booted() {
+  CURRENT_CHE_SERVER_CONTAINER_ID=$(get_server_container_id $CHE_SERVER_CONTAINER_NAME)
+  wait_until_container_is_running 20 ${CURRENT_CHE_SERVER_CONTAINER_ID}
+  if ! container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
+    error "(${CHE_MINI_PRODUCT_NAME} start): Timeout waiting for ${CHE_MINI_PRODUCT_NAME} container to start."
+    return 2
+  fi
+
+  info "start" "Services booting..."
+  info "start" "Server logs at \"docker logs -f ${CHE_SERVER_CONTAINER_NAME}\""
+  wait_until_server_is_booted 60 ${CURRENT_CHE_SERVER_CONTAINER_ID}
+
+  if server_is_booted ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
+    info "start" "Booted and reachable"
+    info "start" "Ver: $(get_installed_version)"
+    if ! is_docker_for_mac; then
+      info "start" "Use: http://${CHE_HOST}:${CHE_PORT}"
+      info "start" "API: http://${CHE_HOST}:${CHE_PORT}/swagger"
+    else
+      info "start" "Use: http://localhost:${CHE_PORT}"
+      info "start" "API: http://localhost:${CHE_PORT}/swagger"
+    fi
+  else
+    error "(${CHE_MINI_PRODUCT_NAME} start): Timeout waiting for server. Run \"docker logs ${CHE_SERVER_CONTAINER_NAME}\" to inspect the issue."
+    return 2
+  fi
+}
+
+
+docker_compose() {
+  debug $FUNCNAME
+
+  if has_compose; then
+    docker-compose "$@"
+  else
+    docker_run -v "${CHE_HOST_INSTANCE}":"${CHE_CONTAINER_INSTANCE}" \
+                  docker/compose:1.8.1 "$@"
   fi
 }

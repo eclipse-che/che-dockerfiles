@@ -10,24 +10,29 @@
 
 # Initializes an empty directory with the templates needed to configure and run Che.
 #
-# Build:
+# build:
 #   docker build -t eclipse/che-init:<version> .
 #
-# Use:
-#    docker run -v $(pwd):/copy eclipse/che-init:<version>
+# use (to copy files onto folder):
+#   docker run -v $(pwd):/che eclipse/che-init:<version>
+#
+# use (to run puppet config):
+#   docker run <puppet-mounts> --entrypoint=/usr/bin/puppet eclipse/che-init:<version> apply <puppet-apply-options>
 
-FROM alpine:latest
-RUN mkdir -p /files \
-    && mkdir -p /files/modules \
-    && mkdir -p /files/manifests
 
-COPY manifests /files/manifests
-COPY modules /files/modules
-COPY README.md /files
-COPY DOCS.md /files
+FROM puppet/puppet-agent-alpine:4.6.2
+
+# install openssh needed to generate ssh keys
+RUN apk --update add openssh \
+  && rm -rf /var/cache/apk/* \
+  && mkdir -p /files \
+    && mkdir -p /etc/puppet/modules \
+    && mkdir -p /etc/puppet/manifests \
+    && mkdir -p /files/docs
+
+COPY manifests /etc/puppet/manifests
+COPY modules /etc/puppet/modules
+COPY docs /files/docs
 COPY entrypoint.sh /
 RUN chmod +x entrypoint.sh
-
-ENV ENVFILE=che.env
-
 ENTRYPOINT ["/entrypoint.sh"]

@@ -15,53 +15,12 @@ has_compose() {
   hash docker-compose 2>/dev/null && return 0 || return 1
 }
 
-get_container_bind_folder() {
+get_container_folder() {
   THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":${CHE_CONTAINER_ROOT}" $THIS_CONTAINER_ID)
+  FOLDER=$(get_container_host_bind_folder "$1" $THIS_CONTAINER_ID)
   echo "${FOLDER:=not set}"
 }
 
-get_container_config_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":${CHE_CONTAINER_ROOT}/config" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
-
-get_container_instance_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":${CHE_CONTAINER_ROOT}/instance" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
-
-get_container_backup_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":${CHE_CONTAINER_ROOT}/backup" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
-
-get_container_repo_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":/repo" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
-
-get_container_cli_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":/cli" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
-
-get_container_sync_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":/sync" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
-
-get_container_unison_folder() {
-  THIS_CONTAINER_ID=$(get_this_container_id)
-  FOLDER=$(get_container_host_bind_folder ":/unison" $THIS_CONTAINER_ID)
-  echo "${FOLDER:=not set}"
-}
 
 get_this_container_id() {
   hostname
@@ -98,6 +57,65 @@ get_container_host_bind_folder() {
   done
 }
 
+
+get_docker_install_type() {
+  debug $FUNCNAME
+  if is_boot2docker; then
+    echo "boot2docker"
+  elif is_docker_for_windows; then
+    echo "docker4windows"
+  elif is_docker_for_mac; then
+    echo "docker4mac"
+  else
+    echo "native"
+  fi
+}
+
+has_docker_for_windows_client(){
+  debug $FUNCNAME
+  if [[ "${GLOBAL_HOST_IP}" = "10.0.75.2" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+is_boot2docker() {
+  debug $FUNCNAME
+  if uname -r | grep -q 'boot2docker'; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+is_docker_for_windows() {
+  debug $FUNCNAME
+  if uname -r | grep -q 'moby' && has_docker_for_windows_client; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+is_docker_for_mac() {
+  debug $FUNCNAME
+  if uname -r | grep -q 'moby' && ! has_docker_for_windows_client; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+is_native() {
+  debug $FUNCNAME
+  if [ $(get_docker_install_type) = "native" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 docker_run() {
   debug $FUNCNAME
   # Setup options for connecting to docker host
@@ -116,13 +134,25 @@ docker_run() {
   fi
 }
 
-docker_compose() {
-  debug $FUNCNAME
-
-  if has_compose; then
-    docker-compose "$@"
+container_exist_by_name(){
+  docker inspect ${1} > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    return 0
   else
-    docker_run -v "${CHE_HOST_INSTANCE}":"${CHE_CONTAINER_INSTANCE}" \
-                  docker/compose:1.8.1 "$@"
+    return 1
   fi
 }
+
+get_server_container_id() {
+  log "docker inspect -f '{{.Id}}' ${1}"
+  docker inspect -f '{{.Id}}' ${1}
+}
+
+container_is_running() {
+  if [ "$(docker ps -qa -f "status=running" -f "id=${1}" | wc -l)" -eq 0 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+

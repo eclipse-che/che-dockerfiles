@@ -9,12 +9,9 @@
 #   Tyler Jewell - Initial Implementation
 #
 
-# Make sure service is running
-cp -rf /files/manifests /copy
-cp -rf /files/modules /copy
-cp -rf /files/README.md /copy
-cp -rf /files/DOCS.md /copy
+cp -rf /files/docs /copy
+
 # do not copy che.env if exist
-if [ ! -f  /copy/${ENVFILE} ]; then
-    cp /files/manifests/${ENVFILE} /copy
+if [ ! -f  /copy/che.env ]; then
+    cp /etc/puppet/manifests/che.env /copy
 fi
