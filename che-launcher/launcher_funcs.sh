@@ -108,12 +108,13 @@ docker_run() {
    docker run -d --name "${CHE_SERVER_CONTAINER_NAME}" \
     -v /var/run/docker.sock:/var/run/docker.sock:Z \
     -v "$CHE_DATA_LOCATION" \
-    -p "${CHE_PORT}":8080 \
+    -p "${CHE_PORT}":"${CHE_PORT}" \
     --restart="${CHE_RESTART_POLICY}" \
     --user="${CHE_USER}" \
     -e "CHE_LOG_LEVEL=${CHE_LOG_LEVEL}" \
     -e "CHE_IP=$CHE_HOST_IP" \
-    --env-file=$ENV_FILE "$@"
+    --env-file=$ENV_FILE \
+    "$@"
  
    rm -rf $ENV_FILE > /dev/null
 }
@@ -433,7 +434,7 @@ wait_until_container_is_stopped() {
 }
 
 server_is_booted() {
-  HTTP_STATUS_CODE=$(curl -I http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' "${1}"):8080/api/ \
+  HTTP_STATUS_CODE=$(curl -I http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' "${1}"):$CHE_PORT/api/ \
                      -s -o /dev/null --write-out "%{http_code}")
   if [ "${HTTP_STATUS_CODE}" = "200" ]; then
     return 0
@@ -444,7 +445,7 @@ server_is_booted() {
 
 get_server_version() {
   HTTP_STATUS_CODE=$(curl -X OPTIONS http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' \
-                          "${1}"):8080/api/ -s)
+                          "${1}"):$CHE_PORT/api/ -s)
 
   FIRST=${HTTP_STATUS_CODE//\ /}
   IFS=','
