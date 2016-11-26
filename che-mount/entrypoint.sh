@@ -51,7 +51,24 @@ Usage on Mac or Windows:
  UNISON_REPEAT_DELAY_IN_SEC=2
  WORKSPACE_NAME=
  COMMAND_EXTRA_ARGS=
+ REMOTE_SYNC_FOLDER=/projects
+ UNISON_ARGS="-batch -fat -silent -copyonconflict -auto -prefer=newer -log=false"
+ CHE_MINI_PRODUCT_NAME=che
+ UNISON_COMMAND="unison /mnthost ssh://\${SSH_USER}@\${SSH_IP}:\${SSH_PORT}/\${REMOTE_SYNC_FOLDER} \
+  -retry 10 \${UNISON_ARGS} -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' > /dev/null 2>&1"
+  
+ UNISON_COMMAND_SSHFS="unison /mntssh /mnthost \${UNISON_ARGS} > /dev/null 2>&1"
+  
 }
+
+check_status() {
+    status=$?
+	if [ $status -ne 0 ]; then
+	    error 'ERROR: Fatal error occurred ($status)'
+	    exit 1
+	fi
+}
+
 
 parse_command_line () {
   if [ $# -eq 0 ]; then
@@ -61,7 +78,8 @@ parse_command_line () {
 
   # See if profile document was provided
   mkdir -p $HOME/.unison
-  cp -rf /profile/default.prf $HOME/.unison/default.prf
+  
+  [ -f /profile/default.prf ] && cp -rf /profile/default.prf $HOME/.unison/default.prf
 
   WORKSPACE_NAME=$1
   shift
@@ -109,7 +127,7 @@ init_global_variables
 parse_command_line "$@"
 [ "$(ls -A /mnthost )" ] && EMPTY=false || EMPTY=true
 if [ $EMPTY = false ]; then
-    warn "(che mount): Local folder is not empty. Are you sure?[Y/n]"
+    warn "(${CHE_MINI_PRODUCT_NAME} mount): Local folder is not empty. Are you sure?[Y/n]"
     read yn
     case $yn in
         [Yy]*) 
@@ -119,7 +137,7 @@ if [ $EMPTY = false ]; then
             exit
             ;;
         *) 
-            info "(che mount): Please answer yes or no."
+            info "(${CHE_MINI_PRODUCT_NAME} mount): Please answer yes or no."
             ;;
     esac
 fi
@@ -135,67 +153,43 @@ source $HOME/env
 # store private key
 mkdir -p $HOME/.ssh
 echo "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
-chmod 700 $HOME/.ssh/id_rsa
+chmod 600 $HOME/.ssh/id_rsa
 if [ "${CHE_SYNC_AGENT}" = "true" ]; then
-    info "(che mount): Syncing ${SSH_USER}@${SSH_IP}:${SSH_PORT}/projects with workspace sync agent."
-	info "(che mount): Initial sync... Please wait."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Syncing ${SSH_USER}@${SSH_IP}:${SSH_PORT}${REMOTE_SYNC_FOLDER} with workspace sync agent."
+	info "(${CHE_MINI_PRODUCT_NAME} mount): Initial sync... Please wait."
     START_TIME=$(date +%s)
-    unison /mnthost ssh://${SSH_USER}@${SSH_IP}:${SSH_PORT}//../../projects/ -batch -retry 10 \
-            -fat -silent -copyonconflict -auto -prefer=newer -log=false \
-            -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'> /dev/null 2>&1 
-    status=$?
-	if [ $status -ne 0 ]; then
-	    error "ERROR: Fatal error occurred ($status)"
-	    exit 1
-	fi
+    eval ${UNISON_COMMAND}
+    check_status
     ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
-    info "(che mount): Initial Unison sync took using sync agent $ELAPSED_TIME seconds."
-    info "(che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
-    info "(che mount): This terminal will block while the synchronization continues."
-    info "(che mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Initial Unison sync took using sync agent $ELAPSED_TIME seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
     while [ 1 ]
     do
         sleep ${UNISON_REPEAT_DELAY_IN_SEC}
-        unison /mnthost ssh://${SSH_USER}@${SSH_IP}:${SSH_PORT}//../../projects/ -batch -retry 10 \
-            -fat -silent -copyonconflict -auto -prefer=newer -log=false \
-            -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'> /dev/null 2>&1   
+        eval ${UNISON_COMMAND}
     done
-    status=$?
-	if [ $status -ne 0 ]; then
-	    error "ERROR: Fatal error occurred ($status)"
-	    exit 1
-	fi
+    check_status
 else
-    info "(che mount): Sync agent not detected using SSHFS."
-    info "(che mount): Mounting ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT}) with SSHFS."
-    sshfs ${SSH_USER}@${SSH_IP}:/projects /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
-    status=$?
-    if [ $status -ne 0 ]; then
-        error "Fatal error occurred ($status)"
-        exit 1
-    fi
-    info "(che mount): Successfully mounted ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT})"
-    info "(che mount): Initial sync...Please wait."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Sync agent not detected using SSHFS."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Mounting ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} (${SSH_PORT}) with SSHFS."
+    sshfs ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+    check_status
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Successfully mounted ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} (${SSH_PORT})"
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Initial sync...Please wait."
     START_TIME=$(date +%s)
-    unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
-    status=$?
-	if [ $status -ne 0 ]; then
-	    error "ERROR: Fatal error occurred ($status)"
-	    exit 1
-	fi
+    eval ${UNISON_COMMAND_SSHFS}
+    
     ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
-    info "INFO: (che mount): Initial Unison sync took $ELAPSED_TIME seconds."
-    info "(che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
-    info "(che mount): This terminal will block while the synchronization continues."
-    info "(che mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
+    info "INFO: (${CHE_MINI_PRODUCT_NAME} mount): Initial Unison sync took $ELAPSED_TIME seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
     while [ 1 ]
     do
         sleep ${UNISON_REPEAT_DELAY_IN_SEC}
-        unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
+        eval ${UNISON_COMMAND_SSHFS}
     done
-    status=$?
-	if [ $status -ne 0 ]; then
-	    error "ERROR: Fatal error occurred ($status)"
-	    exit 1
-	fi
+    check_status
 fi

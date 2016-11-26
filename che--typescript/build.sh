@@ -30,7 +30,7 @@ generate_dto() {
     fi
   fi
   
-  docker rm -f che-typescript-build 2> /dev/null
+  docker ps -a | awk '{ print $1,$2 }' | grep che-typescript-build | awk '{print $1 }' | xargs -I {} docker rm -f {}
   docker run -d --name che-typescript-build -v "$HOME/.m2:/root/.m2" -w /usr/src/mymaven maven:3.3-jdk-8 tail -f /dev/null
   docker cp $DIR/dto-pom.xml che-typescript-build:/usr/src/mymaven/pom.xml  
   cd $DIR && docker exec -ti che-typescript-build /bin/bash -c "cd /usr/src/mymaven && mvn -q -DskipTests=true -Dfindbugs.skip=true -Dskip-validate-sources clean install && ls target/"
