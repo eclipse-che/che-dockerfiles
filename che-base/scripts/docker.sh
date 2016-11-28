@@ -156,3 +156,53 @@ container_is_running() {
   fi
 }
 
+
+check_docker() {
+  if ! has_docker; then
+    error "Docker not found. Get it at https://docs.docker.com/engine/installation/."
+    return 1;
+  fi
+
+  # If DOCKER_HOST is not set, then it should bind mounted
+  if [ -z "${DOCKER_HOST+x}" ]; then
+    if ! docker ps > /dev/null 2>&1; then
+      info "Welcome to ${CHE_FORMAL_PRODUCT_NAME}!"
+      info ""
+      info "$CHE_FORMAL_PRODUCT_NAME commands require additional parameters:"
+      info "  Mounting 'docker.sock', which let's us access Docker"
+      info ""
+      info "Syntax:"
+      info "  docker run -it --rm ${BOLD} -v /var/run/docker.sock:/var/run/docker.sock${NC}"
+      info "                  $CHE_MINI_PRODUCT_NAME/cli $*"
+      return 2;
+    fi
+  fi
+
+  DOCKER_VERSION=($(docker version |  grep  "Version:" | sed 's/Version://'))
+
+  MAJOR_VERSION_ID=$(echo ${DOCKER_VERSION[0]:0:1})
+  MINOR_VERSION_ID=$(echo ${DOCKER_VERSION[0]:2:2})
+
+  # Docker needs to be greater than or equal to 1.11
+  if [[ ${MAJOR_VERSION_ID} -lt 1 ]] ||
+     [[ ${MINOR_VERSION_ID} -lt 11 ]]; then
+       error "Error - Docker engine 1.11+ required."
+       return 2;
+  fi
+
+  # Detect version so that we can provide better error warnings
+  DEFAULT_CHE_VERSION=$(cat "/version/latest.ver")
+  CHE_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' $(get_this_container_id))
+  CHE_IMAGE_VERSION=$(echo "${CHE_IMAGE_NAME}" | cut -d : -f2 -s)
+
+  if [[ "${CHE_IMAGE_VERSION}" = "" ]] ||
+     [[ "${CHE_IMAGE_VERSION}" = "latest" ]]; then
+     warning "You are using CLI image version 'latest' which is set to '$DEFAULT_CHE_VERSION'."
+    CHE_IMAGE_VERSION=$DEFAULT_CHE_VERSION
+  else
+    CHE_IMAGE_VERSION=$CHE_IMAGE_VERSION
+  fi
+
+  CHE_VERSION=$CHE_IMAGE_VERSION
+}
+
