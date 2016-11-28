@@ -11,14 +11,8 @@
 #    docker run -v $(pwd):/che eclipse/che-cli [command]
 FROM eclipse/che-base:nightly
 
-COPY che.sh /scripts/
-COPY cli.sh /scripts/
-COPY cmd_*.sh /scripts/
+COPY scripts /scripts/
 COPY version /version/
 
-RUN mkdir /che && chmod +x /scripts/che.sh
-
-ENTRYPOINT ["/scripts/che.sh"]
-
-
-
+RUN mkdir /che && chmod u+x /scripts/entrypoint.sh
+ENTRYPOINT ["/scripts/entrypoint.sh"]
