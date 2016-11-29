@@ -41,8 +41,8 @@ cmd_config() {
         log "rm -rf \"${CHE_HOST_INSTANCE}/dev\" >> \"${LOGS}\""
         rm -rf "${CHE_CONTAINER_INSTANCE}/dev"
     fi
-    # copy che development tomcat to ${CHE_INSTANCE} folder
-    cp -r "$(echo $CHE_CONTAINER_DEVELOPMENT_REPO/$DEFAULT_CHE_ASSEMBLY)" \
+    # copy ${CHE_FORMAL_PRODUCT_NAME} development tomcat to ${CHE_INSTANCE} folder
+    cp -r "$(echo $CHE_CONTAINER_DEVELOPMENT_REPO/$CHE_ASSEMBLY_IN_REPO)" \
         "${CHE_CONTAINER_INSTANCE}/dev"
   fi
 
@@ -74,8 +74,8 @@ generate_configuration_with_puppet() {
                   --env-file=\"${REFERENCE_CONTAINER_ENVIRONMENT_FILE}\" \
                   --env-file=/version/$CHE_VERSION/images \
                   -v \"${CHE_HOST_INSTANCE}\":/opt/${CHE_MINI_PRODUCT_NAME}:rw \
-                  -v \"${CHE_HOST_DEVELOPMENT_REPO}/che-init/manifests\":/etc/puppet/manifests:ro \
-                  -v \"${CHE_HOST_DEVELOPMENT_REPO}/che-init/modules\":/etc/puppet/modules:ro \
+                  -v \"${CHE_HOST_DEVELOPMENT_REPO}/dockerfiles/init/manifests\":/etc/puppet/manifests:ro \
+                  -v \"${CHE_HOST_DEVELOPMENT_REPO}/dockerfiles/init/modules\":/etc/puppet/modules:ro \
                   -e \"CHE_ENV_FILE=${CHE_ENV_FILE}\" \
                   -e \"CHE_ENVIRONMENT=development\" \
                   -e \"CHE_CONFIG=${CHE_HOST_INSTANCE}\" \
