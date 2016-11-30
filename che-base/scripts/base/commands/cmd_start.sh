@@ -19,7 +19,7 @@ cmd_start() {
     CURRENT_CHE_SERVER_CONTAINER_ID=$(get_server_container_id $CHE_SERVER_CONTAINER_NAME)
     if container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID} && \
        server_is_booted ${CURRENT_CHE_SERVER_CONTAINER_ID}; then
-       info "start" "$CHE_MINI_PRODUCT_NAME is already running"
+       info "start" "${CHE_FORMAL_PRODUCT_NAME} is already running"
        info "start" "Server logs at \"docker logs -f ${CHE_SERVER_CONTAINER_NAME}\""
        info "start" "Ver: $(get_installed_version)"
        info "start" "Use: ${DISPLAY_URL}"
