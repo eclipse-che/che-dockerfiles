@@ -354,6 +354,8 @@ less_than() {
     if [[ ${1:$i:1} != ${2:$i:1} ]]; then
       if [ ${1:$i:1} -lt ${2:$i:1} ]; then
         return 0
+      else
+        return 1
       fi
     fi
   done
