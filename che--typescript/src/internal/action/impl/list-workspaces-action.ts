@@ -43,7 +43,9 @@ export class ListWorkspacesAction {
 
     @Parameter({names: ["--formatter-columns"], description: "Specify order and column names that will be displayed"})
     formatColumns : string;
-
+    
+    @Parameter({names: ["--sync-agent"], description: "Indicate workspaces with sync agent enabled"})
+    syncAgentCheck : boolean = true;
 
     authData: AuthData;
     workspace: Workspace;
@@ -64,7 +66,18 @@ export class ListWorkspacesAction {
                     // Create Ascii array
                     let rows : Array<Array<string>> = new Array<Array<string>>();
                     workspaceDtos.forEach((workspaceDto : any) => {
-                        rows.push([workspaceDto.getConfig().getName(), workspaceDto.getId(), workspaceDto.getStatus()]);
+                        let syncAgent : string = "";
+                        if (this.syncAgentCheck === true){
+                            let defaultEnv:string = workspaceDto.getConfig().getDefaultEnv();
+                            let agents:Array<string> = workspaceDto.getConfig().getEnvironments().get(defaultEnv).getMachines().get("dev-machine").getAgents();
+                            if (agents.indexOf('org.eclipse.che.unison') !== -1) {
+                                syncAgent = "(Sync Agent)";
+                            }
+                            else{
+                                syncAgent = "(No Sync Agent)";
+                            }
+                        }
+                        rows.push([workspaceDto.getConfig().getName()+syncAgent, workspaceDto.getId(), workspaceDto.getStatus()]);
                     });
 
                     let asciiArray : AsciiArray  = new DefaultAsciiArray().withRows(rows).withFormatter(this.formatterMode).withTitles("name", "id", "status").withShowTitles(!this.formatSkipTitles).withFormatColumns(this.formatColumns);

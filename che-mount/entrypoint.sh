@@ -26,22 +26,49 @@ Usage on Linux
             -v /etc/passwd:/etc/passwd:ro 
             -v <path-to-sync-profile>:/profile
             -u \$(id -u \${USER})
-            -v <local-mount>/:/mnthost eclipse/che-mount <workspace-id|workspace-name>
-
-     <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
-
+            -v <local-mount>/:/mnthost 
+            eclipse/che-mount <workspace-id|workspace-name> 
+            	[--url=<url>]
+            	[--user=<user>]
+            	[--password=<password>]
+           
 Usage on Mac or Windows:
   docker run --rm -it --cap-add SYS_ADMIN --device /dev/fuse
             --name che-mount 
             -v <path-to-sync-profile>:/profile
-            -v <local-mount>/:/mnthost eclipse/che-mount <workspace-id|workspace-name>
+            -v <local-mount>/:/mnthost 
+            eclipse/che-mount <workspace-id|workspace-name> 
+            	[--url=<url>]
+            	[--user=<user>]
+            	[--password=<password>]
 
+     <local-mount>    Host directory to sync files, must end with a slash '/'
+     <url>            Defines the url to be used
+     <user>           Username used to authenticate with server if required
+     <password>       Password used to authenticate with server if required
      <workspace-id|workspace-name> ID or Name of the workspace or namespace:workspace-name
 "
  UNISON_REPEAT_DELAY_IN_SEC=2
  WORKSPACE_NAME=
  COMMAND_EXTRA_ARGS=
+ REMOTE_SYNC_FOLDER=/projects
+ UNISON_ARGS="-batch -fat -silent -copyonconflict -auto -prefer=newer -log=false"
+ CHE_MINI_PRODUCT_NAME=che
+ UNISON_COMMAND="unison /mnthost ssh://\${SSH_USER}@\${SSH_IP}:\${SSH_PORT}/\${REMOTE_SYNC_FOLDER} \
+  -retry 10 \${UNISON_ARGS} -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' > /dev/null 2>&1"
+  
+ UNISON_COMMAND_SSHFS="unison /mntssh /mnthost \${UNISON_ARGS} > /dev/null 2>&1"
+  
 }
+
+check_status() {
+    status=$?
+	if [ $status -ne 0 ]; then
+	    error 'ERROR: Fatal error occurred ($status)'
+	    exit 1
+	fi
+}
+
 
 parse_command_line () {
   if [ $# -eq 0 ]; then
@@ -51,7 +78,8 @@ parse_command_line () {
 
   # See if profile document was provided
   mkdir -p $HOME/.unison
-  cp -rf /profile/default.prf $HOME/.unison/default.prf
+  
+  [ -f /profile/default.prf ] && cp -rf /profile/default.prf $HOME/.unison/default.prf
 
   WORKSPACE_NAME=$1
   shift
@@ -64,6 +92,10 @@ usage () {
 
 info() {
   printf  "${GREEN}INFO:${NC} %s\n" "${1}"
+}
+
+warn() {
+  printf  "${RED}WARNING:${NC} %s\n" "${1}"
 }
 
 debug() {
@@ -93,45 +125,71 @@ trap 'stop_sync' SIGHUP SIGTERM SIGINT
 init_logging
 init_global_variables
 parse_command_line "$@"
-status=$?
-if [ $status -ne 0 ]; then
-    exit 1
+[ "$(ls -A /mnthost )" ] && EMPTY=false || EMPTY=true
+if [ $EMPTY = false ]; then
+    warn "(${CHE_MINI_PRODUCT_NAME} mount): Local folder is not empty. Are you sure?[Y/n]"
+    read yn
+    case $yn in
+        [Yy]*) 
+            break
+            ;;
+        [Nn]*) 
+            exit
+            ;;
+        *) 
+            info "(${CHE_MINI_PRODUCT_NAME} mount): Please answer yes or no."
+            ;;
+    esac
 fi
-
 docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
 if [ $? -ne 0 ]; then
     error "ERROR: Error when trying to get workspace data for workspace named ${WORKSPACE_NAME}"
     echo "List of workspaces are:"
-    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} list-workspaces
+    docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} list-workspaces ${COMMAND_EXTRA_ARGS} --sync-agent
     return 1
 fi
-
 source $HOME/env
 
 # store private key
-mkdir $HOME/.ssh
+mkdir -p $HOME/.ssh
 echo "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
 chmod 600 $HOME/.ssh/id_rsa
-
-info "INFO: (che mount): Mounting ${SSH_USER}@${SSH_IP}:/projects with SSHFS"
-sshfs ${SSH_USER}@${SSH_IP}:/projects /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
-
-status=$?
-if [ $status -ne 0 ]; then
-    error "ERROR: Fatal error occurred ($status)"
-    exit 1
+if [ "${CHE_SYNC_AGENT}" = "true" ]; then
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Syncing ${SSH_USER}@${SSH_IP}:${SSH_PORT}${REMOTE_SYNC_FOLDER} with workspace sync agent."
+	info "(${CHE_MINI_PRODUCT_NAME} mount): Initial sync... Please wait."
+    START_TIME=$(date +%s)
+    eval ${UNISON_COMMAND}
+    check_status
+    ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Initial Unison sync took using sync agent $ELAPSED_TIME seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
+    while [ 1 ]
+    do
+        sleep ${UNISON_REPEAT_DELAY_IN_SEC}
+        eval ${UNISON_COMMAND}
+    done
+    check_status
+else
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Sync agent not detected using SSHFS."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Mounting ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} (${SSH_PORT}) with SSHFS."
+    sshfs ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+    check_status
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Successfully mounted ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} (${SSH_PORT})"
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Initial sync...Please wait."
+    START_TIME=$(date +%s)
+    eval ${UNISON_COMMAND_SSHFS}
+    
+    ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
+    info "INFO: (${CHE_MINI_PRODUCT_NAME} mount): Initial Unison sync took $ELAPSED_TIME seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
+    info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
+    while [ 1 ]
+    do
+        sleep ${UNISON_REPEAT_DELAY_IN_SEC}
+        eval ${UNISON_COMMAND_SSHFS}
+    done
+    check_status
 fi
-info "INFO: (che mount): Successfully mounted ${SSH_USER}@${SSH_IP}:/projects (${SSH_PORT})"
-info "INFO: (che mount): Initial sync...Please wait."
-unison /mntssh /mnthost -batch -fat -silent -auto -prefer=newer -log=false > /dev/null 2>&1
-status=$?
-if [ $status -ne 0 ]; then
-    error "ERROR: Fatal error occurred ($status)"
-    exit 1
-fi
-info "INFO: (che mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
-info "INFO: (che mount): This terminal will block while the synchronization continues."
-info "INFO: (che mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
-
-# run application
-unison /mntssh /mnthost -batch -retry 10 -fat -silent -copyonconflict -auto -prefer=newer -repeat=${UNISON_REPEAT_DELAY_IN_SEC} -log=false > /dev/null 2>&1
