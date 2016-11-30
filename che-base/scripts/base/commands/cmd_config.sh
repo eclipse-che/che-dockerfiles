@@ -9,6 +9,10 @@
 #   Tyler Jewell - Initial Implementation
 #
 
+cmd_config_post_action() {
+ true
+}
+
 cmd_config() {
 
   # If the system is not initialized, initalize it.
@@ -30,11 +34,11 @@ cmd_config() {
     # if dev mode is on, pick configuration sources from repo.
     # please note that in production mode update of configuration sources must be only on update.
     docker_run -v "${CHE_HOST_CONFIG}":/copy \
-               -v "${CHE_HOST_DEVELOPMENT_REPO}"/che-init:/files \
+               -v "${CHE_HOST_DEVELOPMENT_REPO}"/dockerfiles/init:/files \
                   $IMAGE_INIT
 
     # in development mode to avoid permissions issues we copy tomcat assembly to ${CHE_INSTANCE}
-    # if che development tomcat exist we remove it
+    # if ${CHE_FORMAL_PRODUCT_NAME} development tomcat exist we remove it
     if [[ -d "${CHE_CONTAINER_INSTANCE}/dev" ]]; then
         log "docker_run -v \"${CHE_HOST_INSTANCE}/dev\":/root/dev alpine:3.4 sh -c \"rm -rf /root/dev/*\""
         docker_run -v "${CHE_HOST_INSTANCE}/dev":/root/dev alpine:3.4 sh -c "rm -rf /root/dev/*"
@@ -56,7 +60,10 @@ cmd_config() {
   # Write the installed version to the *.ver file into the instance folder
   echo "$CHE_VERSION" > "${CHE_CONTAINER_INSTANCE}/${CHE_VERSION_FILE}"
 
+  cmd_config_post_action
+
 }
+
 
 # Runs puppet image to generate che configuration
 generate_configuration_with_puppet() {

@@ -12,7 +12,9 @@
 cmd_start() {
   debug $FUNCNAME
 
-  # If Eclipse Che is already started or booted, then terminate early.
+  DISPLAY_URL=$(get_display_url)
+
+  # If ${CHE_FORMAL_PRODUCT_NAME} is already started or booted, then terminate early.
   if container_exist_by_name $CHE_SERVER_CONTAINER_NAME; then
     CURRENT_CHE_SERVER_CONTAINER_ID=$(get_server_container_id $CHE_SERVER_CONTAINER_NAME)
     if container_is_running ${CURRENT_CHE_SERVER_CONTAINER_ID} && \
@@ -20,18 +22,13 @@ cmd_start() {
        info "start" "$CHE_MINI_PRODUCT_NAME is already running"
        info "start" "Server logs at \"docker logs -f ${CHE_SERVER_CONTAINER_NAME}\""
        info "start" "Ver: $(get_installed_version)"
-       if ! is_docker_for_mac; then
-         info "start" "Use: http://${CHE_HOST}:${CHE_PORT}"
-         info "start" "API: http://${CHE_HOST}:${CHE_PORT}/swagger"
-       else
-         info "start" "Use: http://localhost:${CHE_PORT}"
-         info "start" "API: http://localhost:${CHE_PORT}/swagger"
-       fi
+       info "start" "Use: ${DISPLAY_URL}"
+       info "start" "API: ${DISPLAY_URL}/swagger"
        return
     fi
   fi
 
-  # To protect users from accidentally updating their Codenvy servers when they didn't mean
+  # To protect users from accidentally updating their ${CHE_FORMAL_PRODUCT_NAME} servers when they didn't mean
   # to, which can happen if CHE_VERSION=latest
   FORCE_UPDATE=${1:-"--no-force"}
   # Always regenerate puppet configuration from environment variable source, whether changed or not.
@@ -40,15 +37,10 @@ cmd_start() {
 
   # Begin tests of open ports that we require
   info "start" "Preflight checks"
-  text   "         port ${CHE_PORT} (http):       $(port_open ${CHE_PORT} && echo "${GREEN}[AVAILABLE]${NC}" || echo "${RED}[ALREADY IN USE]${NC}") \n"
-  if ! $(port_open ${CHE_PORT}); then
-    echo ""
-    error "Ports required to run $CHE_MINI_PRODUCT_NAME are used by another program."
-    return 1;
-  fi
+  cmd_start_check_ports
   text "\n"
 
-  # Start Eclipse Che
+  # Start ${CHE_FORMAL_PRODUCT_NAME}
   # Note bug in docker requires relative path, not absolute path to compose file
   info "start" "Starting containers..."
   COMPOSE_UP_COMMAND="docker_compose --file=\"${REFERENCE_CONTAINER_COMPOSE_FILE}\" -p=\"${CHE_MINI_PRODUCT_NAME}\" up -d"
@@ -62,6 +54,15 @@ cmd_start() {
   check_if_booted
 }
 
+
+cmd_start_check_ports() {
+  text   "         port ${CHE_PORT} (http):       $(port_open ${CHE_PORT} && echo "${GREEN}[AVAILABLE]${NC}" || echo "${RED}[ALREADY IN USE]${NC}") \n"
+  if ! $(port_open ${CHE_PORT}); then
+    echo ""
+    error "Ports required to run $CHE_MINI_PRODUCT_NAME are used by another program."
+    return 1;
+  fi
+}
 
 cmd_stop() {
   debug $FUNCNAME
@@ -91,4 +92,3 @@ cmd_restart() {
     cmd_stop
     cmd_start ${FORCE_UPDATE}
 }
-

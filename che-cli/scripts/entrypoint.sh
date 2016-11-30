@@ -14,7 +14,7 @@ init_usage() {
 Usage: docker run -it --rm
                   -v /var/run/docker.sock:/var/run/docker.sock
                   -v <LOCAL_DATA_PATH>:${CHE_CONTAINER_ROOT}
-                  ${CHE_IMAGE_NAME} [COMMAND]
+                  ${CHE_IMAGE_FULLNAME} [COMMAND]
 
     help                                 This message
     version                              Installed version and upgrade paths

@@ -16,7 +16,7 @@ cmd_rmi() {
     return 1;
   fi
 
-  WARNING="rmi !!! Removing images disables che and forces a pull !!!"
+  WARNING="rmi !!! Removing images disables ${CHE_FORMAL_PRODUCT_NAME} and forces a pull !!!"
   if ! confirm_operation "${WARNING}" "$@"; then
     return;
   fi

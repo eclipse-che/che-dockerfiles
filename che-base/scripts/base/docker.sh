@@ -156,6 +156,17 @@ container_is_running() {
   fi
 }
 
+wait_until_container_is_running() {
+  CONTAINER_START_TIMEOUT=${1}
+
+  ELAPSED=0
+  until container_is_running ${2} || [ ${ELAPSED} -eq "${CONTAINER_START_TIMEOUT}" ]; do
+    log "sleep 1"
+    sleep 1
+    ELAPSED=$((ELAPSED+1))
+  done
+}
+
 
 check_docker() {
   if ! has_docker; then
@@ -192,9 +203,9 @@ check_docker() {
 
   # Detect version so that we can provide better error warnings
   DEFAULT_CHE_VERSION=$(cat "/version/latest.ver")
-  CHE_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' $(get_this_container_id))
-  CHE_IMAGE_VERSION=$(echo "${CHE_IMAGE_NAME}" | cut -d : -f2 -s)
-
+  CHE_IMAGE_FULLNAME=$(docker inspect --format='{{.Config.Image}}' $(get_this_container_id))
+  CHE_IMAGE_NAME=$(echo "${CHE_IMAGE_FULLNAME}" | cut -d : -f1 -s)
+  CHE_IMAGE_VERSION=$(echo "${CHE_IMAGE_FULLNAME}" | cut -d : -f2 -s)
   if [[ "${CHE_IMAGE_VERSION}" = "" ]] ||
      [[ "${CHE_IMAGE_VERSION}" = "latest" ]]; then
      warning "You are using CLI image version 'latest' which is set to '$DEFAULT_CHE_VERSION'."
@@ -232,7 +243,7 @@ check_mounts() {
     info "Simplest syntax:"
     info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
     info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
-    info "                         ${CHE_IMAGE_NAME} $*"
+    info "                         ${CHE_IMAGE_FULLNAME} $*"
     info ""
     info ""
     info "Or run with overrides for instance and/or backup:"
@@ -240,7 +251,7 @@ check_mounts() {
     info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
     info "                      -v <YOUR_INSTANCE_PATH>:${CHE_CONTAINER_ROOT}/instance"
     info "                      -v <YOUR_BACKUP_PATH>:${CHE_CONTAINER_ROOT}/backup"
-    info "                         ${CHE_IMAGE_NAME} $*"
+    info "                         ${CHE_IMAGE_FULLNAME} $*"
     return 2;
   fi
 
@@ -288,7 +299,7 @@ check_mounts() {
       info "  docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock"
       info "                      -v <YOUR_LOCAL_PATH>:${CHE_CONTAINER_ROOT}"
       info "                      -v <YOUR_${CHE_PRODUCT_NAME}_REPO>:/repo"
-      info "                         ${CHE_IMAGE_NAME} $*"
+      info "                         ${CHE_IMAGE_FULLNAME} $*"
       info ""
       info ""
       info "Or run with overrides for instance, and backup (all required):"
@@ -297,7 +308,7 @@ check_mounts() {
       info "                      -v <YOUR_INSTANCE_PATH>:${CHE_CONTAINER_ROOT}/instance"
       info "                      -v <YOUR_BACKUP_PATH>:${CHE_CONTAINER_ROOT}/backup"
       info "                      -v <YOUR_${CHE_PRODUCT_NAME}_REPO>:/repo"
-      info "                         ${CHE_IMAGE_NAME} $*"
+      info "                         ${CHE_IMAGE_FULLNAME} $*"
       return 2
     fi
     if [[ ! -d $(echo ${CHE_CONTAINER_DEVELOPMENT_REPO}/${CHE_ASSEMBLY_IN_REPO}) ]]; then
@@ -307,6 +318,17 @@ check_mounts() {
       info "Have you built ${CHE_ASSEMBLY_IN_REPO_MODULE_NAME} with 'mvn clean install'?"
       return 2
     fi
+  fi
+}
+
+docker_compose() {
+  debug $FUNCNAME
+
+  if has_compose; then
+    docker-compose "$@"
+  else
+    docker_run -v "${CHE_HOST_INSTANCE}":"${CHE_CONTAINER_INSTANCE}" \
+                  docker/compose:1.8.1 "$@"
   fi
 }
 
