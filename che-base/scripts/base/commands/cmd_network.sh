@@ -55,7 +55,7 @@ cmd_network() {
   ### TEST 2: Simulate Che server ==> workspace agent (external IP) connectivity
   export HTTP_CODE=$(docker_run --name fakeserver \
                                 --entrypoint=curl \
-                                ${IMAGE_CHE} \
+                                ${IMAGE_CODENVY} \
                                   -I ${AGENT_EXTERNAL_IP}:${AGENT_EXTERNAL_PORT}/alpine-release \
                                   -s -o "${LOGS}" \
                                   --write-out "%{http_code}")
@@ -69,7 +69,7 @@ cmd_network() {
   ### TEST 3: Simulate Che server ==> workspace agent (internal IP) connectivity
   export HTTP_CODE=$(docker_run --name fakeserver \
                                 --entrypoint=curl \
-                                ${IMAGE_CHE} \
+                                ${IMAGE_CODENVY} \
                                   -I ${AGENT_INTERNAL_IP}:${AGENT_INTERNAL_PORT}/alpine-release \
                                   -s -o "${LOGS}" \
                                   --write-out "%{http_code}")

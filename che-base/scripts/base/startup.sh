@@ -17,7 +17,7 @@ init_constants() {
   NC='\033[0m'
   LOG_INITIALIZED=false
 
-  DEFAULT_CHE_PRODUCT_NAME="ECLIPSE CHE"
+  DEFAULT_CHE_PRODUCT_NAME="CHE"
   CHE_PRODUCT_NAME=${CHE_PRODUCT_NAME:-${DEFAULT_CHE_PRODUCT_NAME}}
 
   # Name used in CLI statements
@@ -48,13 +48,16 @@ init_constants() {
   CHE_CLI_LOG=${CLI_LOG:-${DEFAULT_CHE_CLI_LOG}}
 
   DEFAULT_CHE_ASSEMBLY_IN_REPO_MODULE_NAME="assembly/assembly-main"
-  CHE_ASSEMBLY_IN_REPO_MODULE_NAME="${CHE_ASSEMBLY_IN_REPO_MODULE_NAME:-${DEFAULT_CHE_ASSEMBLY_IN_REPO_MODULE_NAME}}"
+  CHE_ASSEMBLY_IN_REPO_MODULE_NAME=${CHE_ASSEMBLY_IN_REPO_MODULE_NAME:-${DEFAULT_CHE_ASSEMBLY_IN_REPO_MODULE_NAME}}
 
   DEFAULT_CHE_ASSEMBLY_IN_REPO="${DEFAULT_CHE_ASSEMBLY_IN_REPO_MODULE_NAME}/target/eclipse-che*/eclipse-che-*"
-  CHE_ASSEMBLY_IN_REPO="${CHE_ASSEMBLY_IN_REPO:-${DEFAULT_CHE_ASSEMBLY_IN_REPO}}"
+  CHE_ASSEMBLY_IN_REPO=${CHE_ASSEMBLY_IN_REPO:-${DEFAULT_CHE_ASSEMBLY_IN_REPO}}
 
   DEFAULT_CHE_SCRIPTS_CONTAINER_SOURCE_DIR="/repo/dockerfiles/che-cli/scripts"
-  CHE_SCRIPTS_CONTAINER_SOURCE_DIR="${CHE_SCRIPTS_CONTAINER_SOURCE_DIR:-${DEFAULT_CHE_SCRIPTS_CONTAINER_SOURCE_DIR}}"
+  CHE_SCRIPTS_CONTAINER_SOURCE_DIR=${CHE_SCRIPTS_CONTAINER_SOURCE_DIR:-${DEFAULT_CHE_SCRIPTS_CONTAINER_SOURCE_DIR}}
+
+  DEFAULT_CHE_LICENSE_URL="https://www.eclipse.org/legal/epl-v10.html"
+  CHE_LICENSE_URL=${CHE_LICENSE_URL:-${DEFAULT_CHE_LICENSE_URL}}
 
 }
 
@@ -208,9 +211,9 @@ init() {
 
   SCRIPTS_BASE_CONTAINER_SOURCE_DIR="/scripts/base"
   # add helper scripts
-  for COMMAND_FILE in "${SCRIPTS_BASE_CONTAINER_SOURCE_DIR}"/*.sh
+  for HELPER_FILE in "${SCRIPTS_BASE_CONTAINER_SOURCE_DIR}"/*.sh
   do
-    source "${COMMAND_FILE}"
+    source "${HELPER_FILE}"
   done
 
   # Make sure Docker is working and we have /var/run/docker.sock mounted or valid DOCKER_HOST
@@ -237,6 +240,14 @@ init() {
   fi
 
   # Primary source directory
+  source "${SCRIPTS_BASE_CONTAINER_SOURCE_DIR}"/cli/cli-functions.sh
+
+  # add base commands
+  for BASECOMMAND_FILE in "${SCRIPTS_BASE_CONTAINER_SOURCE_DIR}"/commands/*.sh
+  do
+    source "${BASECOMMAND_FILE}"
+  done
+
   source "${SCRIPTS_CONTAINER_SOURCE_DIR}"/cli.sh
 }
 
@@ -247,8 +258,11 @@ start() {
 
   # Begin product-specific CLI calls
   info "cli" "Loading cli..."
+  cli_pre_init
   cli_init "$@"
   cli_parse "$@"
+  cli_execute "$@"
+
 }
 
 # See: https://sipb.mit.edu/doc/safe-shell/

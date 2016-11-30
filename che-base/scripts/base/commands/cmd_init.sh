@@ -32,7 +32,7 @@ cmd_init() {
   done
 
   if [ "${FORCE_UPDATE}" == "--no-force" ]; then
-    # If che.environment file exists, then fail
+    # If ${CHE_FORMAL_PRODUCT_NAME}.environment file exists, then fail
     if is_initialized; then
       if [[ "${REINIT}" = "false" ]]; then
         info "init" "Already initialized."
@@ -49,6 +49,19 @@ cmd_init() {
 
   if [ -z ${IMAGE_INIT+x} ]; then
     get_image_manifest $CHE_VERSION
+  fi
+
+  if require_license; then
+    if [[ "${AUTO_ACCEPT_LICENSE}" = "false" ]]; then
+      info ""
+      info "init" "Do you accept the ${CHE_FORMAL_PRODUCT_NAME} license? (${CHE_LICENSE_URL})"
+      text "\n"
+      read -p "      I accept the license: [Y/n] " -n 1 -r
+      text "\n"
+      if [[ $REPLY =~ ^[Nn]$ ]]; then
+        return 2;
+      fi
+    fi
   fi
 
   info "init" "Installing configuration and bootstrap variables:"
@@ -70,35 +83,37 @@ cmd_init() {
   # in development mode we use init files from repo otherwise we use it from docker image
   if [ "${CHE_DEVELOPMENT_MODE}" = "on" ]; then
     docker_run -v "${CHE_HOST_CONFIG}":/copy \
-               -v "${CHE_HOST_DEVELOPMENT_REPO}/che-init":/files \
+               -v "${CHE_HOST_DEVELOPMENT_REPO}"/dockerfiles/init:/files \
+               -v "${CHE_HOST_DEVELOPMENT_REPO}"/dockerfiles/init/manifests/${CHE_MINI_PRODUCT_NAME}.env:/etc/puppet/manifests/${CHE_MINI_PRODUCT_NAME}.env \
                    $IMAGE_INIT
   else
     docker_run -v "${CHE_HOST_CONFIG}":/copy $IMAGE_INIT
   fi
 
-  # If this is a reinit, we should not overwrite these core template files.
+  # If this is is a reinit, we should not overwrite these core template files.
   # If this is an initial init, then we have to override some values
   if [[ "${REINIT}" = "false" ]]; then
     # Otherwise, we are using the templated version and making some modifications.
-    sed -i'.bak' "s|#CHE_HOST=.*|CHE_HOST=${CHE_HOST}|" "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}"
+    cmd_init_reinit_pre_action
     rm -rf "${REFERENCE_CONTAINER_ENVIRONMENT_FILE}".bak > /dev/null 2>&1
 
-    info "init" "  CHE_HOST=${CHE_HOST}"
-    info "init" "  CHE_VERSION=${CHE_VERSION}"
-    info "init" "  CHE_CONFIG=${CHE_HOST_CONFIG}"
-    info "init" "  CHE_INSTANCE=${CHE_HOST_INSTANCE}"
+    info "init" "  ${CHE_PRODUCT_NAME}_HOST=${CHE_HOST}"
+    info "init" "  ${CHE_PRODUCT_NAME}_VERSION=${CHE_VERSION}"
+    info "init" "  ${CHE_PRODUCT_NAME}_CONFIG=${CHE_HOST_CONFIG}"
+    info "init" "  ${CHE_PRODUCT_NAME}_INSTANCE=${CHE_HOST_INSTANCE}"
     if [ "${CHE_DEVELOPMENT_MODE}" == "on" ]; then
-      info "init" "  CHE_ENVIRONMENT=development"
-      info "init" "  CHE_DEVELOPMENT_REPO=${CHE_HOST_DEVELOPMENT_REPO}"
-      info "init" "  CHE_ASSEMBLY=${CHE_ASSEMBLY}"
+      info "init" "  ${CHE_PRODUCT_NAME}_ENVIRONMENT=development"
+      info "init" "  ${CHE_PRODUCT_NAME}_DEVELOPMENT_REPO=${CHE_HOST_DEVELOPMENT_REPO}"
+      info "init" "  ${CHE_PRODUCT_NAME}_ASSEMBLY=${CHE_ASSEMBLY}"
     else
-      info "init" "  CHE_ENVIRONMENT=production"
+      info "init" "  ${CHE_PRODUCT_NAME}_ENVIRONMENT=production"
     fi
   fi
 
   # Encode the version that we initialized into the version file
   echo "$CHE_VERSION" > "${CHE_CONTAINER_INSTANCE}/${CHE_VERSION_FILE}"
 }
+
 
 require_license() {
   if [[ "${CHE_LICENSE}" = "true" ]]; then

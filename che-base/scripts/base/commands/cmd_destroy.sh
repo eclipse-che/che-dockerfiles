@@ -9,6 +9,11 @@
 #   Tyler Jewell - Initial Implementation
 #
 
+
+cmd_destroy_post_action() {
+ true
+}
+
 cmd_destroy() {
   debug $FUNCNAME
 
@@ -39,12 +44,12 @@ cmd_destroy() {
   log "docker_run -v \"${CHE_HOST_CONFIG}\":${CHE_CONTAINER_ROOT} \
                     alpine:3.4 sh -c \"rm -rf /root${CHE_CONTAINER_ROOT}/docs \
                                    && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
-                                   && rm -rf /root${CHE_CONTAINER_ROOT}/che.env\""
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/${CHE_MINI_PRODUCT_NAME}.env\""
 
   docker_run -v "${CHE_HOST_CONFIG}":/root${CHE_CONTAINER_ROOT} \
                 alpine:3.4 sh -c "rm -rf /root${CHE_CONTAINER_ROOT}/docs \
                                && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
-                               && rm -rf /root${CHE_CONTAINER_ROOT}/che.env" > /dev/null 2>&1  || true
+                               && rm -rf /root${CHE_CONTAINER_ROOT}/${CHE_MINI_PRODUCT_NAME}.env" > /dev/null 2>&1  || true
 
   # Super weird bug.  For some reason on windows, this command has to be run 3x for everything
   # to be destroyed properly if you are in dev mode.
@@ -53,15 +58,17 @@ cmd_destroy() {
       docker_run -v "${CHE_HOST_CONFIG}":/root${CHE_CONTAINER_ROOT} \
                     alpine:3.4 sh -c "rm -rf /root${CHE_CONTAINER_ROOT}/docs \
                                    && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
-                                   && rm -rf /root${CHE_CONTAINER_ROOT}/che.env" > /dev/null 2>&1  || true
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/${CHE_MINI_PRODUCT_NAME}.env" > /dev/null 2>&1  || true
       docker_run -v "${CHE_HOST_CONFIG}":/root${CHE_CONTAINER_ROOT} \
                     alpine:3.4 sh -c "rm -rf /root${CHE_CONTAINER_ROOT}/docs \
                                    && rm -rf /root${CHE_CONTAINER_ROOT}/instance \
-                                   && rm -rf /root${CHE_CONTAINER_ROOT}/che.env" > /dev/null 2>&1  || true
+                                   && rm -rf /root${CHE_CONTAINER_ROOT}/${CHE_MINI_PRODUCT_NAME}.env" > /dev/null 2>&1  || true
     fi
   fi
 
   rm -rf "${CHE_CONTAINER_INSTANCE}"
+
+  cmd_destroy_post_action
 
   # Sometimes users want the CLI after they have destroyed their instance
   # If they pass destroy --cli then we will also destroy the CLI
@@ -74,3 +81,4 @@ cmd_destroy() {
     fi
   fi
 }
+

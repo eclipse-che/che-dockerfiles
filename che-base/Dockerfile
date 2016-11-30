@@ -32,5 +32,5 @@ RUN mkdir -p /version \
 	&& rm docker.tgz \
 	&& docker -v
 
-COPY scripts/*.sh /scripts/base/
+COPY scripts/base /scripts/base/
 
