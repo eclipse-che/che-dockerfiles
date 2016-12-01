@@ -8,6 +8,7 @@
 # Contributors:
 #   Tyler Jewell - Initial implementation
 #
+set -x
 init_logging() {
   BLUE='\033[1;34m'
   GREEN='\033[0;32m'
@@ -52,13 +53,14 @@ Usage on Mac or Windows:
  WORKSPACE_NAME=
  COMMAND_EXTRA_ARGS=
  REMOTE_SYNC_FOLDER=/projects
- UNISON_ARGS="-batch -fat -silent -copyonconflict -auto -prefer=newer -log=false"
+ UNISON_ARGS="-batch -fat -silent -auto -prefer=newer -log=false"
  CHE_MINI_PRODUCT_NAME=che
- UNISON_COMMAND="unison /mnthost ssh://\${SSH_USER}@\${SSH_IP}:\${SSH_PORT}/\${REMOTE_SYNC_FOLDER} \
-  -retry 10 \${UNISON_ARGS} -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' > /dev/null 2>&1"
+ UNISON_COMMAND=
+ UNISON_COMMAND_AGENT="unison /mnthost ssh://\${SSH_USER}@\${SSH_IP}:\${SSH_PORT}/\${REMOTE_SYNC_FOLDER} \
+  -retry 10 \${UNISON_ARGS} -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'"
   
  UNISON_COMMAND_SSHFS="unison /mntssh /mnthost \${UNISON_ARGS} > /dev/null 2>&1"
-  
+ [ -t 0 ] && INTERACTIVE=false || INTERACTIVE=true
 }
 
 check_status() {
@@ -69,7 +71,6 @@ check_status() {
 	fi
 }
 
-
 parse_command_line () {
   if [ $# -eq 0 ]; then
     usage
@@ -78,7 +79,6 @@ parse_command_line () {
 
   # See if profile document was provided
   mkdir -p $HOME/.unison
-  
   [ -f /profile/default.prf ] && cp -rf /profile/default.prf $HOME/.unison/default.prf
 
   WORKSPACE_NAME=$1
@@ -127,19 +127,24 @@ init_global_variables
 parse_command_line "$@"
 [ "$(ls -A /mnthost )" ] && EMPTY=false || EMPTY=true
 if [ $EMPTY = false ]; then
-    warn "(${CHE_MINI_PRODUCT_NAME} mount): Local folder is not empty. Are you sure?[Y/n]"
-    read yn
-    case $yn in
-        [Yy]*) 
-            break
-            ;;
-        [Nn]*) 
-            exit
-            ;;
-        *) 
-            info "(${CHE_MINI_PRODUCT_NAME} mount): Please answer yes or no."
-            ;;
-    esac
+    if [ INTERACTIVE ] ; then
+        warn "(${CHE_MINI_PRODUCT_NAME} mount): Local folder is not empty. Are you sure?[Y/n]"
+        read yn
+        case $yn in
+            [Yy]*) 
+                break
+                ;;
+            [Nn]*) 
+                exit
+                ;;
+            *) 
+                info "(${CHE_MINI_PRODUCT_NAME} mount): Please answer yes or no."
+                ;;
+        esac
+    else
+        error "ERROR: Local folder is not empty. Add `ti` to run command or delete content from local folder."
+    fi
+    
 fi
 docker run --rm  -v /var/run/docker.sock:/var/run/docker.sock eclipse/che-action:${CHE_VERSION} get-ssh-data ${WORKSPACE_NAME} ${COMMAND_EXTRA_ARGS} > $HOME/env
 if [ $? -ne 0 ]; then
@@ -152,44 +157,37 @@ source $HOME/env
 
 # store private key
 mkdir -p $HOME/.ssh
+if [ -z "$PS1" ]; then
+    INTERACTIVE=false
+else
+    INTERACTIVE=true
+fi
 echo "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
 chmod 600 $HOME/.ssh/id_rsa
 if [ "${CHE_SYNC_AGENT}" = "true" ]; then
+    UNISON_COMMAND=${UNISON_COMMAND_AGENT}
     info "(${CHE_MINI_PRODUCT_NAME} mount): Syncing ${SSH_USER}@${SSH_IP}:${SSH_PORT}${REMOTE_SYNC_FOLDER} with workspace sync agent."
-	info "(${CHE_MINI_PRODUCT_NAME} mount): Initial sync... Please wait."
-    START_TIME=$(date +%s)
-    eval ${UNISON_COMMAND}
-    check_status
-    ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
-    info "(${CHE_MINI_PRODUCT_NAME} mount): Initial Unison sync took using sync agent $ELAPSED_TIME seconds."
-    info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
-    info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
-    info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
-    while [ 1 ]
-    do
-        sleep ${UNISON_REPEAT_DELAY_IN_SEC}
-        eval ${UNISON_COMMAND}
-    done
-    check_status
 else
+    UNISON_COMMAND=${UNISON_COMMAND_SSHFS}
     info "(${CHE_MINI_PRODUCT_NAME} mount): Sync agent not detected using SSHFS."
     info "(${CHE_MINI_PRODUCT_NAME} mount): Mounting ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} (${SSH_PORT}) with SSHFS."
     sshfs ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} /mntssh -p ${SSH_PORT} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
     check_status
     info "(${CHE_MINI_PRODUCT_NAME} mount): Successfully mounted ${SSH_USER}@${SSH_IP}:${REMOTE_SYNC_FOLDER} (${SSH_PORT})"
-    info "(${CHE_MINI_PRODUCT_NAME} mount): Initial sync...Please wait."
-    START_TIME=$(date +%s)
-    eval ${UNISON_COMMAND_SSHFS}
-    
-    ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
-    info "INFO: (${CHE_MINI_PRODUCT_NAME} mount): Initial Unison sync took $ELAPSED_TIME seconds."
-    info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
-    info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
-    info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
-    while [ 1 ]
-    do
-        sleep ${UNISON_REPEAT_DELAY_IN_SEC}
-        eval ${UNISON_COMMAND_SSHFS}
-    done
-    check_status
-fi
+fi    
+
+info "(${CHE_MINI_PRODUCT_NAME} mount): Starting Initial sync... Please wait."
+START_TIME=$(date +%s)
+eval ${UNISON_COMMAND}
+ELAPSED_TIME=$(expr $(date +%s) - $START_TIME)
+info "INFO: (${CHE_MINI_PRODUCT_NAME} mount): Initial sync took $ELAPSED_TIME seconds."
+info "(${CHE_MINI_PRODUCT_NAME} mount): Background sync continues every ${UNISON_REPEAT_DELAY_IN_SEC} seconds."
+info "(${CHE_MINI_PRODUCT_NAME} mount): This terminal will block while the synchronization continues."
+info "(${CHE_MINI_PRODUCT_NAME} mount): To stop, issue a SIGTERM or SIGINT, usually CTRL-C."
+check_status
+while [ 1 ]
+do
+    sleep ${UNISON_REPEAT_DELAY_IN_SEC}
+    eval ${UNISON_COMMAND}
+done
+check_status

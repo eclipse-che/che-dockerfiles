@@ -37,16 +37,14 @@
 #   /bin/synch.sh <ip> <ws-port>
 FROM alpine:3.4
 
-ENV UNISON_VERSION=2.48.4
+ENV UNISON_VERSION=2.40.102
 
 RUN apk add --update build-base curl bash sshfs && \
-    apk add ocaml --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted && \
+    apk add ocaml --update-cache --repository http://dl-6.alpinelinux.org/alpine/edge/testing/ --allow-untrusted && \
     curl -L https://www.seas.upenn.edu/~bcpierce/unison/download/releases/unison-$UNISON_VERSION/unison-$UNISON_VERSION.tar.gz | tar xzv -C /tmp && \
-    cd /tmp/src && \
-    sed -i -e 's/GLIBC_SUPPORT_INOTIFY 0/GLIBC_SUPPORT_INOTIFY 1/' fsmonitor/linux/inotify_stubs.c && \
+    cd /tmp/unison-$UNISON_VERSION && \
     make && \
-    cp /tmp/src/unison /usr/local/bin && \
-    cp /tmp/src/unison-fsmonitor /usr/local/bin && \
+    cp /tmp/unison-$UNISON_VERSION/unison /usr/local/bin && \
     apk del ocaml curl build-base bash && \
     rm -rf /tmp /var/cache/apk/* && \
     mkdir /mntssh && chmod -R 777 /mntssh && \
@@ -66,6 +64,6 @@ RUN set -x \
 
 COPY /entrypoint.sh /bin/entrypoint.sh
 
-RUN chmod 744 /bin/entrypoint.sh
+RUN chmod u+x /bin/entrypoint.sh
 
 ENTRYPOINT ["/bin/entrypoint.sh"]
