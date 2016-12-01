@@ -1,6 +1,6 @@
 # Eclipse Che - Dockerfiles
 
-This `che-dockerfiles` repository is where all dockerfiles for Che Launcher, Che's CLI and Che's Stacks are hosted.  
+This `che-dockerfiles` repository is where all dockerfiles for Che's Stacks are hosted.  
 
 # Eclipse Che
 [![Join the chat at https://gitter.im/eclipse/che](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/eclipse/che?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
