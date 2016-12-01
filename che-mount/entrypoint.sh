@@ -8,7 +8,6 @@
 # Contributors:
 #   Tyler Jewell - Initial implementation
 #
-set -x
 init_logging() {
   BLUE='\033[1;34m'
   GREEN='\033[0;32m'
@@ -57,7 +56,7 @@ Usage on Mac or Windows:
  CHE_MINI_PRODUCT_NAME=che
  UNISON_COMMAND=
  UNISON_COMMAND_AGENT="unison /mnthost ssh://\${SSH_USER}@\${SSH_IP}:\${SSH_PORT}/\${REMOTE_SYNC_FOLDER} \
-  -retry 10 \${UNISON_ARGS} -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'"
+  -retry 10 \${UNISON_ARGS} -sshargs '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' > /dev/null 2>&1"
   
  UNISON_COMMAND_SSHFS="unison /mntssh /mnthost \${UNISON_ARGS} > /dev/null 2>&1"
  [ -t 0 ] && INTERACTIVE=false || INTERACTIVE=true
