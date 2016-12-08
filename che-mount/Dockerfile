@@ -35,6 +35,10 @@
 #
 # INTERNAL SYNC SCRIPT
 #   /bin/synch.sh <ip> <ws-port>
+# 
+# Will need to update sync agent with custom build binaries. Compile with https://github.com/ocaml/opam-dockerfiles.
+#
+
 FROM alpine:3.4
 
 ENV UNISON_VERSION=2.40.102

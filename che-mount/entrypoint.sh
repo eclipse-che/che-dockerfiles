@@ -65,7 +65,7 @@ Usage on Mac or Windows:
 check_status() {
     status=$?
 	if [ $status -ne 0 ]; then
-	    error 'ERROR: Fatal error occurred ($status)'
+	    error "ERROR: Fatal error occurred ($status)"
 	    exit 1
 	fi
 }
