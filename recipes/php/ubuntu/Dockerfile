@@ -28,10 +28,23 @@ RUN sudo apt-get update && \
     php5-json \
     php5-cgi \
     php5-sqlite
+
 RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/000-default.conf && \
     sudo sed -i 's/None/All/g' /etc/apache2/sites-available/000-default.conf && \
     echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf && \
     sudo a2enmod rewrite
+
+# Install the Zend Debugger php module
+# NOTE: The below commands must be updated when switching the image to 
+#       PHP 5.6, PHP 7 or future PHP version
+RUN sudo wget http://repos.zend.com/zend-server/8.5.6/deb_apache2.4/pool/zend-server-php-5.5-common_8.5.6+b731_amd64.deb && \
+    dpkg-deb --fsys-tarfile zend-server-php-5.5-common_8.5.6+b731_amd64.deb | sudo tar -xf - --strip-components=7 ./usr/local/zend/lib/debugger/php-5.5.x/ZendDebugger.so && \
+    sudo rm zend-server-php-5.5-common_8.5.6+b731_amd64.deb && \
+    sudo mv ZendDebugger.so /usr/lib/php5/20121212 && \
+    sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php5/mods-available/zenddebugger.ini' && \
+    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php5/cli/conf.d/90-zenddebugger.ini && \
+    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php5/apache2/conf.d/90-zenddebugger.ini && \
+    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php5/apache2/php.ini
 
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
     echo -e "MySQL password: $CHE_MYSQL_PASSWORD" >> /home/user/.mysqlrc && \
