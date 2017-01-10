@@ -10,9 +10,10 @@ FROM ubuntu
 
 EXPOSE 8080 8000
 RUN apt-get update && \
-    apt-get -y install sudo procps wget unzip mc curl && \
+    apt-get -y install sudo procps wget unzip mc curl software-properties-common && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
+    add-apt-repository ppa:openjdk-r/ppa && \
     echo "secret\nsecret" | passwd user
 
 # install xserver, blackbox, Chrome, Selenium webdriver
@@ -36,10 +37,13 @@ RUN sudo apt-get update -qqy && \
   x11vnc \
   xvfb \
   subversion \
+  openjdk-8-jdk \
   net-tools \
   blackbox \
   rxvt-unicode \
   xfonts-terminus && \
+  sudo update-ca-certificates -f && \
+  sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
   sudo rm /etc/apt/sources.list.d/google-chrome.list \
   sudo rm -rf /var/lib/apt/lists/*
 
@@ -63,19 +67,13 @@ ENV MAVEN_VERSION=3.3.9 \
     JAVA_VERSION_PREFIX=1.8.0_45 \
     TOMCAT_HOME=/home/user/tomcat8
 
-ENV JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX \
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
 M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
 
 ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
 
 RUN mkdir /home/user/cbuild /home/user/tomcat8 /home/user/apache-maven-$MAVEN_VERSION && \
-  wget \
-  --no-cookies \
-  --no-check-certificate \
-  --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-  -qO- \
-  "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-b14/jdk-$JAVA_VERSION-linux-x64.tar.gz" | sudo tar -zx -C /opt/ && \
-  wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
+    wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
 ENV TERM xterm
 
 RUN wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
