@@ -10,7 +10,7 @@ FROM debian:jessie
 EXPOSE 4403 8080 8000 22
 RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.list && \
     apt-get update && \
-    apt-get -y install locales openssh-server sudo procps wget unzip openjdk-8-jdk mc git curl subversion nmap  && \
+    apt-get -y install locales openssh-server sudo procps wget unzip openjdk-8-jdk-headless mc git curl subversion nmap  && \
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \

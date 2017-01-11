@@ -38,7 +38,7 @@ RUN sudo dpkg --add-architecture i386 && \
     sudo apt-get update && \
     sudo sudo apt-get install git subversion -y && \
     sudo apt-get install git -y && \
-    sudo apt-get install openjdk-8-jdk -y && \
+    sudo apt-get install openjdk-8-jdk-headless -y && \
     sudo update-ca-certificates -f && \
     mkdir /home/user/apache-maven-$MAVEN_VERSION && \
     wget -qO- "https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \

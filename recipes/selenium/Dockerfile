@@ -37,7 +37,7 @@ RUN sudo apt-get update -qqy && \
   x11vnc \
   xvfb \
   subversion \
-  openjdk-8-jdk \
+  openjdk-8-jdk-headless \
   net-tools \
   blackbox \
   rxvt-unicode \

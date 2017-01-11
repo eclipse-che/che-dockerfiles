@@ -17,7 +17,7 @@ RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.lis
     procps \
     wget \
     unzip \
-    openjdk-8-jdk \
+    openjdk-8-jdk-headless \
     mc \
     locales \
     ca-certificates \
