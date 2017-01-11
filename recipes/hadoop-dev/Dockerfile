@@ -22,7 +22,7 @@ RUN apt-get update && \
     add-apt-repository ppa:openjdk-r/ppa && \
     apt-get update && \
     sudo apt-get install git -y && \
-    sudo apt-get install openjdk-8-jdk -y && \
+    sudo apt-get install openjdk-8-jdk-headless -y && \
     sudo update-ca-certificates -f && \
     sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get clean && \
