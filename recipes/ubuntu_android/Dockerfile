@@ -9,10 +9,8 @@
 FROM ubuntu:14.04
 
 ENV MAVEN_VERSION=3.3.9 \
-    JAVA_VERSION=8u45 \
-    JAVA_VERSION_PREFIX=1.8.0_45
-ENV JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX \
-M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
+   JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
 ENV TERM xterm
 ENV LANG en_GB.UTF-8
 ENV LANG en_US.UTF-8
@@ -36,15 +34,13 @@ RUN sudo dpkg --add-architecture i386 && \
     sudo mkdir /var/run/sshd && \
     sudo sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     sudo add-apt-repository ppa:git-core/ppa && \
+    sudo add-apt-repository ppa:openjdk-r/ppa && \
     sudo apt-get update && \
     sudo sudo apt-get install git subversion -y && \
+    sudo apt-get install git -y && \
+    sudo apt-get install openjdk-8-jdk -y && \
+    sudo update-ca-certificates -f && \
     mkdir /home/user/apache-maven-$MAVEN_VERSION && \
-    wget \
-    --no-cookies \
-    --no-check-certificate \
-    --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-    -qO- \
-    "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-b14/jdk-$JAVA_VERSION-linux-x64.tar.gz" | sudo tar -zx -C /opt/ && \
     wget -qO- "https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \
     cd /home/user && wget --output-document=android-sdk.tgz --quiet http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz && tar -xvf android-sdk.tgz && rm android-sdk.tgz && \
     sudo apt-get clean && \

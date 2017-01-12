@@ -16,8 +16,12 @@ RUN apt-get update && \
     useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
     echo "secret\nsecret" | passwd user && \
     add-apt-repository ppa:git-core/ppa && \
+    add-apt-repository ppa:openjdk-r/ppa && \
     apt-get update && \
     sudo apt-get install git -y && \
+    sudo apt-get install openjdk-8-jdk-headless -y && \
+    sudo update-ca-certificates -f && \
+    sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get clean && \
     apt-get -y autoremove && \
     rm -rf /var/lib/apt/lists/*
@@ -27,22 +31,14 @@ USER user
 LABEL che:server:8080:ref=wildfly che:server:9990:ref=jboss che:server:8080:protocol=http che:server:8000:ref=tomcat8-debug che:server:8000:protocol=http
 
 ENV MAVEN_VERSION=3.3.9 \
-    JAVA_VERSION=8u45 \
-    JAVA_VERSION_PREFIX=1.8.0_45 
 
-ENV JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX \
-M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
+     M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
 
 ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
 
 RUN mkdir /home/user/apache-maven-$MAVEN_VERSION && \
-  wget \
-  --no-cookies \
-  --no-check-certificate \
-  --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-  -qO- \
-  "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-b14/jdk-$JAVA_VERSION-linux-x64.tar.gz" | sudo tar -zx -C /opt/ && \
-  wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
+    wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
 ENV TERM xterm
 
 ENV WILDFLY_VERSION 8.2.0.Final

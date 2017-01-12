@@ -7,15 +7,15 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM debian:jessie
-ENV JAVA_VERSION=8u65 \
-    JAVA_VERSION_PREFIX=1.8.0_65
-ENV JAVA_HOME /opt/jre$JAVA_VERSION_PREFIX
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
 ENV PATH $JAVA_HOME/bin:$PATH
-RUN apt-get update && \
+RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.list && \
+    apt-get update && \
     apt-get -y install \
     openssh-server \
     sudo \
     procps \
+    openjdk-8-jre-headless \
     wget \
     unzip \
     mc \
@@ -32,12 +32,6 @@ RUN PASS=$(openssl rand -base64 32) && \
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A1715D88E1DF1F24 && \
     sudo apt-get install git subversion -y && \
     apt-get clean && \
-    wget \
-   --no-cookies \
-   --no-check-certificate \
-   --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-   -qO- \
-   "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-b17/jre-$JAVA_VERSION-linux-x64.tar.gz" | tar -zx -C /opt/ && \
     apt-get -y autoremove \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/* && \

@@ -8,8 +8,12 @@ RUN apt-get update && \
     useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
     echo "secret\nsecret" | passwd user && \
     add-apt-repository ppa:git-core/ppa && \
+    add-apt-repository ppa:openjdk-r/ppa && \
     apt-get update && \
     sudo apt-get install git -y && \
+    sudo apt-get install openjdk-8-jdk-headless -y && \
+    sudo update-ca-certificates -f && \
+    sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get clean && \
     apt-get -y autoremove && \
     rm -rf /var/lib/apt/lists/*
@@ -20,23 +24,14 @@ LABEL che:server:8080:ref=tomcat8 che:server:8080:protocol=http che:server:8000:
 
 
 ENV MAVEN_VERSION=3.3.9 \
-    JAVA_VERSION=8u102 \
-    JAVA_BUILD=14 \
-    JAVA_VERSION_PREFIX=1.8.0_102 \
+    JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
     TOMCAT_HOME=/home/user/tomcat8 \
     TERM=xterm
-ENV JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX
 ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
 ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
 
 RUN mkdir /home/user/tomcat8 /home/user/apache-maven-$MAVEN_VERSION && \
-  wget \
-  --no-cookies \
-  --no-check-certificate \
-  --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-  -qO- \
-  "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-b$JAVA_BUILD/jdk-$JAVA_VERSION-linux-x64.tar.gz" | sudo tar -zx -C /opt/
-RUN  wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \
+    wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \
     wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
     rm -rf /home/user/tomcat8/webapps/*
 

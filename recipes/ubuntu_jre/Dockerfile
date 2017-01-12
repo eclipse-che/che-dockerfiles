@@ -8,10 +8,8 @@
 
 FROM ubuntu:14.04
 
-ENV JAVA_VERSION=8u65 \
-    JAVA_VERSION_PREFIX=1.8.0_65
-ENV JAVA_HOME /opt/jre$JAVA_VERSION_PREFIX
-ENV PATH $JAVA_HOME/bin:$PATH
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
 RUN apt-get update && \
     apt-get -y install \
     openssh-server \
@@ -30,18 +28,16 @@ RUN apt-get update && \
     useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
     echo "secret\nsecret" | passwd user && \
     add-apt-repository ppa:git-core/ppa && \
+    add-apt-repository ppa:openjdk-r/ppa && \
     apt-get update && \
     sudo apt-get install git subversion -y && \
     apt-get clean && \
-    wget \
-   --no-cookies \
-   --no-check-certificate \
-   --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-   -qO- \
-   "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-b17/jre-$JAVA_VERSION-linux-x64.tar.gz" | tar -zx -C /opt/ && \
-    apt-get -y autoremove \
-    && apt-get -y clean \
-    && rm -rf /var/lib/apt/lists/* && \
+    apt-get -y autoremove && \
+    sudo apt-get install openjdk-8-jre-headless -y && \
+    sudo update-ca-certificates -f && \
+    sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
     echo "#! /bin/bash\n set -e\n sudo /usr/sbin/sshd -D &\n exec \"\$@\"" > /home/user/entrypoint.sh && chmod a+x /home/user/entrypoint.sh
 
 ENV LANG en_GB.UTF-8
