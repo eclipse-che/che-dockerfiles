@@ -14,20 +14,19 @@ ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
 
 # install php with a set of most widely used extensions
-RUN sudo add-apt-repository ppa:ondrej/php && \
-    sudo apt-get update && \
+RUN sudo apt-get update && \
     sudo apt-get install -y \
     apache2 \
-    php5.6 \
-    php5.6-mcrypt \
-    php5.6-curl \
-    php5.6-mysql \
-    php5.6-gd \
-    libapache2-mod-php5.6 \
-    php5.6-cli \
-    php5.6-json \
-    php5.6-cgi \
-    php5.6-sqlite
+    php \
+    php-mcrypt \
+    php-curl \
+    php-mysql \
+    php-gd \
+    libapache2-mod-php \
+    php-cli \
+    php-json \
+    php-cgi \
+    php-sqlite3
 
 RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/000-default.conf && \
     sudo sed -i 's/None/All/g' /etc/apache2/sites-available/000-default.conf && \
@@ -35,16 +34,14 @@ RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/
     sudo a2enmod rewrite
 
 # Install the Zend Debugger php module
-# NOTE: The below commands must be updated when switching the image to 
-#       PHP 5.6, PHP 7 or future PHP version
-RUN sudo wget http://repos.zend.com/zend-server/8.5.6/deb_apache2.4/pool/zend-server-php-5.6-common_8.5.6+b726_amd64.deb && \
-    dpkg-deb --fsys-tarfile zend-server-php-5.6-common_8.5.6+b726_amd64.deb | sudo tar -xf - --strip-components=7 ./usr/local/zend/lib/debugger/php-5.6.x/ZendDebugger.so && \
-    sudo rm zend-server-php-5.6-common_8.5.6+b726_amd64.deb && \
-    sudo mv ZendDebugger.so /usr/lib/php/20131226 && \
-    sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php/5.6/mods-available/zenddebugger.ini' && \
-    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/5.6/cli/conf.d/90-zenddebugger.ini && \
-    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/5.6/apache2/conf.d/90-zenddebugger.ini && \
-    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/5.6/apache2/php.ini
+RUN sudo wget http://repos.zend.com/zend-server/9.0.2/deb_apache2.4/pool/zend-server-php-7.0-common_9.0.2+b174_amd64.deb && \
+    dpkg-deb --fsys-tarfile zend-server-php-7.0-common_9.0.2+b174_amd64.deb | sudo tar -xf - --strip-components=7 ./usr/local/zend/lib/debugger/php-7.0.x/ZendDebugger.so && \
+    sudo rm zend-server-php-7.0-common_9.0.2+b174_amd64.deb && \
+    sudo mv ZendDebugger.so /usr/lib/php/20151012 && \
+    sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php/7.0/mods-available/zenddebugger.ini' && \
+    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/cli/conf.d/90-zenddebugger.ini && \
+    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/apache2/conf.d/90-zenddebugger.ini && \
+    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini
 
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
     echo -e "MySQL password: $CHE_MYSQL_PASSWORD" >> /home/user/.mysqlrc && \
