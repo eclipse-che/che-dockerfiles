@@ -24,7 +24,8 @@ ENV JAVA_VERSION_MAJOR=8 \
 
 # do all in one step
 RUN apk upgrade --update && \
-    apk add --update libstdc++ curl ca-certificates bash openssh sudo unzip openssl && \
+    echo http://dl-2.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
+    apk add --update libstdc++ curl ca-certificates bash openssh sudo unzip openssl shadow && \
     for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION} glibc-i18n-${GLIBC_VERSION}; do curl -sSL https://github.com/andyshinn/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
     apk add --allow-untrusted /tmp/*.apk && \
     rm -v /tmp/*.apk && \
@@ -86,13 +87,14 @@ RUN apk upgrade --update && \
     rm "/tmp/"* && \
     adduser -S user -h /home/user -s /bin/bash -G root -u 1000 && \
     echo "%root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    PASS=$(openssl rand -base64 32) && \
-    echo -e "${PASS}\n${PASS}" | passwd user && \
+    usermod -p "*" user && \
+#    PASS=$(openssl rand -base64 32) && \
+#    echo -e "${PASS}\n${PASS}" | passwd user && \
     chown -R user /home/user/
 
-RUN mkdir /usr/che \
-    && wget -qO /usr/che/che https://raw.githubusercontent.com/eclipse/che/master/che.sh \
-    && chmod +x /usr/che/che
+#RUN mkdir /usr/che \
+#    && wget -qO /usr/che/che https://raw.githubusercontent.com/eclipse/che/master/che.sh \
+#    && chmod +x /usr/che/che
 
 ENV DOCKER_HOST=tcp://192.168.65.1 \
     M2_HOME=/usr/lib/apache-maven-$MAVEN_VERSION 
@@ -109,4 +111,3 @@ CMD sudo /usr/bin/ssh-keygen -A && \
     sudo /usr/sbin/sshd -D && \
     sudo su - && \
     tail -f /dev/null
-    

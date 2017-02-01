@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM eclipse/ubuntu_jre
+FROM eclipse/stack-base:ubuntu
 ENV NPM_CONFIG_LOGLEVEL info
 ENV NODE_VERSION 5.6.0
 ENV LC_ALL=POSIX
@@ -39,8 +39,4 @@ RUN sudo apt-get update && \
     && rm "node-v$NODE_VERSION-linux-x64.tar.xz" SHASUMS256.txt.asc && \
     curl https://install.meteor.com/ | sh && \
     sudo locale-gen en_US.UTF-8 && \
-	sudo localedef -i en_GB -f UTF-8 en_US.UTF
-	
-WORKDIR /projects
-
-CMD tail -f /dev/null
+    sudo localedef -i en_GB -f UTF-8 en_US.UTF

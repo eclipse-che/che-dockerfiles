@@ -22,7 +22,7 @@ RUN yum -y update && \
     echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     sed -i 's/Defaults    requiretty/#Defaults    requiretty/g' /etc/sudoers && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    echo -e "secret\nsecret" | passwd user
+    usermod -p "*" user
 
 COPY install-vertx-dependencies.sh /tmp/
 

@@ -7,7 +7,7 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM debian:jessie
-ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 ENV PATH $JAVA_HOME/bin:$PATH
 RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.list && \
     apt-get update && \
@@ -25,9 +25,8 @@ RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.lis
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user
-RUN PASS=$(openssl rand -base64 32) && \
-    echo "$PASS\n$PASS" | passwd user && \
+    useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
+    usermod -p "*" user && \
     sudo echo -e "deb http://ppa.launchpad.net/git-core/ppa/ubuntu precise main\ndeb-src http://ppa.launchpad.net/git-core/ppa/ubuntu precise main" >> /etc/apt/sources.list.d/sources.list && \
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A1715D88E1DF1F24 && \
     sudo apt-get install git subversion -y && \

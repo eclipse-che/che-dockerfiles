@@ -6,19 +6,12 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM ubuntu
+FROM eclipse/stack-base:ubuntu
 
 EXPOSE 8080 8000
-RUN apt-get update && \
-    apt-get -y install sudo procps wget unzip mc curl software-properties-common && \
-    echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
-    add-apt-repository ppa:openjdk-r/ppa && \
-    echo "secret\nsecret" | passwd user
 
 # install xserver, blackbox, Chrome, Selenium webdriver
 
-USER user
 
 RUN cd /home/user && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - && \
     wget -q http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip && \
@@ -78,12 +71,6 @@ ENV TERM xterm
 
 RUN wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
     rm -rf /home/user/tomcat8/webapps/*
-
-
-ENV LANG en_GB.UTF-8
-ENV LANG en_US.UTF-8
-RUN echo "export JAVA_HOME=/opt/jdk$JAVA_VERSION_PREFIX\nexport M2_HOME=/home/user/apache-maven-$MAVEN_VERSION\nexport TOMCAT_HOME=/home/user/tomcat8\nexport PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" >> /home/user/.bashrc && \
-    sudo locale-gen en_US.UTF-8
 
 WORKDIR /projects
 

@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
@@ -26,7 +26,7 @@ RUN apt-get update && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
-    echo "secret\nsecret" | passwd user && \
+    usermod -p "*" user && \
     add-apt-repository ppa:git-core/ppa && \
     add-apt-repository ppa:openjdk-r/ppa && \
     apt-get update && \
