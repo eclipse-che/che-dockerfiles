@@ -47,6 +47,7 @@ RUN sudo wget http://repos.zend.com/zend-server/8.5.6/deb_apache2.4/pool/zend-se
     sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php5/apache2/php.ini
 
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
+    sudo wget -qO /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && sudo chmod +x /usr/local/bin/phpunit && \
     echo -e "MySQL password: $CHE_MYSQL_PASSWORD" >> /home/user/.mysqlrc && \
     echo -e "MySQL user    : $CHE_MYSQL_USER" >> /home/user/.mysqlrc && \
     echo -e "MySQL Database: $CHE_MYSQL_DB" >> /home/user/.mysqlrc && \
