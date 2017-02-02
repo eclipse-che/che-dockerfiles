@@ -1,4 +1,4 @@
-FROM eclipse/ubuntu_jre
+FROM eclipse/stack-base:ubuntu
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends \
     g++ \
     gcc \
@@ -21,5 +21,3 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 RUN sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
 
 EXPOSE 8080
-
-CMD tail -f /dev/null

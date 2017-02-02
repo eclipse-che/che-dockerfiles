@@ -22,10 +22,11 @@ RUN yum -y update && \
     echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     sed -i 's/Defaults    requiretty/#Defaults    requiretty/g' /etc/sudoers && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    echo -e "secret\nsecret" | passwd user
+    usermod -p "*" user
 
 COPY install-vertx-dependencies.sh /tmp/
-
+RUN chown user:user /tmp/install-vertx-dependencies.sh && \
+chmod a+x /tmp/install-vertx-dependencies.sh
 USER user
 
 RUN scl enable rh-maven33 /tmp/install-vertx-dependencies.sh && \

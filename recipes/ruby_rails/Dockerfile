@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM eclipse/ubuntu_jre
+FROM eclipse/stack-base:ubuntu
 ENV RAILS_VERSION 4.2.6
 ENV RUBY_MAJOR 2.3
 ENV RUBY_VERSION 2.3.0
@@ -75,6 +75,3 @@ RUN sudo apt-get update && sudo apt-get install -y mysql-client postgresql-clien
 RUN sudo gem install rails --version "$RAILS_VERSION"
 
 EXPOSE 3000
-WORKDIR /projects
-
-CMD tailf /dev/null

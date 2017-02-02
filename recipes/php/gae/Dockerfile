@@ -18,4 +18,3 @@ RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/feat
     rm google_appengine_1.9.40.zip 
 
 EXPOSE 8080 8000
-WORKDIR /projects
