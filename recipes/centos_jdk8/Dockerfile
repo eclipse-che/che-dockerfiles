@@ -14,7 +14,7 @@ RUN yum update -y && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    echo -e "codenvy2016\ncodenvy2016" | passwd user && \
+    usermod -p "*" user && \
     sed -i 's/requiretty/!requiretty/g' /etc/sudoers
 
 USER user

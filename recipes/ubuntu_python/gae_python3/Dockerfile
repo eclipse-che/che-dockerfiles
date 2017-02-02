@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM eclipse/debian_jre
+FROM eclipse/stack-base:debian
 
 ENV GAE /home/user/google_appengine
 
@@ -19,5 +19,3 @@ RUN wget -qO- "https://storage.googleapis.com/appengine-sdks/featured/google_app
     rm /tmp/gae-sdk.zip
 
 EXPOSE 8080 8000
-WORKDIR /projects
-CMD tailf /dev/null
