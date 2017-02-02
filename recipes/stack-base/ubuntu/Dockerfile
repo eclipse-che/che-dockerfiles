@@ -33,7 +33,7 @@ RUN apt-get update && \
     sudo apt-get install git subversion -y && \
     apt-get clean && \
     apt-get -y autoremove && \
-    sudo apt-get install openjdk-8-jre-headless -y && \
+    sudo apt-get install openjdk-8-jdk-headless -y && \
     sudo update-ca-certificates -f && \
     sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get -y clean && \

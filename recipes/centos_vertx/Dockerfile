@@ -25,7 +25,8 @@ RUN yum -y update && \
     usermod -p "*" user
 
 COPY install-vertx-dependencies.sh /tmp/
-
+RUN chown user:user /tmp/install-vertx-dependencies.sh && \
+chmod a+x /tmp/install-vertx-dependencies.sh
 USER user
 
 RUN scl enable rh-maven33 /tmp/install-vertx-dependencies.sh && \
