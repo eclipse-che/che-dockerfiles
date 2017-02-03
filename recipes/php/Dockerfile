@@ -6,7 +6,7 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM local-stack-base-ubuntu
+FROM eclipse/stack-base:ubuntu
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV CHE_MYSQL_PASSWORD=che
