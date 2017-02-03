@@ -21,7 +21,8 @@ RUN apt-get update && \
     ca-certificates \
     curl \
     software-properties-common \
-    python-software-properties && \
+    python-software-properties \
+    bash-completion && \
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
