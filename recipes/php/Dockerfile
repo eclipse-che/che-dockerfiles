@@ -29,6 +29,7 @@ RUN sudo apt-get update && \
     php-sqlite3
 
 RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/000-default.conf && \
+    sudo sed -i 's/\/var\/www/\/projects/g'  /etc/apache2/apache2.conf && \
     sudo sed -i 's/None/All/g' /etc/apache2/sites-available/000-default.conf && \
     echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf && \
     sudo a2enmod rewrite

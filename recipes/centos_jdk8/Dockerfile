@@ -28,7 +28,7 @@ ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION \
     TOMCAT_HOME=/home/user/tomcat8
 
 ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
-
+ENV MAVEN_OPTS=$JAVA_OPTS
 RUN mkdir /home/user/tomcat8 && mkdir /home/user/apache-maven-$MAVEN_VERSION && \
   wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
 ENV TERM xterm
