@@ -15,7 +15,7 @@ ENV CPATH=/usr/arm-linux-gnueabi/sys-root/usr/include/artik
 ENV NODE_PATH=/usr/local/lib/node_modules
 ENV CROSS_COMPILE=arm-linux-gnueabi- \
     SYSROOT=/usr/arm-linux-gnueabi/sys-root
-    
+
 RUN dnf update -y && \
     dnf install dnf-plugins-core copr-cli java-1.8.0-openjdk-devel.x86_64 -y && \
     dnf copr enable lantw44/arm-linux-gnueabi-toolchain -y && \
@@ -30,8 +30,8 @@ RUN dnf update -y && \
 RUN cd / && wget https://install.codenvycorp.com/artik/artik-libs-deps.zip
 RUN unzip -q artik-libs-deps.zip -d /usr/arm-linux-gnueabi/sys-root && rm artik-libs-deps.zip
 ADD artik.repo /etc/yum.repos.d/artik.repo
-ADD RPM-GPG-KEY-artik-22-armhfp /etc/pki/rpm-gpg/RPM-GPG-KEY-artik-22-armhfp
-RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-artik-22-armhfp
+ADD RPM-GPG-KEY-ARTIK /etc/pki/rpm-gpg/RPM-GPG-KEY-ARTIK
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-ARTIK
 RUN dnf makecache && dnf install --disablerepo=updates --disablerepo=lantw44-arm-linux-gnueabi-toolchain --disablerepo=fedora libartik-sdk-sysroot libartik-sdk-doc -y
 EXPOSE 22 4403
 ADD rsync.sh /usr/local/bin/rsync.sh
