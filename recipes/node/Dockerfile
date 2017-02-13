@@ -6,12 +6,12 @@
 # Contributors:
 # Codenvy, S.A. - initial API and implementation
 
-FROM eclipse/stack-base:debian
+FROM eclipse/stack-base:ubuntu
 ENV NODE_VERSION=6.6.0 \
     NODE_PATH=/usr/local/lib/node_modules 
     
 RUN sudo apt-get update && \
-    sudo apt-get -y install build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems debian-keyring && \
+    sudo apt-get -y install build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems debian-keyring python && \
     sudo gem install sass compass && \
     sudo apt-get clean && \
     sudo apt-get -y autoremove && \
@@ -43,4 +43,4 @@ RUN cd /home/user && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NO
 
 EXPOSE 3000 5000 9000
 RUN sudo curl -L https://npmjs.org/install.sh | sudo sh
-RUN sudo npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp
+RUN sudo npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp eslint
