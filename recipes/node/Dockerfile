@@ -7,7 +7,7 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
-ENV NODE_VERSION=6.6.0 \
+ENV NODE_VERSION=6.9.5 \
     NODE_PATH=/usr/local/lib/node_modules 
     
 RUN sudo apt-get update && \
