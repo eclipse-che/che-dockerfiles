@@ -16,10 +16,9 @@ ENV NODE_PATH=/usr/local/lib/node_modules
 ENV CROSS_COMPILE=arm-linux-gnueabi- \
     SYSROOT=/usr/arm-linux-gnueabi/sys-root
 
-RUN dnf update -y && \
-    dnf install dnf-plugins-core copr-cli java-1.8.0-openjdk-devel.x86_64 -y && \
+RUN dnf install dnf-plugins-core copr-cli java-1.8.0-openjdk-devel.x86_64 -y && \
     dnf copr enable lantw44/arm-linux-gnueabi-toolchain -y && \
-    dnf --enablerepo='*debug*' install android-tools arm-linux-gnueabi-{binutils,gcc,glibc} sudo usbutils openssh-server procps wget unzip mc git curl openssl bash passwd tar gdb sshpass cpio subversion -y && \
+    dnf --enablerepo='*debug*' arm-linux-gnueabi-{binutils,gcc,glibc} sudo usbutils openssh-server procps wget unzip nc mc git curl openssl bash passwd tar gdb sshpass cpio subversion -y && \
     dnf clean all && \
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
@@ -38,5 +37,4 @@ ADD rsync.sh /usr/local/bin/rsync.sh
 RUN chmod +x /usr/local/bin/rsync.sh
 ENTRYPOINT ["/root/entrypoint.sh"]
 WORKDIR /projects
-CMD adb start-server && \
-    tail -f /dev/null
+CMD tail -f /dev/null
