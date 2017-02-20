@@ -26,7 +26,9 @@ RUN sudo apt-get update && \
     php-cli \
     php-json \
     php-cgi \
-    php-sqlite3
+    php-sqlite3 \
+    php-mbstring \
+    php-xml
 
 RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/000-default.conf && \
     sudo sed -i 's/\/var\/www/\/projects/g'  /etc/apache2/apache2.conf && \
