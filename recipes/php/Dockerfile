@@ -27,9 +27,12 @@ RUN sudo apt-get update && \
     php-json \
     php-cgi \
     php-sqlite3 \
-    php-dom
+    php-dom \
+    php-mbstring \
+    php-xml
 
 RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/000-default.conf && \
+    sudo sed -i 's/\/var\/www/\/projects/g'  /etc/apache2/apache2.conf && \
     sudo sed -i 's/None/All/g' /etc/apache2/sites-available/000-default.conf && \
     echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf && \
     sudo a2enmod rewrite
@@ -47,6 +50,7 @@ RUN sudo wget http://repos.zend.com/zend-server/9.0.2/deb_apache2.4/pool/zend-se
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
     sudo composer global require bamarni/symfony-console-autocomplete && \
     ~/.composer/vendor/bamarni/symfony-console-autocomplete/symfony-autocomplete --shell bash composer | sudo tee /etc/bash_completion.d/composer && \
+    sudo wget -qO /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && sudo chmod +x /usr/local/bin/phpunit && \
     echo -e "MySQL password: $CHE_MYSQL_PASSWORD" >> /home/user/.mysqlrc && \
     echo -e "MySQL user    : $CHE_MYSQL_USER" >> /home/user/.mysqlrc && \
     echo -e "MySQL Database: $CHE_MYSQL_DB" >> /home/user/.mysqlrc && \

@@ -17,7 +17,6 @@ ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
      M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
 
 ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
-
 RUN mkdir /home/user/apache-maven-$MAVEN_VERSION && \
     wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
 ENV TERM xterm
@@ -31,4 +30,5 @@ RUN cd /home/user \
     && curl -O https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz && \
     tar xf wildfly-$WILDFLY_VERSION.tar.gz \
     && rm wildfly-$WILDFLY_VERSION.tar.gz && \
-    sed -i 's/127.0.0.1/0.0.0.0/g' /home/user/wildfly-$WILDFLY_VERSION/standalone/configuration/standalone.xml
+    sed -i 's/127.0.0.1/0.0.0.0/g' /home/user/wildfly-$WILDFLY_VERSION/standalone/configuration/standalone.xml && \
+    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc

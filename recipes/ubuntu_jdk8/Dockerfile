@@ -13,4 +13,5 @@ ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
 RUN mkdir /home/user/tomcat8 /home/user/apache-maven-$MAVEN_VERSION && \
     wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \
     wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
-    rm -rf /home/user/tomcat8/webapps/*
+    rm -rf /home/user/tomcat8/webapps/* && \
+    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc

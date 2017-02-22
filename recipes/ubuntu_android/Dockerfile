@@ -11,7 +11,8 @@ FROM eclipse/stack-base:ubuntu
 ENV TERM xterm
 ENV ANDROID_HOME=/home/user/android-sdk-linux
 ENV MAVEN_VERSION=3.3.9
-ENV PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH
+ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
+ENV PATH=$M2_HOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH
 
 LABEL che:server:6080:ref=VNC che:server:6080:protocol=http
 
