@@ -1,5 +1,3 @@
-docker login -u riuvshin -p 80b1iXVCBomYVmyAmvV2
-# if you want to push images, login as user with access to eclipse org hub.docker.com account
 cd $(pwd)/recipes/stack-base/debian
 
 docker build -t eclipse/stack-base:debian .
