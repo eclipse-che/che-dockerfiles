@@ -12,7 +12,8 @@ ARG JAVA_VERSION=1.8.0
 ARG VERTX_VERSION=3.3.3
 
 ENV VERTX_GROUPID=io.vertx \
-    JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}
+    JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION} \
+    M2_HOME=/opt/rh/rh-maven33/root/usr/share/maven
 
 RUN yum -y update && \
     yum -y install sudo openssh-server centos-release-scl && \
