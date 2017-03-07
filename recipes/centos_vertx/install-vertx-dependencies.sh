@@ -25,6 +25,7 @@ function install {
 echo -e "${BLUE}Installing Vert.x ${VERTX_VERSION} dependencies..."
 install $VERTX_GROUPID:vertx-core:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-web:$VERTX_VERSION
+install $VERTX_GROUPID:vertx-web-client:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-web-templ-handlebars:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-web-templ-jade:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-web-templ-mvel:$VERTX_VERSION
@@ -35,6 +36,7 @@ install $VERTX_GROUPID:vertx-jdbc-client:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-service-discovery:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-circuit-breaker:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-redis-client:$VERTX_VERSION
+install $VERTX_GROUPID:vertx-config:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-mongo-client:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-rx-java:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-dropwizard-metrics:$VERTX_VERSION

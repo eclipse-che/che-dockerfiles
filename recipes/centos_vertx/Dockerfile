@@ -9,7 +9,7 @@ FROM registry.centos.org/centos/centos
 MAINTAINER Clement Escoffier
 
 ARG JAVA_VERSION=1.8.0
-ARG VERTX_VERSION=3.3.3
+ARG VERTX_VERSION=3.4.0
 
 ENV VERTX_GROUPID=io.vertx \
     JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION} \
