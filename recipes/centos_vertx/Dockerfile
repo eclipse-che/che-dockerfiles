@@ -25,7 +25,7 @@ RUN yum -y update && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user
 
-RUN mkdir -p /projects && chmod -R 0755 /projects
+RUN mkdir -p /projects && chmod -R 0777 /projects
 
 COPY install-vertx-dependencies.sh /tmp/
 RUN chown user:user /tmp/install-vertx-dependencies.sh && \
