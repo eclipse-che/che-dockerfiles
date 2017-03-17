@@ -7,8 +7,8 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:debian
-ENV NODE_VERSION=6.6.0 \
-    NODE_PATH=/usr/local/lib/node_modules 
+ENV NODE_VERSION=7.7.3 \
+    NODE_PATH=/usr/local/lib/node_modules
     
 RUN sudo apt-get update && \
     sudo apt-get -y install build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems debian-keyring && \
@@ -28,9 +28,10 @@ RUN set -ex \
     DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
     B9AE9905FFD7803F25714661B63B535A4C206CA9 \
     C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
+    56730D5401028683275BD23C23EFEFE93C4CFFFE \
   ; do \
     gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
-  done 
+  done
 
 RUN cd /home/user && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
   && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \

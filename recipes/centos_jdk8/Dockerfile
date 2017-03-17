@@ -11,7 +11,8 @@ EXPOSE 4403 8080 8000 22
 RUN yum update -y && \
     yum -y install sudo openssh-server procps wget unzip mc git curl subversion nmap java-1.8.0-openjdk-devel && \
     mkdir /var/run/sshd && \
-    sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
+    sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
+    sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
     echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
