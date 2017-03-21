@@ -16,6 +16,7 @@ RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.lis
     sudo \
     procps \
     openjdk-8-jdk-headless \
+    openjdk-8-source \
     wget \
     unzip \
     mc \
