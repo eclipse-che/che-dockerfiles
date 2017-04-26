@@ -25,7 +25,7 @@ LABEL che:server:8080:ref=tomcat8 che:server:8080:protocol=http che:server:8000:
 ENV MAVEN_VERSION=3.3.9
 
 ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION \
-    JAVA_HOME=/etc/alternatives/jre \
+    JAVA_HOME=/etc/alternatives/java_sdk \
     TOMCAT_HOME=/home/user/tomcat8
 
 ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
