@@ -11,7 +11,9 @@ ARG JAVA_VERSION=1.8.0
 ARG SPRING_BOOT_VERSION=1.4.1.RELEASE
 ARG JUNIT_VERSION=4.12
 
-ENV SPRING_BOOT_GROUP=org.springframework.boot
+ENV SPRING_BOOT_GROUP=org.springframework.boot \
+    JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION} \
+    M2_HOME=/opt/rh/rh-maven33/root/usr/share/maven
 
 RUN yum -y update && \
     yum -y install sudo openssh-server centos-release-scl && \
