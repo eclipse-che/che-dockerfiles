@@ -41,6 +41,7 @@ install $VERTX_GROUPID:vertx-mongo-client:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-rx-java:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-dropwizard-metrics:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-unit:$VERTX_VERSION
+install org.slf4j:slf4j-api:1.7.25
 install junit:junit:4.12
 install $VERTX_GROUPID:vertx-auth-common:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-auth-jwt:$VERTX_VERSION
