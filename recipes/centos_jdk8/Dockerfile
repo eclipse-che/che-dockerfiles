@@ -20,7 +20,7 @@ RUN yum update -y && \
 
 USER user
 
-LABEL che:server:8080:ref=tomcat8 che:server:8080:protocol=http che:server:8000:ref=tomcat8-debug che:server:8000:protocol=http
+LABEL che:server:8080:ref=tomcat che:server:8080:protocol=http che:server:8000:ref=tomcat-jpda che:server:8000:protocol=http
 
 ENV MAVEN_VERSION=3.3.9
 
