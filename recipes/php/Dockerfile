@@ -48,7 +48,8 @@ RUN sudo wget http://repos.zend.com/zend-server/9.0.2/deb_apache2.4/pool/zend-se
     sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini
 
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
-    sudo composer global require bamarni/symfony-console-autocomplete && \
+    sudo chown -R user:user ~/.composer && \
+    composer global require bamarni/symfony-console-autocomplete && \
     ~/.composer/vendor/bamarni/symfony-console-autocomplete/symfony-autocomplete --shell bash composer | sudo tee /etc/bash_completion.d/composer && \
     sudo wget -qO /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && sudo chmod +x /usr/local/bin/phpunit && \
     echo -e "MySQL password: $CHE_MYSQL_PASSWORD" >> /home/user/.mysqlrc && \
