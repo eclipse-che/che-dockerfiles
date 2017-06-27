@@ -15,8 +15,8 @@ RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.lis
     openssh-server \
     sudo \
     procps \
-    openjdk-8-jdk-headless \
-    openjdk-8-source \
+    openjdk-8-jdk-headless=8u131-b11-2 \
+    openjdk-8-source=8u131-b11-2 \
     wget \
     unzip \
     mc \
@@ -43,6 +43,7 @@ RUN sudo localedef -i en_US -f UTF-8 en_US.UTF-8 && \
     svn --version && \
     sed -i 's/# store-passwords = no/store-passwords = yes/g' /home/user/.subversion/servers && \
     sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
+COPY open-jdk-source-file-location /open-jdk-source-file-location
 EXPOSE 22 4403
 WORKDIR /projects
 ENTRYPOINT ["/home/user/entrypoint.sh"]

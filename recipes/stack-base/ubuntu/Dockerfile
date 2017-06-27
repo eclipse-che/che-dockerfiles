@@ -12,6 +12,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
 RUN apt-get update && \
     apt-get -y install \
+    locales \
     openssh-server \
     sudo \
     procps \
@@ -34,7 +35,7 @@ RUN apt-get update && \
     sudo apt-get install git subversion -y && \
     apt-get clean && \
     apt-get -y autoremove && \
-    sudo apt-get install openjdk-8-jdk-headless openjdk-8-source -y && \
+    sudo apt-get install openjdk-8-jdk-headless=8u131-b11-0ubuntu1.16.04.2 openjdk-8-source=8u131-b11-0ubuntu1.16.04.2 -y && \
     sudo update-ca-certificates -f && \
     sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get -y clean && \
@@ -49,6 +50,7 @@ RUN sudo locale-gen en_US.UTF-8 && \
     cd /home/user && ls -la && \
     sed -i 's/# store-passwords = no/store-passwords = yes/g' /home/user/.subversion/servers && \
     sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
+COPY open-jdk-source-file-location /open-jdk-source-file-location
 EXPOSE 22 4403
 WORKDIR /projects
 ENTRYPOINT ["/home/user/entrypoint.sh"]
