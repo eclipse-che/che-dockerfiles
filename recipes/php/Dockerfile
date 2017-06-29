@@ -67,6 +67,11 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
     sudo mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'; FLUSH PRIVILEGES;" && \
     sudo mysql -uroot -e "CREATE DATABASE $CHE_MYSQL_DB;"
 
+# Install NodeJS to improve startup time when the JSON language server is enabled
+RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
+    sudo apt-get update && \
+    sudo apt-get install -y nodejs
+
 # label is used in Servers tab to display mapped port for Apache process on 80 port in the container
 LABEL che:server:80:ref=apache2 che:server:80:protocol=http
 
