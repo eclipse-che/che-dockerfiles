@@ -7,10 +7,11 @@
 # Abel García Dorta <mercuriete@gmail.com> 
 # Roger S <narayanroger@gmail.com>
 
-FROM eclipse/debian_jre
+FROM eclipse/stack-base:debian
 RUN sudo curl -L -o dotnet.tar.gz https://go.microsoft.com/fwlink/?LinkID=809130 && \
+    sudo sh -c 'echo "deb [trusted=yes] http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 main" > /etc/apt/sources.list.d/llvm-toolchain.list' && \
     sudo apt-get update && \
-    sudo apt-get -y install libunwind8 gettext && \
+    sudo apt-get install libunwind8 gettext liblldb-3.6-dev libssl1.0.0 libicu52 liblttng-ust0 -y --allow-unauthenticated && \
     sudo mkdir -p /opt/dotnet && \
     sudo tar zxf dotnet.tar.gz -C /opt/dotnet && \
     sudo rm dotnet.tar.gz && \
