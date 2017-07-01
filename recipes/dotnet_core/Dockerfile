@@ -7,7 +7,7 @@
 # Abel García Dorta <mercuriete@gmail.com> 
 # Roger S <narayanroger@gmail.com>
 
-FROM eclipse/debian_jre
+FROM eclipse/debian_jdk8
 RUN sudo curl -L -o dotnet.tar.gz https://go.microsoft.com/fwlink/?LinkID=809130 && \
     sudo apt-get update && \
     sudo apt-get -y install libunwind8 gettext && \
