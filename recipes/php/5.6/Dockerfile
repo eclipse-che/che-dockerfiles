@@ -4,7 +4,7 @@ ENV CHE_MYSQL_PASSWORD=che
 ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
 RUN sudo apt-get update && \
-    sudo apt-get -y --no-install-recommends install mysql-server \
+    sudo apt-get -y --no-install-recommends install default-mysql-server \
     apache2 \
     php5 \
     php5-mhash \
@@ -31,7 +31,6 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
     echo -e "MySQL password: $CHE_MYSQL_PASSWORD" >> /home/user/.mysqlrc && \
     echo -e "MySQL user    : $CHE_MYSQL_USER" >> /home/user/.mysqlrc && \
     echo -e "MySQL Database: $CHE_MYSQL_DB" >> /home/user/.mysqlrc && \
-    sudo -E bash -c "apt-get -y --no-install-recommends install mysql-server" && \
     sudo apt-get clean && \
     sudo apt-get -y autoremove && \
     sudo apt-get -y clean && \
