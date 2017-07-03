@@ -37,6 +37,8 @@ USER user
 
 WORKDIR /projects
 
+COPY open-jdk-source-file-location /open-jdk-source-file-location
+
 CMD sudo /usr/bin/ssh-keygen -A && \
     sudo /usr/sbin/sshd -D && \
     sudo su - && \
