@@ -13,6 +13,7 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 RUN apt-get update && \
     apt-get -y install \
     locales \
+    rsync \
     openssh-server \
     sudo \
     procps \

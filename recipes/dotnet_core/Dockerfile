@@ -13,6 +13,7 @@ RUN apt-get update && \
     apt-get -y install \
     openssh-server \
     sudo \
+    rsync \
     procps \
     wget \
     unzip \

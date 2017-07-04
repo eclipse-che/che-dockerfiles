@@ -14,6 +14,7 @@ RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.lis
     apt-get -y install \
     openssh-server \
     sudo \
+    rsync \
     procps \
     openjdk-8-jdk-headless=8u131-b11-2 \
     openjdk-8-source=8u131-b11-2 \
