@@ -7,8 +7,6 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:debian
-ENV NODE_VERSION=7.7.3 \
-    NODE_PATH=/usr/local/lib/node_modules
     
 RUN sudo apt-get update && \
     sudo apt-get -y install build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems debian-keyring && \
@@ -34,7 +32,7 @@ RUN set -ex \
   done
 
 RUN wget -qO- https://deb.nodesource.com/setup_8.x | sudo -E bash -
-RUN apt update && apt -y install nodejs
+RUN sudo apt update && sudo apt -y install nodejs
 
 EXPOSE 1337 3000 4200 5000 9000 8003
 RUN sudo npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp
