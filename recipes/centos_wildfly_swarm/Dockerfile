@@ -9,7 +9,7 @@ FROM registry.centos.org/centos/centos
 MAINTAINER Dharmit Shah
 
 ARG JAVA_VERSION=1.8.0
-ARG SWARM_VERSION=2017.6.1
+ARG SWARM_VERSION=2017.7.0
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION} \
     M2_HOME=/opt/rh/rh-maven33/root/usr/share/maven
