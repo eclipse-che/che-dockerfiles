@@ -7,8 +7,6 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:debian
-ENV NODE_VERSION=7.7.3 \
-    NODE_PATH=/usr/local/lib/node_modules
     
 RUN sudo apt-get update && \
     sudo apt-get -y install build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems debian-keyring && \
@@ -33,14 +31,8 @@ RUN set -ex \
     gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
   done
 
-RUN cd /home/user && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
-  && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
-  && gpg --verify SHASUMS256.txt.asc \
-  && gpg --batch --decrypt --output SHASUMS256.txt SHASUMS256.txt.asc \
-  && grep " node-v$NODE_VERSION-linux-x64.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
-  && sudo tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
-  && sudo rm "node-v$NODE_VERSION-linux-x64.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
-  && sudo ln -s /usr/local/bin/node /usr/local/bin/nodejs
+RUN wget -qO- https://deb.nodesource.com/setup_8.x | sudo -E bash -
+RUN sudo apt update && sudo apt -y install nodejs
 
 EXPOSE 1337 3000 4200 5000 9000 8003
 RUN sudo npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp
