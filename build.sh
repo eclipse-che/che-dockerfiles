@@ -25,10 +25,10 @@ for image in $eclipse_images; do
     b=${a#eclipse/}
     d=recipes/${b/:/\/}
     echo $b $d
-    docker build -t $image $d || error "Unable to build image: $IMAGE_NAME"
+    docker build -t $image $d || error "Unable to build image: $image"
     if [ "x$PRIVATE_REPO" != "x" ]; then
         docker tag $image $PRIVATE_REPO/$image
-        docker push $PRIVATE_REPO/$image || error "Unable to push image: $IMAGE_NAME"
+        docker push $PRIVATE_REPO/$image || error "Unable to push image: $image"
     else
         docker push $image
     fi
