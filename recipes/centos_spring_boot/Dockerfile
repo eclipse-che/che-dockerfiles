@@ -24,7 +24,9 @@ RUN yum -y update && \
     echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
-    sed -i 's/requiretty/!requiretty/g' /etc/sudoers
+    sed -i 's/requiretty/!requiretty/g' /etc/sudoers && \
+    cat /opt/rh/rh-maven33/enable >> /home/user/.bashrc
+
 
 COPY install_spring_boot_dependencies.sh /tmp/
 
@@ -37,5 +39,7 @@ RUN scl enable rh-maven33 /tmp/install_spring_boot_dependencies.sh && \
     sudo rm -f /tmp/install_spring_boot_dependencies.sh
 
 EXPOSE 8080
+
+WORKDIR /projects
 
 CMD tail -f /dev/null

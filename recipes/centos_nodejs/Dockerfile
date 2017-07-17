@@ -21,7 +21,9 @@ RUN yum -y update && \
 RUN yum -y install rh-nodejs4 && \
     yum -y clean all && \
     scl enable rh-nodejs4 'npm install -g npm@latest' && \
-    scl enable rh-nodejs4 'npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp'
+    scl enable rh-nodejs4 'npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp' && \
+    cat /opt/rh/rh-nodejs4/enable >> /home/user/.bashrc
+
 
 EXPOSE 3000 5000 9000 8080
 

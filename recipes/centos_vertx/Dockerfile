@@ -24,7 +24,8 @@ RUN yum -y update && \
     echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
-    sed -i 's/requiretty/!requiretty/g' /etc/sudoers
+    sed -i 's/requiretty/!requiretty/g' /etc/sudoers && \
+    cat /opt/rh/rh-maven33/enable >> /home/user/.bashrc
 
 COPY install-vertx-dependencies.sh /tmp/
 RUN chown user:user /tmp/install-vertx-dependencies.sh && \
@@ -35,5 +36,7 @@ RUN scl enable rh-maven33 /tmp/install-vertx-dependencies.sh && \
     sudo rm -f /tmp/install-vertx-dependencies.sh
 
 EXPOSE 8080
+
+WORKDIR /projects
 
 CMD tail -f /dev/null
