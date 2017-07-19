@@ -54,6 +54,7 @@ RUN sudo curl -L -o dotnet.tar.gz https://go.microsoft.com/fwlink/?LinkID=809130
     sudo apt-get update && \
     sudo apt-get install -y libunwind8 gettext openjdk-8-jdk-headless=8u131-b11-2 openjdk-8-source=8u131-b11-2
 COPY open-jdk-source-file-location /open-jdk-source-file-location
+ENV COMPlus_INTERNAL_ThreadSuspendInjection=0
 EXPOSE 3000 5000 8000 8080
 WORKDIR /projects
 ENTRYPOINT ["/home/user/entrypoint.sh"]
