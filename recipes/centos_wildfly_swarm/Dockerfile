@@ -31,6 +31,8 @@ RUN chown user:user /tmp/install-swarm-dependencies.sh && \
     chmod a+x /tmp/install-swarm-dependencies.sh
 USER user
 
+LABEL che:server:8080:ref=tomcat che:server:8080:protocol=http che:server:8000:ref=tomcat-jpda che:server:8000:protocol=http
+
 RUN scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
     sudo rm -f /tmp/install-swarm-dependencies.sh
 
