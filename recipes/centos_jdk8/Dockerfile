@@ -42,6 +42,4 @@ RUN svn --version && \
     sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
 WORKDIR /projects
 
-CMD sudo /usr/bin/ssh-keygen -A && \
-    sudo /usr/sbin/sshd -D && \
-    tail -f /dev/null
+CMD tail -f /dev/null
