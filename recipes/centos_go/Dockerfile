@@ -27,6 +27,4 @@ USER user
 
 EXPOSE 8080
 
-CMD sudo /usr/bin/ssh-keygen -A && \
-    sudo /usr/sbin/sshd -D && \
-    tail -f /dev/null
+CMD tail -f /dev/null
