@@ -24,7 +24,6 @@ RUN yum -y install rh-nodejs4 && \
     scl enable rh-nodejs4 'npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp' && \
     cat /opt/rh/rh-nodejs4/enable >> /home/user/.bashrc
 
-LABEL che:server:3000:ref=nodejs-3000 che:server:3000:protocol=http che:server:5000:ref=nodejs-5000 che:server:5000:protocol=http che:server:9000:ref=nodejs-9000 che:server:9000:protocol=http che:server:8080:ref=nodejs-8080 che:server:8080:protocol=http
 
 EXPOSE 3000 5000 9000 8080
 
