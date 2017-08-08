@@ -1,7 +1,0 @@
-This package distributes OpenJDK binaries that are licensed under the GPL.
-The source code and build scripts used to create this binary are available for download at:
-
-OpenJDK Package installed via package manager: openjdk-8-jre-headless, openjdk-8-source
-OpenJDK version: 8u131-b11-2
-OpenJDK sources: http://archive.ubuntu.com/ubuntu/pool/main/o/openjdk-8/openjdk-8_8u131-b11-0ubuntu1.16.04.2.debian.tar.xz
-
