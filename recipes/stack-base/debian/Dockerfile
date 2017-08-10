@@ -9,15 +9,16 @@
 FROM debian:jessie
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 ENV PATH $JAVA_HOME/bin:$PATH
-RUN echo "deb http://ftp.debian.org/debian testing main" >> /etc/apt/sources.list && \
+RUN echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get -y install \
     openssh-server \
     sudo \
     rsync \
     procps \
-    openjdk-8-jdk-headless=8u131-b11-2 \
-    openjdk-8-source=8u131-b11-2 \
+    -t jessie-backports \
+    openjdk-8-jdk-headless=8u131-b11-1~bpo8+1 \
+    openjdk-8-source=8u131-b11-1~bpo8+1 \
     wget \
     unzip \
     mc \
