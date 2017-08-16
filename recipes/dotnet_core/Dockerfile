@@ -19,4 +19,5 @@ RUN sudo sh -c 'echo "deb [arch=amd64] http://apt-mo.trafficmanager.net/repos/do
     nodejs && \
     sudo apt-get -y clean && \
     sudo rm -rf /var/lib/apt/lists/*
+EXPOSE 5000 9000
 CMD tail -f /dev/null
