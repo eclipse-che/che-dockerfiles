@@ -9,8 +9,9 @@
 FROM eclipse/stack-base:debian
     
 RUN sudo apt-get update && \
-    sudo apt-get -y install build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems debian-keyring python2.7 && \
-    sudo gem install sass compass && \
+    sudo apt-get -y install build-essential libkrb5-dev gcc make ruby-full rubygems debian-keyring python2.7 && \
+    sudo gem install --no-rdoc --no-ri sass -v 3.4.22 && \
+    sudo gem install --no-rdoc --no-ri compass && \
     sudo apt-get clean && \
     sudo apt-get -y autoremove && \
     sudo apt-get -y clean && \
