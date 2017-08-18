@@ -7,8 +7,8 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
-RUN sudo apt-get update && sudo apt-get install apt-transport-https -y
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > ~/microsoft.gpg && \
+RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > ~/microsoft.gpg && \
     sudo mv ~/microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg && \
     sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-xenial-prod xenial main" > /etc/apt/sources.list.d/dotnetdev.list' && \
     wget -qO- https://deb.nodesource.com/setup_7.x | sudo -E bash - && \
