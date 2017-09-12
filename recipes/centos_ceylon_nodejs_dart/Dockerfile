@@ -6,12 +6,12 @@
 # Contributors:
 # Red Hat, Inc. - initial implementation
 
-FROM eclipse/centos_jdk8
+FROM registry.centos.org/che-stacks/centos-jdk8
 
 # Install nodejs for ls agents
 RUN sudo yum update -y && \
     curl -sL https://rpm.nodesource.com/setup_6.x | sudo -E bash - && \
-    sudo yum install -y bzip2 tar curl nodejs && \
+    sudo yum install -y bzip2 tar nodejs && \
     sudo yum clean all && \
     sudo rm -rf /tmp/* /var/cache/yum && \
     sudo ln -s /usr/bin/node /usr/bin/nodejs
@@ -49,5 +49,3 @@ ENV PATH $PATH:$CEYLON_HOME/bin:$DART_HOME/bin
 
 RUN ceylon plugin install --force com.vasileff.ceylon.dart.cli/1.3.2-DP4 \
     && ceylon install-dart --out +USER
-
-    

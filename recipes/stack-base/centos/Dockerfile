@@ -8,8 +8,22 @@ FROM registry.centos.org/centos/centos
 
 MAINTAINER Dharmit Shah <dshah@redhat.com>
 
+ARG JAVA_VERSION=1.8.0
+
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}
+ENV PATH=$JAVA_HOME/bin:$PATH
+
 RUN yum -y update && \
-    yum -y install sudo openssh-server git && \
+    yum -y install \
+    sudo \
+    openssh-server \
+    git \
+    wget \
+    unzip \
+    mc \
+    bash-completion \
+    centos-release-scl \
+    java-${JAVA_VERSION}-openjdk-devel && \
     yum clean all && \
     sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
     sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
@@ -19,5 +33,7 @@ RUN yum -y update && \
     sed -i 's/requiretty/!requiretty/g' /etc/sudoers
 
 USER user
+
+WORKDIR /projects
 
 CMD tail -f /dev/null
