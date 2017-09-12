@@ -4,32 +4,14 @@
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
 
-FROM registry.centos.org/centos/centos
+FROM registry.centos.org/che-stacks/centos-stack-base
+EXPOSE 8080
 
 MAINTAINER Dharmit Shah <dshah@redhat.com>
 
-ARG JAVA_VERSION=1.8.0
-
-ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}
-
-RUN yum -y update && \
-    yum -y install sudo openssh-server g++ gcc glibc-devel make golang java-${JAVA_VERSION}-openjdk-devel && \
-    yum -y install epel-release && \ 
-    yum -y install python-pip && \
-    pip install --no-cache-dir virtualenv && \
-    yum clean all && \
-    sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
-    sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
-    echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    usermod -p "*" user && \
-    sed -i 's/requiretty/!requiretty/g' /etc/sudoers && \
-    mkdir /projects && chown -R user:user /projects
-
-EXPOSE 8080
-
-WORKDIR /projects
-
-USER user
-
-CMD tailf /dev/null
+RUN sudo yum -y update && \
+    sudo yum -y install epel-release \ 
+                        python-pip && \
+    sudo pip install --upgrade pip && \
+    sudo pip install --no-cache-dir virtualenv && \
+    sudo yum clean all

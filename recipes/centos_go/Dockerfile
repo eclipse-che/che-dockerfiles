@@ -4,27 +4,17 @@
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
 
-FROM registry.centos.org/centos/centos
-
-ARG JAVA_VERSION=1.8.0
-
-ENV GOPATH=/go \
-    PATH=$GOPATH/bin:/usr/local/go/bin:$PATH \
-    JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}
-
-RUN yum -y update && \
-    yum -y install sudo openssh-server g++ gcc glibc-devel make golang java-${JAVA_VERSION}-openjdk-devel && \
-    yum clean all && \
-    sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
-    sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
-    echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    usermod -p "*" user && \
-    sed -i 's/requiretty/!requiretty/g' /etc/sudoers && \
-    mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
-
-USER user
-
+FROM registry.centos.org/che-stacks/centos-stack-base
 EXPOSE 8080
 
-CMD tail -f /dev/null
+ENV GOPATH=/go \
+    PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
+
+RUN sudo yum -y update && \
+    sudo yum -y install gcc-c++ \
+           gcc \
+           glibc-devel \
+           make \
+           golang && \
+    sudo yum clean all && \
+    sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
