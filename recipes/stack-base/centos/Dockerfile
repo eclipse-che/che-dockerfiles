@@ -8,6 +8,8 @@ FROM registry.centos.org/centos/centos
 
 MAINTAINER Dharmit Shah <dshah@redhat.com>
 
+EXPOSE 22 4403
+
 ARG JAVA_VERSION=1.8.0
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}
@@ -33,7 +35,27 @@ RUN yum -y update && \
     sed -i 's/requiretty/!requiretty/g' /etc/sudoers
 
 USER user
-
 WORKDIR /projects
 
+# The following instructions set the right 
+# permissions and scripts to allow the container
+# to be run by an arbitrary user (i.e. a user
+# that doesn't already exist in /etc/passwd)
+ENV HOME /home/user
+RUN for f in "/home/user" "/etc/passwd" "/etc/group" "/projects"; do\
+           sudo chgrp -R 0 ${f} && \
+           sudo chmod -R g+rwX ${f}; \
+        done && \
+        # Generate passwd.template \
+        cat /etc/passwd | \
+        sed s#user:x.*#user:x:\${USER_ID}:\${GROUP_ID}::\${HOME}:/bin/bash#g \
+        > /home/user/passwd.template && \
+        # Generate group.template \
+        cat /etc/group | \
+        sed s#root:x:0:#root:x:0:0,\${USER_ID}:#g \
+        > /home/user/group.template
+
+COPY ["entrypoint.sh","/home/user/entrypoint.sh"]
+
+ENTRYPOINT ["/home/user/entrypoint.sh"]
 CMD tail -f /dev/null
