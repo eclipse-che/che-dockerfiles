@@ -6,8 +6,8 @@
 
 FROM registry.centos.org/che-stacks/centos-jdk8
 
-EXPOSE 8080
-LABEL che:server:8080:ref=vertx che:server:8080:protocol=http
+EXPOSE 8080 5005
+LABEL che:server:8080:ref=vertx che:server:8080:protocol=http che:server:5005:ref=vertx-debug che:server:5005:protocol=http
 
 MAINTAINER Clement Escoffier
 
