@@ -40,8 +40,7 @@ RUN apt-get update && \
     sudo update-ca-certificates -f && \
     sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    echo "#! /bin/bash\n set -e\n sudo /usr/sbin/sshd -D &\n exec \"\$@\"" > /home/user/entrypoint.sh && chmod a+x /home/user/entrypoint.sh
+    rm -rf /var/lib/apt/lists/*
 
 ENV LANG en_GB.UTF-8
 ENV LANG en_US.UTF-8
@@ -54,5 +53,26 @@ RUN sudo locale-gen en_US.UTF-8 && \
 COPY open-jdk-source-file-location /open-jdk-source-file-location
 EXPOSE 22 4403
 WORKDIR /projects
+
+# The following instructions set the right 
+# permissions and scripts to allow the container
+# to be run by an arbitrary user (i.e. a user
+# that doesn't already exist in /etc/passwd)
+ENV HOME /home/user
+RUN for f in "/home/user" "/etc/passwd" "/etc/group" "/projects"; do\
+           sudo chgrp -R 0 ${f} && \
+           sudo chmod -R g+rwX ${f}; \
+        done && \
+        # Generate passwd.template \
+        cat /etc/passwd | \
+        sed s#user:x.*#user:x:\${USER_ID}:\${GROUP_ID}::\${HOME}:/bin/bash#g \
+        > /home/user/passwd.template && \
+        # Generate group.template \
+        cat /etc/group | \
+        sed s#root:x:0:#root:x:0:0,\${USER_ID}:#g \
+        > /home/user/group.template
+
+COPY ["entrypoint.sh","/home/user/entrypoint.sh"]
+
 ENTRYPOINT ["/home/user/entrypoint.sh"]
 CMD tail -f /dev/null
