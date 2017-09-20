@@ -28,7 +28,7 @@ RUN apt-get update && \
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,sudo -g 0 -d /home/user --shell /bin/bash -m user && \
+    useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
     add-apt-repository ppa:git-core/ppa && \
     add-apt-repository ppa:openjdk-r/ppa && \
