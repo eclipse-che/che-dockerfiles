@@ -22,9 +22,8 @@ RUN sudo apt-get update && \
     sudo sed -i 's/None/All/g' /etc/apache2/apache2.conf && \
     sudo sed -i 's/\/var\/www/\/projects/g'  /etc/apache2/apache2.conf && \
     echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf && \
-    sudo a2enmod rewrite
-
-RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
+    sudo a2enmod rewrite && \
+    curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
     sudo composer global require bamarni/symfony-console-autocomplete && \
     ~/.composer/vendor/bamarni/symfony-console-autocomplete/symfony-autocomplete --shell bash composer | sudo tee /etc/bash_completion.d/composer && \
     sudo wget -qO /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && sudo chmod +x /usr/local/bin/phpunit && \
@@ -36,9 +35,8 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
     sudo apt-get -y clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
     sudo sed -i.bak 's/127.0.0.1/0.0.0.0/g' /etc/mysql/my.cnf && \
-    sudo service mysql start && sudo mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost'; FLUSH PRIVILEGES;" && \
-    sudo service mysql restart && \
-    sudo service mysql restart && sudo mysql -uroot -e "CREATE USER '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'" && \
-    sudo mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'; FLUSH PRIVILEGES;" && \
-    sudo mysql -uroot -e "CREATE DATABASE $CHE_MYSQL_DB;"
+    sudo service mysql start && sudo mysql -u root --password="root" -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost'; FLUSH PRIVILEGES;" && \
+    sudo service mysql restart && sudo mysql -u root --password="root" -e "CREATE USER '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'" && \
+    sudo mysql -u root --password="root" -e "GRANT ALL PRIVILEGES ON *.* TO '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'; FLUSH PRIVILEGES;" && \
+    sudo mysql -u root --password="root" -e "CREATE DATABASE $CHE_MYSQL_DB;"
 EXPOSE 80
