@@ -4,6 +4,8 @@ ENV CHE_MYSQL_PASSWORD=che
 ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
 RUN sudo apt-get update && \
+    sudo echo "mysql-server-5.5 mysql-server/root_password password root" | sudo debconf-set-selections && \
+    sudo echo "mysql-server-5.5 mysql-server/root_password_again password root" | sudo debconf-set-selections && \
     sudo apt-get -y --no-install-recommends install default-mysql-server \
     apache2 \
     php5 \
