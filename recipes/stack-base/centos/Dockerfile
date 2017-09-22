@@ -37,7 +37,7 @@ RUN yum -y update && \
 USER user
 WORKDIR /projects
 
-# The following instructions set the right 
+# The following instructions set the right
 # permissions and scripts to allow the container
 # to be run by an arbitrary user (i.e. a user
 # that doesn't already exist in /etc/passwd)
@@ -53,7 +53,8 @@ RUN for f in "/home/user" "/etc/passwd" "/etc/group" "/projects"; do\
         # Generate group.template \
         cat /etc/group | \
         sed s#root:x:0:#root:x:0:0,\${USER_ID}:#g \
-        > /home/user/group.template
+        > /home/user/group.template && \
+        sudo sed -ri 's/StrictModes yes/StrictModes no/g' /etc/ssh/sshd_config
 
 COPY ["entrypoint.sh","/home/user/entrypoint.sh"]
 
