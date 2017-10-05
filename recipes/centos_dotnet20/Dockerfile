@@ -12,4 +12,6 @@ RUN sudo yum -y update && \
     sudo yum clean all && \
     cat /opt/rh/rh-dotnet20/enable >> /home/user/.bashrc
 
+ENV PATH /opt/rh/rh-dotnet20/root/usr/bin:/opt/rh/rh-dotnet20/root/usr/sbin${PATH:+:${PATH}}
+
 EXPOSE 5000
