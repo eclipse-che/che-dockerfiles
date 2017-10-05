@@ -4,7 +4,7 @@
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
 
-FROM registry.centos.org/che-stacks/centos-jdk8:latest
+FROM registry.centos.org/che-stacks/centos-stack-base:latest
 
 RUN sudo yum -y update && \
     sudo yum -y install centos-release-dotnet && \
