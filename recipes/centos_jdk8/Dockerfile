@@ -23,9 +23,14 @@ RUN sudo yum -y update && \
 
 ENV MAVEN_OPTS=$JAVA_OPTS
 
-RUN mkdir /home/user/tomcat8 && \
+USER user
+
+RUN mkdir $HOME/.m2 && \
+    mkdir /home/user/tomcat8 && \
     wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
     rm -rf /home/user/tomcat8/webapps/* && \
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc
+
+ADD ./contrib/settings.xml $HOME/.m2/settings.xml
 
 ENV LANG C.UTF-8

@@ -8,7 +8,7 @@ FROM registry.centos.org/che-stacks/centos-jdk8
 MAINTAINER Gytis Trikleris
 
 EXPOSE 8080
-LABEL che:server:8080:ref=springboot che:server:8080:protocol=http
+LABEL che:server:8080:ref=springboot che:server:8080:protocol=http 
 
 ARG SPRING_BOOT_VERSION=1.4.1.RELEASE
 ARG JUNIT_VERSION=4.12
