@@ -14,7 +14,12 @@ LABEL che:server:8080:ref=wildfly che:server:8080:protocol=http
 ARG SWARM_VERSION=2017.10.0
 
 COPY install-swarm-dependencies.sh /tmp/
+COPY ./run.sh ${HOME}/
 RUN sudo chown user:user /tmp/install-swarm-dependencies.sh && \
     chmod a+x /tmp/install-swarm-dependencies.sh && \
     scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
-    sudo rm -f /tmp/install-swarm-dependencies.sh
+    sudo rm -f /tmp/install-swarm-dependencies.sh && \
+    sudo chown user:user ${HOME}/run.sh && \
+    sudo chmod +x ${HOME}/run.sh
+
+CMD ["sh","-c","${HOME}/run.sh"]
