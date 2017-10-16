@@ -14,7 +14,6 @@ ARG SPRING_BOOT_VERSION=1.4.1.RELEASE
 ARG JUNIT_VERSION=4.12
 
 ENV SPRING_BOOT_GROUP=org.springframework.boot
-
 ADD configure_maven_and_deps.sh /home/user/
 
 RUN sudo chmod +x ${HOME}/configure_maven_and_deps.sh

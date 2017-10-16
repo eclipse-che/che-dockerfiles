@@ -12,7 +12,6 @@ LABEL che:server:8080:ref=vertx che:server:8080:protocol=http che:server:5005:re
 MAINTAINER Clement Escoffier
 
 ARG VERTX_VERSION=3.4.2
-
 ENV VERTX_GROUPID=io.vertx 
 
 ADD configure_maven_and_deps.sh $HOME/
