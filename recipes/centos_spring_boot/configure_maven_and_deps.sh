@@ -4,6 +4,7 @@
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
+set -e 
 
 RED='\033[0;31m'
 NC='\033[0m' # No Color
@@ -21,6 +22,21 @@ function install {
   fi
 }
 
+# insert settings for mirrors/repository managers into settings.xml if supplied
+function configure_mirrors {
+  if [ -n "$MAVEN_MIRROR_URL" ]; then
+    xml="    <mirror>\
+      <id>mirror.default</id>\
+      <url>$MAVEN_MIRROR_URL</url>\
+      <mirrorOf>external:*</mirrorOf>\
+    </mirror>"
+    sed -i "s|<!-- ### configured mirrors ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+
+# check for the MAVEN_MIRROR_URL env variable, if its available then set maven mirrors in $HOME/.m2/settings.xml
+configure_mirrors
+# TODO - do we really need to do this ? 
 echo -e "${BLUE}Installing Spring Boot ${SPRING_BOOT_VERSION} dependencies..."
 install $SPRING_BOOT_GROUP:spring-boot-starter-parent:$SPRING_BOOT_VERSION:pom
 install $SPRING_BOOT_GROUP:spring-boot-starter-web:$SPRING_BOOT_VERSION

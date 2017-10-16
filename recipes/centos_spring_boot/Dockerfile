@@ -14,9 +14,8 @@ ARG SPRING_BOOT_VERSION=1.4.1.RELEASE
 ARG JUNIT_VERSION=4.12
 
 ENV SPRING_BOOT_GROUP=org.springframework.boot
+ADD configure_maven_and_deps.sh /home/user/
 
-COPY install_spring_boot_dependencies.sh /tmp/
-RUN sudo chown user:user /tmp/install_spring_boot_dependencies.sh && \
-    sudo chmod a+x /tmp/install_spring_boot_dependencies.sh && \
-    scl enable rh-maven33 /tmp/install_spring_boot_dependencies.sh && \
-    sudo rm -f /tmp/install_spring_boot_dependencies.sh
+RUN sudo chmod +x ${HOME}/configure_maven_and_deps.sh
+
+CMD ["sh","-c","${HOME}/configure_maven_and_deps.sh"]
