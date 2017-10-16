@@ -22,6 +22,20 @@ function install {
   fi
 }
 
+# insert settings for mirrors/repository managers into settings.xml if supplied
+function configure_mirrors {
+  if [ -n "$MAVEN_MIRROR_URL" ]; then
+    xml="    <mirror>\
+      <id>mirror.default</id>\
+      <url>$MAVEN_MIRROR_URL</url>\
+      <mirrorOf>external:*</mirrorOf>\
+    </mirror>"
+    sed -i "s|<!-- ### configured mirrors ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+
+# check for the MAVEN_MIRROR_URL env variable, if its available then set maven mirrors in $HOME/.m2/settings.xml
+configure_mirrors
 echo -e "${BLUE}Installing Vert.x ${VERTX_VERSION} dependencies..."
 install $VERTX_GROUPID:vertx-core:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-web:$VERTX_VERSION
