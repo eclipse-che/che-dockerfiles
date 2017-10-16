@@ -22,4 +22,4 @@ configure_mirrors() {
 # check for the MAVEN_MIRROR_URL env variable, if its available then set maven mirrors in $HOME/.m2/settings.xml
 configure_mirrors
 
-while :; do sleep 1; done
+exec tail -f /dev/null
