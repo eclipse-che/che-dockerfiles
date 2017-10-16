@@ -15,11 +15,9 @@ ARG SWARM_VERSION=2017.10.0
 
 COPY install-swarm-dependencies.sh /tmp/
 COPY ./run.sh ${HOME}/
-RUN sudo chown user:user /tmp/install-swarm-dependencies.sh && \
-    chmod a+x /tmp/install-swarm-dependencies.sh && \
+RUN sudo chown user:user /tmp/install-swarm-dependencies.sh ${HOME}/run.sh && \
+    chmod a+x /tmp/install-swarm-dependencies.sh ${HOME}/run.sh && \
     scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
-    sudo rm -f /tmp/install-swarm-dependencies.sh && \
-    sudo chown user:user ${HOME}/run.sh && \
-    sudo chmod +x ${HOME}/run.sh
+    sudo rm -f /tmp/install-swarm-dependencies.sh
 
 CMD ["sh","-c","${HOME}/run.sh"]
