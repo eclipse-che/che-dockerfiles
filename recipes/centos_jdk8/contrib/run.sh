@@ -11,7 +11,6 @@ set -e
 
 # insert settings for mirrors/repository managers into settings.xml if supplied
 configure_mirrors() {
-  echo "Setting maven mirror from $MAVEN_MIRROR_URL"
   if [ -n "$MAVEN_MIRROR_URL" ]; then
     xml="    <mirror>\
       <id>mirror.default</id>\
