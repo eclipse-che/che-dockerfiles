@@ -16,7 +16,6 @@ ARG VERTX_VERSION=3.4.2
 ENV VERTX_GROUPID=io.vertx 
 
 COPY install-vertx-dependencies.sh /tmp/
-
 RUN sudo chown user:user /tmp/install-vertx-dependencies.sh && \
     chmod +x /tmp/install-vertx-dependencies.sh && \
     scl enable rh-maven33 /tmp/install-vertx-dependencies.sh && \

@@ -16,7 +16,6 @@ ARG JUNIT_VERSION=4.12
 ENV SPRING_BOOT_GROUP=org.springframework.boot
 
 COPY install_spring_boot_dependencies.sh /tmp/
-
 RUN sudo chown user:user /tmp/install_spring_boot_dependencies.sh && \
     sudo chmod a+x /tmp/install_spring_boot_dependencies.sh && \
     scl enable rh-maven33 /tmp/install_spring_boot_dependencies.sh && \
