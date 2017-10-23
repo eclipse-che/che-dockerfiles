@@ -1,3 +1,0 @@
-#!/bin/bash
-cmd="$1"; shift
-exec $cmd "$@"
