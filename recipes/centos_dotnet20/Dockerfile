@@ -29,4 +29,17 @@ ENV LD_LIBRARY_PATH=/opt/rh/rh-nodejs6/root/usr/lib64${LD_LIBRARY_PATH:+:${LD_LI
 ENV PYTHONPATH=/opt/rh/rh-nodejs6/root/usr/lib/python2.7/site-packages${PYTHONPATH:+:${PYTHONPATH}}
 ENV MANPATH=/opt/rh/rh-nodejs6/root/usr/share/man:$MANPATH
 
+ARG OMNISHARP_CLIENT_VERSION=7.1.3
+ARG OMNISHARP_SERVER_VERSION=1.23.1
+RUN mkdir -p ${HOME}/che/ls-csharp && \
+   cd ${HOME}/che/ls-csharp && \
+   npm install omnisharp-client@${OMNISHARP_CLIENT_VERSION} && \
+   echo -e "#!/bin/sh\nnodejs ${HOME}/che/ls-csharp/node_modules/omnisharp-client/languageserver/server.js\n" > ./launch.sh && \
+   mkdir -p ${HOME}/che/ls-csharp/node_modules/omnisharp-client/omnisharp-linux-x64 && \
+   curl -sSL https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v${OMNISHARP_SERVER_VERSION}/omnisharp-linux-x64.tar.gz -o ${HOME}/che/ls-csharp/node_modules/omnisharp-client/omnisharp-linux-x64/omnisharp-linux-x64.tar.gz && \
+   tar -xzf ${HOME}/che/ls-csharp/node_modules/omnisharp-client/omnisharp-linux-x64/omnisharp-linux-x64.tar.gz -C ${HOME}/che/ls-csharp/node_modules/omnisharp-client/omnisharp-linux-x64 && \
+   rm ${HOME}/che/ls-csharp/node_modules/omnisharp-client/omnisharp-linux-x64/omnisharp-linux-x64.tar.gz && \
+   echo -e "v${OMNISHARP_SERVER_VERSION}" > ${HOME}/che/ls-csharp/node_modules/omnisharp-client/omnisharp-linux-x64/.version && \
+   chmod +x ./launch.sh
+
 EXPOSE 5000
