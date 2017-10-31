@@ -26,9 +26,11 @@ ENV WILDFLY_SHA1 c0dd7552c5207b0d116a9c25eb94d10b4f375549
 
 # Add the WildFly distribution to /opt, and make wildfly the owner of the extracted tar content
 # Make sure the distribution is available from a well-known place
-RUN cd /home/user \   
+RUN cd /home/user \
     && curl -O https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz && \
     tar xf wildfly-$WILDFLY_VERSION.tar.gz \
     && rm wildfly-$WILDFLY_VERSION.tar.gz && \
     sed -i 's/127.0.0.1/0.0.0.0/g' /home/user/wildfly-$WILDFLY_VERSION/standalone/configuration/standalone.xml && \
-    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc
+    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
+   sudo chgrp -R 0 /home/user/wildfly-$WILDFLY_VERSION && \
+   sudo chmod -R g+rwX /home/user/wildfly-$WILDFLY_VERSION
