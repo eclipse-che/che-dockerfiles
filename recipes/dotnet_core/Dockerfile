@@ -7,6 +7,8 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
+ENV OMISHARP_CLIENT_VERSION=7.1.3
+ENV CSHARP_LS_DIR=$HOME/che/ls-csharp
 RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
     curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > ~/microsoft.gpg && \
     sudo mv ~/microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg && \
@@ -20,6 +22,11 @@ RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
     mono-devel \
     nodejs && \
     sudo apt-get -y clean && \
-    sudo rm -rf /var/lib/apt/lists/*
+    sudo rm -rf /var/lib/apt/lists/* && \
+    mkdir -p $HOME/che/ls-csharp && \
+    echo "nodejs $HOME/che/ls-csharp/node_modules/omnisharp-client/languageserver/server.js" > $CSHARP_LS_DIR/launch.sh && \
+    chmod +x $CSHARP_LS_DIR/launch.sh && \
+    cd $CSHARP_LS_DIR && \
+    npm i omnisharp-client@$OMISHARP_CLIENT_VERSION
 EXPOSE 5000 9000
 CMD tail -f /dev/null
