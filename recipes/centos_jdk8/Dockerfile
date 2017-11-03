@@ -25,12 +25,16 @@ ENV MAVEN_OPTS=$JAVA_OPTS
 
 USER user
 
-RUN mkdir $HOME/.m2 && \
+ADD ./contrib/run.sh $HOME/run.sh
+
+RUN mkdir -p $HOME/.m2 && \
     mkdir /home/user/tomcat8 && \
     wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
     rm -rf /home/user/tomcat8/webapps/* && \
-    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc
+    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
+    sudo chmod a+x $HOME/run.sh
 
 ADD ./contrib/settings.xml $HOME/.m2/settings.xml
 
-ENV LANG C.UTF-8
+# override the default CMD form base image to allow configuring maven settings
+CMD ["sh","-c","${HOME}/run.sh"]
