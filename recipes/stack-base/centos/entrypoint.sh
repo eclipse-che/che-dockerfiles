@@ -29,9 +29,11 @@ fi
 
 if test "${USER_ID}" = 0; then
     # current user is root
+    /usr/bin/ssh-keygen -A
     /usr/sbin/sshd -D &
 elif sudo -n true > /dev/null 2>&1; then
     # current user is a suoder
+    sudo /usr/bin/ssh-keygen -A
     sudo /usr/sbin/sshd -D &
 fi
 
