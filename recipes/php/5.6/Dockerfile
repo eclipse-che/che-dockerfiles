@@ -25,6 +25,8 @@ RUN sudo apt-get update && \
     sudo sed -i 's/\/var\/www/\/projects/g'  /etc/apache2/apache2.conf && \
     echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf && \
     sudo a2enmod rewrite && \
+    sudo setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 && \
+    sudo chmod -R 777 /var/run/apache2 /var/lock/apache2 /var/log/apache2 && \
     curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
     sudo composer global require bamarni/symfony-console-autocomplete && \
     ~/.composer/vendor/bamarni/symfony-console-autocomplete/symfony-autocomplete --shell bash composer | sudo tee /etc/bash_completion.d/composer && \
