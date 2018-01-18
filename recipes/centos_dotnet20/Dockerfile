@@ -10,7 +10,7 @@ RUN sudo yum -y update && \
     sudo yum -y install centos-release-dotnet && \
     sudo yum -y install rh-dotnet20 && \
     sudo yum clean all && \
-    sudo ln -s /opt/rh/rh-dotnet20/root/usr/lib64/dotnet/sdk/2.0.0/Sdks/Microsoft.NET.Sdk/tools/netcoreapp1.0 /opt/rh/rh-dotnet20/root/usr/lib64/dotnet/sdk/2.0.0/Sdks/Microsoft.NET.Sdk/tools/net46
+    sudo ln -s /opt/rh/rh-dotnet20/root/usr/lib64/dotnet/sdk/2.0.3/Sdks/Microsoft.NET.Sdk/tools/netcoreapp1.0 /opt/rh/rh-dotnet20/root/usr/lib64/dotnet/sdk/2.0.3/Sdks/Microsoft.NET.Sdk/tools/net46
 
 ENV PATH=/opt/rh/rh-dotnet20/root/usr/bin:/opt/rh/rh-dotnet20/root/usr/sbin${PATH:+:${PATH}}
 ENV CPATH=/opt/rh/rh-dotnet20/root/usr/include${CPATH:+:${CPATH}}
