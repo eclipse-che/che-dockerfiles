@@ -11,7 +11,7 @@ MAINTAINER Dharmit Shah
 EXPOSE 8080
 LABEL che:server:8080:ref=wildfly che:server:8080:protocol=http
 
-ARG SWARM_VERSION=2017.10.0
+ARG SWARM_VERSION=2018.1.0
 
 COPY install-swarm-dependencies.sh /tmp/
 RUN sudo chown user:user /tmp/install-swarm-dependencies.sh && \
