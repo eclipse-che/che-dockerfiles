@@ -45,10 +45,12 @@ RUN sudo wget http://repos.zend.com/zend-server/9.0.2/deb_apache2.4/pool/zend-se
     sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php/7.0/mods-available/zenddebugger.ini' && \
     sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/cli/conf.d/90-zenddebugger.ini && \
     sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/apache2/conf.d/90-zenddebugger.ini && \
-    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini
+    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini && \
+    sudo setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 && \
+    sudo chmod -R 777 /var/run/apache2 /var/lock/apache2 /var/log/apache2
 
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
-    sudo chown -R user:user ~/.composer && \
+    sudo chown -R user:users ~/.composer && \
     composer global require bamarni/symfony-console-autocomplete && \
     ~/.composer/vendor/bamarni/symfony-console-autocomplete/symfony-autocomplete --shell bash composer | sudo tee /etc/bash_completion.d/composer && \
     sudo wget -qO /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && sudo chmod +x /usr/local/bin/phpunit && \
@@ -67,11 +69,12 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
     sudo mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'; FLUSH PRIVILEGES;" && \
     sudo mysql -uroot -e "CREATE DATABASE $CHE_MYSQL_DB;"
 
+# Install NodeJS to improve startup time when the JSON language server is enabled
+RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
+    sudo apt-get update && \
+    sudo apt-get install -y nodejs
+
 # label is used in Servers tab to display mapped port for Apache process on 80 port in the container
 LABEL che:server:80:ref=apache2 che:server:80:protocol=http
 
 EXPOSE 80 3306
-
-CMD sudo chown -R www-data:www-data /projects && \
-    sudo chmod -R 777 /projects && \
-    tail -f /dev/null

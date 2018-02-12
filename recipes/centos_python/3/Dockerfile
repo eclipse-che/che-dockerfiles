@@ -5,16 +5,10 @@
 # http://www.eclipse.org/legal/epl-v10.html
 
 FROM registry.centos.org/che-stacks/centos-stack-base
-EXPOSE 8080
 
-ENV GOPATH=/go \
-    PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
+MAINTAINER Dharmit Shah <dshah@redhat.com>
 
 RUN sudo yum -y update && \
-    sudo yum -y install gcc-c++ \
-           gcc \
-           glibc-devel \
-           make \
-           golang && \
-    sudo yum clean all && \
-    sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
+    sudo yum -y install centos-release-scl && \
+    sudo yum -y install rh-python35 && \
+    sudo yum clean all

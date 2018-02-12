@@ -17,7 +17,7 @@ ENV M2_HOME=/usr/lib/apache-maven-$MAVEN_VERSION
 ENV PATH=${PATH}:${M2_HOME}/bin
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    apk add --update curl ca-certificates bash openssh unzip openssl shadow && \
+    apk add --update sudo curl ca-certificates bash openssh unzip openssl shadow && \
     curl -sSL "https://${DOCKER_BUCKET}/builds/Linux/x86_64/docker-${DOCKER_VERSION}" -o /usr/bin/docker && \
     chmod +x /usr/bin/docker && \
     cd /tmp && \
@@ -36,6 +36,8 @@ EXPOSE 22 8000 8080
 USER user
 
 WORKDIR /projects
+
+COPY open-jdk-source-file-location /open-jdk-source-file-location
 
 CMD sudo /usr/bin/ssh-keygen -A && \
     sudo /usr/sbin/sshd -D && \

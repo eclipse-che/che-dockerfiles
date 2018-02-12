@@ -4,35 +4,17 @@
 # which accompanies this distribution, and is available at
 # http://www.eclipse.org/legal/epl-v10.html
 
-FROM registry.centos.org/centos/centos
+FROM registry.centos.org/che-stacks/centos-jdk8
 
 MAINTAINER Dharmit Shah
 
-ARG JAVA_VERSION=1.8.0
-ARG SWARM_VERSION=2017.6.0
+EXPOSE 8080
+LABEL che:server:8080:ref=wildfly che:server:8080:protocol=http
 
-ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION} \
-    M2_HOME=/opt/rh/rh-maven33/root/usr/share/maven
-
-RUN yum -y update && \
-    yum -y install wget sudo openssh-server centos-release-scl && \
-    yum -y install rh-maven33 java-${JAVA_VERSION}-openjdk-devel && \
-    yum clean all && \
-    sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
-    sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
-    echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    usermod -p "*" user && \
-    sed -i 's/requiretty/!requiretty/g' /etc/sudoers
+ARG SWARM_VERSION=2018.1.0
 
 COPY install-swarm-dependencies.sh /tmp/
-RUN chown user:user /tmp/install-swarm-dependencies.sh && \
-    chmod a+x /tmp/install-swarm-dependencies.sh
-USER user
-
-RUN scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
+RUN sudo chown user:user /tmp/install-swarm-dependencies.sh && \
+    chmod a+x /tmp/install-swarm-dependencies.sh && \
+    scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
     sudo rm -f /tmp/install-swarm-dependencies.sh
-
-EXPOSE 8080
-
-CMD tail -f /dev/null
