@@ -27,6 +27,12 @@ if ! grep -Fq "${USER_ID}" /etc/passwd; then
     sed "s/\${HOME}/\/home\/user/g" > /etc/group
 fi
 
+if ${CHE_INFRASTRUCTURE_ACTIVE} = "openshift"; then
+    if [ -f /var/run/secrets/kubernetes.io/serviceaccount/ca.crt ] && [ -f /etc/ssl/certs/java/cacerts]; then
+        keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -storepass changeit -keystore /etc/ssl/certs/java/cacerts -alias ocpcert
+    fi
+fi
+
 if test "${USER_ID}" = 0; then
     # current user is root
     /usr/sbin/sshd -D &
