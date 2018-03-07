@@ -17,8 +17,12 @@ RUN sudo apt-get update && \
     sudo apt-get -y clean && \
     sudo rm -rf /var/lib/apt/lists/* 
 
-RUN wget -qO- https://deb.nodesource.com/setup_7.x | sudo -E bash -
-RUN sudo apt update && sudo apt -y install nodejs
+RUN wget -qO- https://deb.nodesource.com/setup_8.x | sudo -E bash -
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+RUN sudo apt update && sudo apt -y install nodejs yarn
 
 EXPOSE 1337 3000 4200 5000 9000 8003
 RUN sudo npm install --unsafe-perm -g gulp bower grunt grunt-cli yeoman-generator yo generator-angular generator-karma generator-webapp
