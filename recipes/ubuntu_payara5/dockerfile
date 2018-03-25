@@ -1,0 +1,56 @@
+# Copyright (c) 2012-2016 Codenvy, S.A.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+# Contributors:
+# Codenvy, S.A. - initial API and implementation
+
+FROM eclipse/stack-base:ubuntu
+
+EXPOSE 4403 4848 8009 8080 8181 22
+
+LABEL che:server:8080:ref=payara che:server:4848:ref=payara-admin che:server:8080:protocol=http che:server:8009:ref=payara-debug che:server:8009:protocol=http
+
+ENV PAYARA_VERSION 5.181
+
+   ENV MAVEN_VERSION=3.5.3 \
+       JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 \
+       PAYARA_HOME=/home/user/payara5 \
+   	   TERM=xterm
+   ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION
+   ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
+
+   ENV ADMIN_USER admin
+   ENV ADMIN_PASSWORD admin
+
+# Download Maven & Payara5.181
+  RUN mkdir /home/user/payara5 /home/user/apache-maven-$MAVEN_VERSION && \
+    wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \
+    wget -qO- "https://s3-eu-west-1.amazonaws.com/payara.fish/Payara+Downloads/$PAYARA_VERSION/payara-$PAYARA_VERSION.tar.gz" | tar -zx --strip-components=1 -C /home/user/payara5 && \
+    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
+    sudo chgrp -R 0 ~/payara5 && \
+    sudo chmod -R g+rwX ~/payara5
+
+	# Configuration USER and PASSWORD
+    RUN echo 'AS_ADMIN_PASSWORD=\n\
+	AS_ADMIN_NEWPASSWORD='${ADMIN_PASSWORD}'\n\
+	EOF\n'\ >> /home/user/tmpfile
+
+	RUN echo 'AS_ADMIN_PASSWORD='${ADMIN_PASSWORD}'\n\
+	EOF\n'\ >> /home/user/pwdfile
+
+ # domain1
+	RUN ${PAYARA_HOME}/bin/asadmin --user ${ADMIN_USER} --passwordfile=/home/user/tmpfile change-admin-password && \
+ 		${PAYARA_HOME}/bin/asadmin start-domain domain1 && \
+ 		${PAYARA_HOME}/bin/asadmin --user ${ADMIN_USER} --passwordfile=/home/user/pwdfile enable-secure-admin && \
+ 		${PAYARA_HOME}/bin/asadmin stop-domain domain1 && \
+ rm -rf ${PAYARA_HOME}/glassfish/domains/domain1/osgi-cache
+
+ # production domain
+	RUN \
+		${PAYARA_HOME}/bin/asadmin --user ${ADMIN_USER} --passwordfile=/home/user/tmpfile change-admin-password --domain_name=production && \
+ 		${PAYARA_HOME}/bin/asadmin start-domain production && \
+ 		${PAYARA_HOME}/bin/asadmin --user ${ADMIN_USER} --passwordfile=/home/user/pwdfile enable-secure-admin && \
+ 		${PAYARA_HOME}/bin/asadmin stop-domain production && \
+ rm -rf ${PAYARA_PATH}/glassfish/domains/production/osgi-cache
