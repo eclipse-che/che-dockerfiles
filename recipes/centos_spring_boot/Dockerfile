@@ -19,4 +19,6 @@ COPY install_spring_boot_dependencies.sh /tmp/
 RUN sudo chown user:user /tmp/install_spring_boot_dependencies.sh && \
     sudo chmod a+x /tmp/install_spring_boot_dependencies.sh && \
     scl enable rh-maven33 /tmp/install_spring_boot_dependencies.sh && \
-    sudo rm -f /tmp/install_spring_boot_dependencies.sh
+    sudo rm -f /tmp/install_spring_boot_dependencies.sh && \
+    sudo chgrp -R 0 /home/user && \
+    sudo chmod -R g+rwX /home/user
