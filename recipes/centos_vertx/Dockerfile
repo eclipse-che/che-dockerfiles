@@ -9,7 +9,8 @@ FROM registry.centos.org/che-stacks/centos-jdk8
 EXPOSE 8080 5005
 LABEL che:server:8080:ref=vertx che:server:8080:protocol=http che:server:5005:ref=vertx-debug che:server:5005:protocol=http
 
-MAINTAINER Clement Escoffier
+ARG JAVA_VERSION=1.8.0
+ARG VERTX_VERSION=3.5.1
 
 ARG VERTX_VERSION=3.4.2
 

@@ -39,6 +39,7 @@ install $VERTX_GROUPID:vertx-redis-client:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-config:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-mongo-client:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-rx-java:$VERTX_VERSION
+install $VERTX_GROUPID:vertx-rx-java2:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-dropwizard-metrics:$VERTX_VERSION
 install $VERTX_GROUPID:vertx-unit:$VERTX_VERSION
 install org.slf4j:slf4j-api:1.7.25
