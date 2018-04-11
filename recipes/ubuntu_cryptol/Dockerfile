@@ -27,4 +27,9 @@ RUN curl -LO https://bitbucket.org/alanmi/abc/get/77d52065fd97.zip \
 	&& make \
 	&& sudo ln -s /home/user/alanmi-abc-77d52065fd97/abc /usr/local/bin/abc
 
+# Install cryptol
+RUN curl -LO https://github.com/GaloisInc/saw-script/releases/download/v0.2/saw-0.2-2016-04-12-Ubuntu14.04-64.tar.gz \
+	&& tar -xzf saw-0.2-2016-04-12-Ubuntu14.04-64.tar.gz \
+	&& sudo ln -s /home/user/saw-0.2-2016-04-12-Ubuntu14.04-64/bin/saw /usr/local/bin/saw
+
 WORKDIR /projects
