@@ -7,6 +7,7 @@ RUN sudo apt-get update \
 		make \
 		libreadline-dev \
 		haskell-platform \
+		clang \
 	&& sudo apt-get clean
 
 WORKDIR /home/user
