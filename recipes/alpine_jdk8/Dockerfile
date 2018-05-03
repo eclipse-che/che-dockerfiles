@@ -29,7 +29,9 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community" >> /etc/apk/reposit
     adduser -S user -h /home/user -s /bin/bash -G root -u 1000 && \
     echo "%root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     usermod -p "*" user && \
-    chown -R user /home/user/
+    chown -R user /home/user/ && \
+    mkdir -p /home/user/.m2 && \
+    mkdir -p /home/user/jdtls/data
 
 EXPOSE 22 8000 8080
 

@@ -16,4 +16,6 @@ RUN mkdir /home/user/tomcat8 /home/user/apache-maven-$MAVEN_VERSION && \
     rm -rf /home/user/tomcat8/webapps/* && \
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
     sudo chgrp -R 0 ~/tomcat8 && \
-    sudo chmod -R g+rwX ~/tomcat8
+    sudo chmod -R g+rwX ~/tomcat8 && \
+    mkdir -p /home/user/.m2 && \
+    mkdir -p /home/user/jdtls/data
