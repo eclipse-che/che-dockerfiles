@@ -33,7 +33,11 @@ RUN mkdir -p $HOME/.m2 && \
     rm -rf /home/user/tomcat8/webapps/* && \
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
     sudo chmod a+x $HOME/run.sh && \
-    mkdir -p /home/user/jdtls/data
+    mkdir -p /home/user/jdtls/data && \
+    chgrp -R 0 /home/user/.m2 && \
+    chgrp -R 0 /home/user/jdtls && \
+    chmod -R g+w /home/user/.m2 && \
+    chmod -R g+w /home/user/jdtls
 
 ADD ./contrib/settings.xml $HOME/.m2/settings.xml
 

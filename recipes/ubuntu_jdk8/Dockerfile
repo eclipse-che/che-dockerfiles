@@ -18,4 +18,8 @@ RUN mkdir /home/user/tomcat8 /home/user/apache-maven-$MAVEN_VERSION && \
     sudo chgrp -R 0 ~/tomcat8 && \
     sudo chmod -R g+rwX ~/tomcat8 && \
     mkdir -p /home/user/.m2 && \
-    mkdir -p /home/user/jdtls/data
+    mkdir -p /home/user/jdtls/data && \
+    chgrp -R 0 /home/user/.m2 && \
+    chgrp -R 0 /home/user/jdtls && \
+    chmod -R g+w /home/user/.m2 && \
+    chmod -R g+w /home/user/jdtls
