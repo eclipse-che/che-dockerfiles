@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV CHE_MYSQL_PASSWORD=che
 ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
-
+ENV PHP_LS_VERSION=5.4.1
 # install php with a set of most widely used extensions
 RUN sudo apt-get update && \
     sudo apt-get install -y \
@@ -73,6 +73,16 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
 RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
     sudo apt-get update && \
     sudo apt-get install -y nodejs
+
+# install language server
+
+RUN mkdir -p ${HOME}/che/ls-php/php-language-server && \
+    cd ${HOME}/che/ls-php/php-language-server && \
+    composer require jetbrains/phpstorm-stubs:dev-master && \
+    composer require felixfbecker/language-server:${PHP_LS_VERSION} && \
+    composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs && \
+    mv  vendor/* . && \
+    rm -rf vendor
 
 # label is used in Servers tab to display mapped port for Apache process on 80 port in the container
 LABEL che:server:80:ref=apache2 che:server:80:protocol=http
