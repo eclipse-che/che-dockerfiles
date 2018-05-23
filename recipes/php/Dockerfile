@@ -82,7 +82,10 @@ RUN mkdir -p ${HOME}/che/ls-php/php-language-server && \
     composer require felixfbecker/language-server:${PHP_LS_VERSION} && \
     composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs && \
     mv  vendor/* . && \
-    rm -rf vendor
+    rm -rf vendor && \
+    sudo chgrp -R 0 ${HOME}/che && \
+    sudo chmod -R g+rwX ${HOME}/che
+
 
 # label is used in Servers tab to display mapped port for Apache process on 80 port in the container
 LABEL che:server:80:ref=apache2 che:server:80:protocol=http
