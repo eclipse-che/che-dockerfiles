@@ -94,8 +94,8 @@ RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/feat
     unzip -q google_appengine_${GAE_VERSION}.zip && \
     rm google_appengine_${GAE_VERSION}.zip && \
     for f in "/home/user/google_appengine"; do \
-    sudo chgrp -R 0 ${f} && \
-    sudo chmod -R g+rwX ${f}; \
+      sudo chgrp -R 0 ${f} && \
+      sudo chmod -R g+rwX ${f}; \
     done
 EXPOSE 8080 8000
 
