@@ -16,7 +16,9 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 RUN sudo curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz \
     && sudo tar -C /usr/local -xzf golang.tar.gz \
     && sudo rm golang.tar.gz && \
-    sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH" && \
+    sudo mkdir -p /projects/.che && \
+    sudo chmod -R 777 /projects && \
+    export GOPATH=/tmp/gopath && \
     go get -v github.com/nsf/gocode && \
     go get -v github.com/uudashr/gopkgs/cmd/gopkgs && \
     go get -v github.com/ramya-rao-a/go-outline && \
@@ -39,8 +41,13 @@ RUN sudo curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz \
     go get -v github.com/sourcegraph/go-langserver && \
     go get -v github.com/derekparker/delve/cmd/dlv && \
     mkdir -p ${HOME}/che/ls-golang && \
+    echo "if [ ! -d "/projects/.che/src" ]; then\necho "Copying GO LS Deps"\nmkdir -p /projects/.che\n cp -R /tmp/gopath/* /projects/.che/\nfi" > ${HOME}/gopath.sh && \
+    chmod +x ${HOME}/gopath.sh && \
     cd ${HOME}/che/ls-golang && \
     npm i go-language-server@${GOLANG_LS_VERSION} && \
-    sudo chgrp -R 0 ${HOME}/che && \
-    sudo chmod -R g+rwX ${HOME}/che
+    for f in "${HOME}/che" "${HOME}/.cache"; do \
+        sudo chgrp -R 0 ${f} && \
+        sudo chmod -R g+rwX ${f}; \
+    done
 EXPOSE 8080
+CMD ${HOME}/gopath.sh & tail -f /dev/null
