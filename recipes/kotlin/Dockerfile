@@ -7,7 +7,7 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
-ENV KOTLIN_VERSION=1.1.3 \
+ENV KOTLIN_VERSION="1.2.50-eap-62" \
     KOTLIN_HOME=/usr/share/kotlin
 RUN cd /tmp && \
     sudo wget "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip" && \

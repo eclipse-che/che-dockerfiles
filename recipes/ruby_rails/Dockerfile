@@ -7,11 +7,12 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
-ENV RAILS_VERSION 4.2.6
-ENV RUBY_MAJOR 2.3
-ENV RUBY_VERSION 2.3.0
-ENV RUBY_DOWNLOAD_SHA256 ba5ba60e5f1aa21b4ef8e9bf35b9ddb57286cb546aac4b5a28c71f459467e507
-ENV RUBYGEMS_VERSION 2.6.2
+ENV RAILS_VERSION 5.0.1
+ENV RUBY_MAJOR 2.4
+ENV RUBY_VERSION 2.4.4
+ENV RUBY_DOWNLOAD_SHA256 1d0034071d675193ca769f64c91827e5f54cb3a7962316a41d5217c7bc6949f0
+ENV RUBYGEMS_VERSION 2.7.7
+ENV BUNDLER_VERSION 1.16.2
 
 USER root
 # skip installing gem documentation
@@ -29,19 +30,19 @@ RUN set -ex \
 	ruby \
     ' \
     && sudo apt-get update \
-    && sudo apt-get install -y --no-install-recommends make gcc zlib1g-dev autoconf build-essential libssl-dev libsqlite3-dev $buildDeps \
+    && sudo apt-get install -y --no-install-recommends make gcc zlib1g-dev autoconf build-essential libssl-dev libsqlite3-dev $buildDeps tzdata \
     && sudo rm -rf /var/lib/apt/lists/* \
-    && sudo curl -fSL -o ruby.tar.gz "http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR/ruby-$RUBY_VERSION.tar.gz" \
-    && echo "$RUBY_DOWNLOAD_SHA256 *ruby.tar.gz" | sha256sum -c - \
+    && sudo curl -fSL -o ruby.tar.xz "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" \
+    && echo "$RUBY_DOWNLOAD_SHA256 *ruby.tar.xz" | sha256sum -c - \
     && sudo mkdir -p /usr/src/ruby \
-    && sudo tar -xzf ruby.tar.gz -C /usr/src/ruby --strip-components=1 \
-    && sudo rm ruby.tar.gz 
+    && sudo tar -xJf ruby.tar.xz -C /usr/src/ruby --strip-components=1 \
+    && sudo rm ruby.tar.xz
 
 USER root
 RUN cd /usr/src/ruby \
     && { sudo echo '#define ENABLE_PATH_CHECK 0'; echo; cat file.c; } > file.c.new && mv file.c.new file.c \
     && autoconf \
-    && ./configure --disable-install-doc 
+    && ./configure --disable-install-doc
 USER user
 
 RUN cd /usr/src/ruby \
@@ -54,7 +55,7 @@ RUN cd /usr/src/ruby \
 
 ENV BUNDLER_VERSION 1.11.2
 
-RUN sudo gem install bundler --version "$BUNDLER_VERSION"
+RUN sudo gem install bundler --version "$BUNDLER_VERSION" --force
 
 # install things globally, for great justice
 # and don't create ".bundle" in all our apps
@@ -74,4 +75,4 @@ RUN sudo apt-get update && sudo apt-get install -y mysql-client postgresql-clien
 
 RUN sudo gem install rails --version "$RAILS_VERSION"
 
-EXPOSE 3000
+EXPOSE 3000 5000 8000 8080 9000
