@@ -17,4 +17,6 @@ COPY install-swarm-dependencies.sh /tmp/
 RUN sudo chown user:user /tmp/install-swarm-dependencies.sh && \
     chmod a+x /tmp/install-swarm-dependencies.sh && \
     scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
-    sudo rm -f /tmp/install-swarm-dependencies.sh
+    sudo rm -f /tmp/install-swarm-dependencies.sh && \
+    sudo chgrp -R 0 /home/user && \
+    sudo chmod -R g+rwX /home/user
