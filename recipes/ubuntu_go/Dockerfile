@@ -41,7 +41,7 @@ RUN sudo curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz \
     go get -v github.com/sourcegraph/go-langserver && \
     go get -v github.com/derekparker/delve/cmd/dlv && \
     mkdir -p ${HOME}/che/ls-golang && \
-    echo "if [ ! -d "/projects/.che/src" ]; then\necho "Copying GO LS Deps"\nmkdir -p /projects/.che\n cp -R /tmp/gopath/* /projects/.che/\nfi" > ${HOME}/gopath.sh && \
+    echo "unset SUDO\nif sudo -n true > /dev/null 2>&1; then\nexport SUDO="sudo"\nfi\n if [ ! -d "/projects/.che/src" ]; then\necho "Copying GO LS Deps"\n\${SUDO} mkdir -p /projects/.che\n \${SUDO} cp -R /tmp/gopath/* /projects/.che/\nfi" > ${HOME}/gopath.sh && \
     chmod +x ${HOME}/gopath.sh && \
     cd ${HOME}/che/ls-golang && \
     npm i go-language-server@${GOLANG_LS_VERSION} && \
