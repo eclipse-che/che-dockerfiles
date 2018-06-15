@@ -35,6 +35,9 @@ RUN mkdir -p $HOME/.m2 && \
     sudo chmod a+x $HOME/run.sh
 
 ADD ./contrib/settings.xml $HOME/.m2/settings.xml
+RUN sudo chgrp -R 0 /home/user && \
+    sudo chmod -R g+rwX /home/user
+
 
 # override the default CMD form base image to allow configuring maven settings
 CMD ["sh","-c","${HOME}/run.sh"]
