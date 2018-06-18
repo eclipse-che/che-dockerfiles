@@ -48,4 +48,6 @@ RUN echo "downloading Dart distribution ..." \
 ENV PATH $PATH:$CEYLON_HOME/bin:$DART_HOME/bin
 
 RUN ceylon plugin install --force com.vasileff.ceylon.dart.cli/1.3.2-DP4 \
-    && ceylon install-dart --out +USER
+    && ceylon install-dart --out +USER && \
+    sudo chgrp -R 0 ${HOME}/dart && \
+    sudo chmod -R g+rwX ${HOME}/dart
