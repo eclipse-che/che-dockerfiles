@@ -30,7 +30,8 @@ RUN yum -y update && \
     sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
     sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
     echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
+    # Adding user to the 'root' is a workaround for https://issues.jboss.org/browse/CDK-305
+    useradd -u 1000 -G users,wheel,root -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
     sed -i 's/requiretty/!requiretty/g' /etc/sudoers
 
