@@ -29,7 +29,8 @@ RUN echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/s
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,sudo -d /home/user --shell /bin/bash -m user && \
+    # Adding user to the 'root' is a workaround for https://issues.jboss.org/browse/CDK-305
+    useradd -u 1000 -G users,sudo,root -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
     sudo echo -e "deb http://ppa.launchpad.net/git-core/ppa/ubuntu precise main\ndeb-src http://ppa.launchpad.net/git-core/ppa/ubuntu precise main" >> /etc/apt/sources.list.d/sources.list && \
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A1715D88E1DF1F24 && \
