@@ -7,26 +7,24 @@
 # Codenvy, S.A. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
-ENV OMISHARP_CLIENT_VERSION=7.1.3
-ENV CSHARP_LS_DIR=$HOME/che/ls-csharp
+ENV OMISHARP_VERSION="1.31.1"
+ENV OMNISHARP_DOWNLOAD_URL="https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v${OMISHARP_VERSION}/omnisharp-linux-x64.tar.gz"
+ENV CSHARP_LS_DIR=${HOME}/che/ls-csharp
 RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
     curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > ~/microsoft.gpg && \
     sudo mv ~/microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg && \
     sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-xenial-prod xenial main" > /etc/apt/sources.list.d/dotnetdev.list' && \
-    wget -qO- https://deb.nodesource.com/setup_7.x | sudo -E bash - && \
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
-    echo "deb http://download.mono-project.com/repo/ubuntu beta-xenial main" | sudo tee /etc/apt/sources.list.d/mono-official-beta.list && \
     sudo apt-get update && \
     sudo apt-get install -y \
-    dotnet-sdk-2.0.0 \
-    mono-devel \
-    nodejs && \
+    dotnet-sdk-2.0.0 && \
     sudo apt-get -y clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    mkdir -p $HOME/che/ls-csharp && \
-    echo "nodejs $HOME/che/ls-csharp/node_modules/omnisharp-client/languageserver/server.js" > $CSHARP_LS_DIR/launch.sh && \
-    chmod +x $CSHARP_LS_DIR/launch.sh && \
-    cd $CSHARP_LS_DIR && \
-    npm i omnisharp-client@$OMISHARP_CLIENT_VERSION
+    mkdir -p ${CSHARP_LS_DIR}
+
+RUN cd ${CSHARP_LS_DIR} && wget https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v1.31.1/omnisharp-linux-x64.tar.gz && \
+    tar -xvf omnisharp-linux-x64.tar.gz --strip 1 && \
+    sudo chgrp -R 0 ${CSHARP_LS_DIR} && \
+    sudo chmod -R g+rwX ${CSHARP_LS_DIR}
 EXPOSE 5000 9000
 CMD tail -f /dev/null
