@@ -36,5 +36,5 @@ RUN cd /home/user \
     sudo chmod -R g+rwX /home/user/wildfly-$WILDFLY_VERSION && \
     mkdir -p /home/user/.m2 && \
     mkdir -p /home/user/jdtls/data && \
-    chgrp -R 0 /home/user && \
+    chown -R 0 /home/user && \
     chmod -R g+w /home/user

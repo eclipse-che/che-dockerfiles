@@ -34,9 +34,9 @@ RUN mkdir -p $HOME/.m2 && \
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
     sudo chmod a+x $HOME/run.sh && \
     mkdir -p /home/user/jdtls/data && \
-    chgrp -R 0 /home/user && \
+    chown -R 0 /home/user && \
     chmod -R g+w /home/user
-
+    
 ADD ./contrib/settings.xml $HOME/.m2/settings.xml
 
 # override the default CMD form base image to allow configuring maven settings

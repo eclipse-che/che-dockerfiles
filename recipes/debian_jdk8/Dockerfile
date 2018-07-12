@@ -28,5 +28,5 @@ RUN wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
     mkdir -p /home/user/.m2 && \
     mkdir -p /home/user/jdtls/data && \
-    chgrp -R 0 /home/user && \
+    chown -R 0 /home/user && \
     chmod -R g+w /home/user
