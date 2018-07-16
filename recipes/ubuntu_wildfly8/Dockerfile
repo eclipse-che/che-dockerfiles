@@ -31,10 +31,7 @@ RUN cd /home/user \
     tar xf wildfly-$WILDFLY_VERSION.tar.gz \
     && rm wildfly-$WILDFLY_VERSION.tar.gz && \
     sed -i 's/127.0.0.1/0.0.0.0/g' /home/user/wildfly-$WILDFLY_VERSION/standalone/configuration/standalone.xml && \
-    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
-    sudo chgrp -R 0 /home/user/wildfly-$WILDFLY_VERSION && \
-    sudo chmod -R g+rwX /home/user/wildfly-$WILDFLY_VERSION && \
-    mkdir -p /home/user/.m2 && \
-    mkdir -p /home/user/jdtls/data && \
-    chown -R 0 /home/user && \
-    chmod -R g+w /home/user
+    sudo mkdir -p /home/user/.m2 && \
+    sudo mkdir -p /home/user/jdtls/data && \
+    sudo chown -R 0 /home/user && \
+    sudo chmod -R g+w /home/user
