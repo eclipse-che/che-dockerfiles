@@ -36,5 +36,9 @@ EXPOSE 22 4403
 ADD rsync.sh /usr/local/bin/rsync.sh
 RUN chmod +x /usr/local/bin/rsync.sh
 ENTRYPOINT ["/root/entrypoint.sh"]
+RUN mkdir -p /home/user/.m2 && \
+    mkdir -p /home/user/jdtls/data && \
+    chown -R 0 /home/user && \
+    chmod -R g+w /home/user
 WORKDIR /projects
 CMD tail -f /dev/null

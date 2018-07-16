@@ -32,8 +32,11 @@ RUN mkdir -p $HOME/.m2 && \
     wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
     rm -rf /home/user/tomcat8/webapps/* && \
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
-    sudo chmod a+x $HOME/run.sh
-
+    sudo chmod a+x $HOME/run.sh && \
+    mkdir -p /home/user/jdtls/data && \
+    chown -R 0 /home/user && \
+    chmod -R g+w /home/user
+    
 ADD ./contrib/settings.xml $HOME/.m2/settings.xml
 RUN sudo chgrp -R 0 /home/user && \
     sudo chmod -R g+rwX /home/user
