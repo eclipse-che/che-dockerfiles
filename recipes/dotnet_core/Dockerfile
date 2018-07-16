@@ -24,7 +24,7 @@ RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
 
 RUN cd ${CSHARP_LS_DIR} && wget https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v1.31.1/omnisharp-linux-x64.tar.gz && \
     tar -xvf omnisharp-linux-x64.tar.gz --strip 1 && \
-    sudo chgrp -R 0 ${CSHARP_LS_DIR} && \
-    sudo chmod -R g+rwX ${CSHARP_LS_DIR}
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}
 EXPOSE 5000 9000
 CMD tail -f /dev/null
