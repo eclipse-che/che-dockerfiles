@@ -33,5 +33,5 @@ RUN cd /home/user \
     sed -i 's/127.0.0.1/0.0.0.0/g' /home/user/wildfly-$WILDFLY_VERSION/standalone/configuration/standalone.xml && \
     sudo mkdir -p /home/user/.m2 && \
     sudo mkdir -p /home/user/jdtls/data && \
-    sudo chown -R 0 /home/user && \
-    sudo chmod -R g+w /home/user
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}

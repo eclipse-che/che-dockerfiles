@@ -32,8 +32,8 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community" >> /etc/apk/reposit
     sudo chown -R user /home/user/ && \
     sudo mkdir -p /home/user/.m2 && \
     sudo mkdir -p /home/user/jdtls/data && \
-    sudo chown -R 0 /home/user && \
-    sudo chmod -R g+w /home/user
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}
 
 EXPOSE 22 8000 8080
 
