@@ -34,8 +34,8 @@ RUN mkdir -p $HOME/.m2 && \
     echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc && \
     sudo chmod a+x $HOME/run.sh && \
     sudo mkdir -p /home/user/jdtls/data && \
-    sudo chown -R 0 /home/user && \
-    sudo chmod -R g+w /home/user
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}
 
 ADD ./contrib/settings.xml $HOME/.m2/settings.xml
 RUN sudo chgrp -R 0 /home/user && \
