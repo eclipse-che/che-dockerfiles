@@ -16,5 +16,5 @@ RUN mkdir /home/user/tomcat8 /home/user/apache-maven-$MAVEN_VERSION && \
     rm -rf /home/user/tomcat8/webapps/* && \
     sudo mkdir -p /home/user/.m2 && \
     sudo mkdir -p /home/user/jdtls/data && \
-    sudo chown -R 0 /home/user && \
-    sudo chmod -R g+w /home/user
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}
