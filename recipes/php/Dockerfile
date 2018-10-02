@@ -10,17 +10,16 @@
 
 FROM eclipse/stack-base:ubuntu
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 ENV CHE_MYSQL_PASSWORD=che
 ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
 ENV PHP_LS_VERSION=5.4.1
 # install php with a set of most widely used extensions
-RUN sudo apt-get update && \
-    sudo apt-get install -y \
+RUN sudo DEBIAN_FRONTEND=noninteractive apt-get update && \
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
     apache2 \
     php \
-    php-mcrypt \
     php-curl \
     php-mysql \
     php-gd \
@@ -40,14 +39,14 @@ RUN sudo sed -i 's/\/var\/www\/html/\/projects/g'  /etc/apache2/sites-available/
     sudo a2enmod rewrite
 
 # Install the Zend Debugger php module
-RUN sudo wget http://repos.zend.com/zend-server/9.0.2/deb_apache2.4/pool/zend-server-php-7.0-common_9.0.2+b174_amd64.deb && \
-    dpkg-deb --fsys-tarfile zend-server-php-7.0-common_9.0.2+b174_amd64.deb | sudo tar -xf - --strip-components=7 ./usr/local/zend/lib/debugger/php-7.0.x/ZendDebugger.so && \
-    sudo rm zend-server-php-7.0-common_9.0.2+b174_amd64.deb && \
-    sudo mv ZendDebugger.so /usr/lib/php/20151012 && \
-    sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php/7.0/mods-available/zenddebugger.ini' && \
-    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/cli/conf.d/90-zenddebugger.ini && \
-    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/apache2/conf.d/90-zenddebugger.ini && \
-    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini && \
+RUN sudo wget http://repos.zend.com/zend-server/2018.0/deb_apache2.4/pool/zend-server-php-7.2-common_2018.0.0+b464_amd64.deb && \
+    dpkg-deb --fsys-tarfile zend-server-php-7.2-common_2018.0.0+b464_amd64.deb | sudo tar -xf - --strip-components=7 ./usr/local/zend/lib/debugger/php-7.2.x/ZendDebugger.so && \
+    sudo rm zend-server-php-7.2-common_2018.0.0+b464_amd64.deb && \
+    sudo mv ZendDebugger.so /usr/lib/php/20170718 && \
+    sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php/7.2/mods-available/zenddebugger.ini' && \
+    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.2/cli/conf.d/90-zenddebugger.ini && \
+    sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.2/apache2/conf.d/90-zenddebugger.ini && \
+    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.2/apache2/php.ini && \
     sudo setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 && \
     sudo chmod -R 777 /var/run/apache2 /var/lock/apache2 /var/log/apache2
 
