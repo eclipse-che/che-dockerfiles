@@ -16,7 +16,7 @@ ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
 ENV PHP_LS_VERSION=5.4.1
 # install php with a set of most widely used extensions
-RUN sudo DEBIAN_FRONTEND=noninteractive apt-get update && \
+RUN sudo apt-get update && \
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
     apache2 \
     php \

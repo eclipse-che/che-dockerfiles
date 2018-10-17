@@ -11,7 +11,7 @@
 FROM eclipse/ubuntu_jdk8
 
 RUN sudo apt-get update && \
-    sudo apt-get install -y --no-install-recommends supervisor x11vnc xvfb net-tools blackbox rxvt-unicode xfonts-terminus libxi6 libgconf-2-4
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends supervisor x11vnc xvfb net-tools blackbox rxvt-unicode xfonts-terminus libxi6 libgconf-2-4
 
 # download and install noVNC
 

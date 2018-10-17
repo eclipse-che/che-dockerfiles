@@ -26,7 +26,7 @@ RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/so
 USER user
 
 RUN sudo apt-get update -qqy && \
-  sudo apt-get -qqy install \
+  sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
   google-chrome-stable \
   supervisor \
   x11vnc \
