@@ -9,8 +9,8 @@
 #   Red Hat, Inc. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
-ENV OMISHARP_VERSION="1.31.1"
-ENV OMNISHARP_DOWNLOAD_URL="https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v${OMISHARP_VERSION}/omnisharp-linux-x64.tar.gz"
+ENV OMNISHARP_VERSION="1.32.6"
+ENV OMNISHARP_DOWNLOAD_URL="https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v${OMNISHARP_VERSION}/omnisharp-linux-x64.tar.gz"
 ENV CSHARP_LS_DIR=${HOME}/che/ls-csharp
 RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
     curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > ~/microsoft.gpg && \
@@ -19,7 +19,7 @@ RUN sudo apt-get update && sudo apt-get install apt-transport-https -y && \
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
     sudo apt-get update && \
     sudo apt-get install -y \
-    dotnet-sdk-2.0.0 && \
+    dotnet-sdk-2.1 && \
     sudo apt-get -y clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
     mkdir -p ${CSHARP_LS_DIR}
