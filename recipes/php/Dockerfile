@@ -87,18 +87,10 @@ RUN mkdir -p ${HOME}/che/ls-php/php-language-server && \
     rm -rf vendor && \
     sudo chgrp -R 0 ${HOME}/che && \
     sudo chmod -R g+rwX ${HOME}/che
-ENV GAE_VERSION="1.9.70"
 RUN sudo apt-get update && \
     sudo apt-get install --no-install-recommends -y -q build-essential python2.7 python2.7-dev python-pip php-bcmath && \
     sudo pip install -U pip && \
     sudo pip install virtualenv
-RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/featured/google_appengine_${GAE_VERSION}.zip && \
-    unzip -q google_appengine_${GAE_VERSION}.zip && \
-    rm google_appengine_${GAE_VERSION}.zip && \
-    for f in "/home/user/google_appengine"; do \
-      sudo chgrp -R 0 ${f} && \
-      sudo chmod -R g+rwX ${f}; \
-    done
 EXPOSE 8080 8000
 
 # label is used in Servers tab to display mapped port for Apache process on 80 port in the container
