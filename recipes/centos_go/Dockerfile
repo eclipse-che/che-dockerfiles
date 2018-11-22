@@ -17,11 +17,10 @@ RUN sudo yum -y update && \
            golang && \
     sudo yum clean all
 
-ENV GOPATH /projects/.che
+ENV GOPATH /projects/go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
-RUN sudo mkdir -p /projects/.che && \
+RUN sudo mkdir -p /projects/go && \
     sudo chmod -R 777 /projects && \
-    export GOPATH=/tmp/gopath && \
     go get -v github.com/nsf/gocode && \
     go get -v github.com/uudashr/gopkgs/cmd/gopkgs && \
     go get -v github.com/ramya-rao-a/go-outline && \
@@ -44,7 +43,7 @@ RUN sudo mkdir -p /projects/.che && \
     go get -v github.com/sourcegraph/go-langserver && \
     go get -v github.com/derekparker/delve/cmd/dlv && \
     mkdir -p ${HOME}/che/ls-golang && \
-    echo -e "unset SUDO\nif sudo -n true > /dev/null 2>&1; then\nexport SUDO="sudo"\nfi\n if [ ! -d "/projects/.che/src" ]; then\necho "Copying GO LS Deps"\n\${SUDO} mkdir -p /projects/.che\n \${SUDO} cp -R /tmp/gopath/* /projects/.che/\nfi" > ${HOME}/gopath.sh && \
+    echo -e "unset SUDO\nif sudo -n true > /dev/null 2>&1; then\nexport SUDO="sudo"\nfi\n if [ ! -d "/projects/go/src" ]; then\necho "Copying GO LS Deps"\n\${SUDO} mkdir -p /projects/go\n \${SUDO} cp -R /tmp/gopath/* /projects/go/\nfi" > ${HOME}/gopath.sh && \
     chmod +x ${HOME}/gopath.sh && \
     cd ${HOME}/che/ls-golang && \
     npm i go-language-server@${GOLANG_LS_VERSION} && \
@@ -52,5 +51,9 @@ RUN sudo mkdir -p /projects/.che && \
         sudo chgrp -R 0 ${f} && \
         sudo chmod -R g+rwX ${f}; \
     done
+
+# Install "dep" package manager
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
 EXPOSE 8080
 CMD ${HOME}/gopath.sh & tail -f /dev/null
