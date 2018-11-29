@@ -1,43 +1,35 @@
-cd $(pwd)/recipes/stack-base/debian
+#!/bin/bash
 
-docker build -t eclipse/stack-base:debian .
-cd ../../..
-cd $(pwd)/recipes/stack-base/ubuntu
-docker build -t eclipse/stack-base:ubuntu .
-cd ../../..
-cd $(pwd)/recipes/debian_jdk8
-docker build -t eclipse/debian_jdk8 .
-cd ../..
-cd $(pwd)/recipes/ubuntu_jdk8
-docker build -t eclipse/ubuntu_jdk8 .
-cd ../..
-cd $(pwd)/recipes/ubuntu_python/2.7
-docker build -t eclipse/ubuntu_python:2.7 .
+PRIVATE_REPO=${PRIVATE_REPO:-}
 
-cd ../..
-dir=$(find . -maxdepth 3 -mindepth 1 -type d -not -path '*/\.*' -exec bash -c 'cd "$0" && pwd' {} \;)
+images=$(for i in $(find recipes -maxdepth 3 -mindepth 1 -type f -not -path '*/\.*' -name Dockerfile -print ); do a=${i#recipes/}; b=${a%/Dockerfile}; case $b in */*) c=${b/\//:};; *) c=$b:latest;; esac; from=$(grep FROM $i); echo ${from#FROM} eclipse/$c; done | tsort)
 
-for d in $dir
-    do
-	IMAGE=$(echo $d | sed 's/.*recipes\///' | awk -F'/' '{print $1}')
-	TAG=$(echo $d | sed 's/.*recipes\///' | awk -F'/' '{print $2}')
-	    if [ -n "$TAG" ]; then
-	    TAG=$TAG
-	    else
-	    TAG="latest"
-	fi
-	    cd $d
-	if [ ! -f $d/Dockerfile ]; then
-	    echo "No Dockerfile Found. Skipping..."
-	
-	else
-	    docker build -t eclipse/"$IMAGE":"$TAG"  .
-    		if [ "$?" != "0" ]; then
-		    echo "Unable to build image: $IMAGE"
-		exit $?
-		else
-		    echo "$IMAGE:$TAG successfully built"
-		    docker push eclipse/"$IMAGE":"$TAG"
+external_images=$(echo "$images" | grep -v eclipse/)
+eclipse_images=$(echo "$images" | grep eclipse/)
+
+function error() {
+  echo $1 > /dev/stderr
+  exit 1
+}
+
+for image in $external_images; do
+    docker pull $image || error "Unable to pull image: $image"
+    if [ "x$PRIVATE_REPO" != "x" ]; then
+        docker tag $image $PRIVATE_REPO/$image
+        docker push $PRIVATE_REPO/$image || error "Unable to push image: $image"
     fi
-fi
+done
+
+for image in $eclipse_images; do
+    a=${image%:latest}
+    b=${a#eclipse/}
+    d=recipes/${b/:/\/}
+    echo $b $d
+    docker build -t $image $d || error "Unable to build image: $image"
+    if [ "x$PRIVATE_REPO" != "x" ]; then
+        docker tag $image $PRIVATE_REPO/$image
+        docker push $PRIVATE_REPO/$image || error "Unable to push image: $image"
+    else
+        docker push $image
+    fi
 done

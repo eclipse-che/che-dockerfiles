@@ -1,10 +1,12 @@
-# Copyright (c) 2012-2016 Codenvy, S.A.
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# Copyright (c) 2012-2018 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
 # Contributors:
-# Codenvy, S.A. - initial API and implementation
+#   Red Hat, Inc. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
 
@@ -12,7 +14,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV CHE_MYSQL_PASSWORD=che
 ENV CHE_MYSQL_DB=che_db
 ENV CHE_MYSQL_USER=che
-
+ENV PHP_LS_VERSION=5.4.1
 # install php with a set of most widely used extensions
 RUN sudo apt-get update && \
     sudo apt-get install -y \
@@ -45,10 +47,12 @@ RUN sudo wget http://repos.zend.com/zend-server/9.0.2/deb_apache2.4/pool/zend-se
     sudo sh -c 'echo "; configuration for php ZendDebugger module\n; priority=90\nzend_extension=ZendDebugger.so" > /etc/php/7.0/mods-available/zenddebugger.ini' && \
     sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/cli/conf.d/90-zenddebugger.ini && \
     sudo ln -s ../../mods-available/zenddebugger.ini /etc/php/7.0/apache2/conf.d/90-zenddebugger.ini && \
-    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini
+    sudo sed -i 's/;opcache.enable=0/opcache.enable=0/g' /etc/php/7.0/apache2/php.ini && \
+    sudo setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 && \
+    sudo chmod -R 777 /var/run/apache2 /var/lock/apache2 /var/log/apache2
 
 RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer && \
-    sudo chown -R user:user ~/.composer && \
+    sudo chown -R user:users ~/.composer && \
     composer global require bamarni/symfony-console-autocomplete && \
     ~/.composer/vendor/bamarni/symfony-console-autocomplete/symfony-autocomplete --shell bash composer | sudo tee /etc/bash_completion.d/composer && \
     sudo wget -qO /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && sudo chmod +x /usr/local/bin/phpunit && \
@@ -67,11 +71,37 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
     sudo mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO '$CHE_MYSQL_USER'@'%' IDENTIFIED BY '"$CHE_MYSQL_PASSWORD"'; FLUSH PRIVILEGES;" && \
     sudo mysql -uroot -e "CREATE DATABASE $CHE_MYSQL_DB;"
 
+# Install NodeJS to improve startup time when the JSON language server is enabled
+RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
+    sudo apt-get update && \
+    sudo apt-get install -y nodejs
+
+# install language server
+
+RUN mkdir -p ${HOME}/che/ls-php/php-language-server && \
+    cd ${HOME}/che/ls-php/php-language-server && \
+    composer require jetbrains/phpstorm-stubs:dev-master && \
+    composer require felixfbecker/language-server:${PHP_LS_VERSION} && \
+    composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs && \
+    mv  vendor/* . && \
+    rm -rf vendor && \
+    sudo chgrp -R 0 ${HOME}/che && \
+    sudo chmod -R g+rwX ${HOME}/che
+ENV GAE_VERSION="1.9.70"
+RUN sudo apt-get update && \
+    sudo apt-get install --no-install-recommends -y -q build-essential python2.7 python2.7-dev python-pip php-bcmath && \
+    sudo pip install -U pip && \
+    sudo pip install virtualenv
+RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/featured/google_appengine_${GAE_VERSION}.zip && \
+    unzip -q google_appengine_${GAE_VERSION}.zip && \
+    rm google_appengine_${GAE_VERSION}.zip && \
+    for f in "/home/user/google_appengine"; do \
+      sudo chgrp -R 0 ${f} && \
+      sudo chmod -R g+rwX ${f}; \
+    done
+EXPOSE 8080 8000
+
 # label is used in Servers tab to display mapped port for Apache process on 80 port in the container
 LABEL che:server:80:ref=apache2 che:server:80:protocol=http
 
 EXPOSE 80 3306
-
-CMD sudo chown -R www-data:www-data /projects && \
-    sudo chmod -R 777 /projects && \
-    tail -f /dev/null

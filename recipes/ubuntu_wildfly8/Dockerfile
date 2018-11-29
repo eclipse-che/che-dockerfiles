@@ -1,10 +1,12 @@
-# Copyright (c) 2012-2016 Codenvy, S.A.
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# Copyright (c) 2012-2018 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
 # Contributors:
-# Codenvy, S.A. - initial API and implementation
+#   Red Hat, Inc. - initial API and implementation
 
 FROM eclipse/stack-base:ubuntu
 EXPOSE 4403 8000 8080 9990 22
@@ -26,9 +28,12 @@ ENV WILDFLY_SHA1 c0dd7552c5207b0d116a9c25eb94d10b4f375549
 
 # Add the WildFly distribution to /opt, and make wildfly the owner of the extracted tar content
 # Make sure the distribution is available from a well-known place
-RUN cd /home/user \   
+RUN cd /home/user \
     && curl -O https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz && \
     tar xf wildfly-$WILDFLY_VERSION.tar.gz \
     && rm wildfly-$WILDFLY_VERSION.tar.gz && \
     sed -i 's/127.0.0.1/0.0.0.0/g' /home/user/wildfly-$WILDFLY_VERSION/standalone/configuration/standalone.xml && \
-    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc
+    sudo mkdir -p /home/user/.m2 && \
+    sudo mkdir -p /home/user/jdtls/data && \
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}

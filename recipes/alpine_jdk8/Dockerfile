@@ -1,10 +1,12 @@
-# Copyright (c) 2012-2016 Codenvy, S.A.
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# Copyright (c) 2012-2018 Red Hat, Inc.
+# This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v2.0
+# which is available at http://www.eclipse.org/legal/epl-2.0.html
+#
+# SPDX-License-Identifier: EPL-2.0
+#
 # Contributors:
-# Codenvy, S.A. - initial API and implementation
+#   Red Hat, Inc. - initial API and implementation
 
 FROM openjdk:8u111-jre-alpine
 
@@ -17,7 +19,7 @@ ENV M2_HOME=/usr/lib/apache-maven-$MAVEN_VERSION
 ENV PATH=${PATH}:${M2_HOME}/bin
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    apk add --update curl ca-certificates bash openssh unzip openssl shadow && \
+    apk add --update sudo curl ca-certificates bash openssh unzip openssl shadow && \
     curl -sSL "https://${DOCKER_BUCKET}/builds/Linux/x86_64/docker-${DOCKER_VERSION}" -o /usr/bin/docker && \
     chmod +x /usr/bin/docker && \
     cd /tmp && \
@@ -29,13 +31,19 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community" >> /etc/apk/reposit
     adduser -S user -h /home/user -s /bin/bash -G root -u 1000 && \
     echo "%root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     usermod -p "*" user && \
-    chown -R user /home/user/
+    sudo chown -R user /home/user/ && \
+    sudo mkdir -p /home/user/.m2 && \
+    sudo mkdir -p /home/user/jdtls/data && \
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}
 
 EXPOSE 22 8000 8080
 
 USER user
 
 WORKDIR /projects
+
+COPY open-jdk-source-file-location /open-jdk-source-file-location
 
 CMD sudo /usr/bin/ssh-keygen -A && \
     sudo /usr/sbin/sshd -D && \

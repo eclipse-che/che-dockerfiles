@@ -1,10 +1,12 @@
-# Copyright (c) 2012-2016 Codenvy, S.A.
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# Copyright (c) 2012-2018 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
 # Contributors:
-# Codenvy, S.A. - initial API and implementation
+#   Red Hat, Inc. - initial API and implementation
 
 FROM eclipse/stack-base:debian
 EXPOSE 4403 8080 8000 22
@@ -25,4 +27,7 @@ ENV TERM xterm
 
 RUN wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
     rm -rf /home/user/tomcat8/webapps/* && \
-    echo "export MAVEN_OPTS=\$JAVA_OPTS" >> /home/user/.bashrc
+    sudo mkdir -p /home/user/.m2 && \
+    sudo mkdir -p /home/user/jdtls/data && \
+    sudo chown -R 0 /home/user && \
+    sudo chmod -R g+w /home/user

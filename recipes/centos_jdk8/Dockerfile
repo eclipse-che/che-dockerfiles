@@ -1,47 +1,45 @@
-# Copyright (c) 2012-2016 Codenvy, S.A.
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# Copyright (c) 2012-2018 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
 # Contributors:
-# Codenvy, S.A. - initial API and implementation
+#   Red Hat, Inc. - initial API and implementation
 
-FROM centos
-EXPOSE 4403 8080 8000 22
-RUN yum update -y && \
-    yum -y install sudo openssh-server procps wget unzip mc git curl subversion nmap java-1.8.0-openjdk-devel && \
-    mkdir /var/run/sshd && \
-    sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
-    sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
-    echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    useradd -u 1000 -G users,wheel -d /home/user --shell /bin/bash -m user && \
-    usermod -p "*" user && \
-    sed -i 's/requiretty/!requiretty/g' /etc/sudoers
+FROM registry.centos.org/che-stacks/centos-stack-base
+EXPOSE 4403 8080 8000 9876 22
+
+LABEL che:server:8080:ref=tomcat8 che:server:8080:protocol=http che:server:8000:ref=tomcat8-debug che:server:8000:protocol=http che:server:9876:ref=codeserver che:server:9876:protocol=http
+
+ENV M2_HOME=/opt/rh/rh-maven33/root/usr/share/maven \
+    TOMCAT_HOME=/home/user/tomcat8 \
+    TERM=xterm
+ENV PATH=$M2_HOME/bin:$PATH
+
+RUN sudo yum -y update && \
+    sudo yum -y install rh-maven33 && \
+    sudo yum clean all && \
+    cat /opt/rh/rh-maven33/enable >> /home/user/.bashrc
 
 USER user
 
-LABEL che:server:8080:ref=tomcat che:server:8080:protocol=http che:server:8000:ref=tomcat-jpda che:server:8000:protocol=http
+ADD ./contrib/run.sh $HOME/run.sh
 
-ENV MAVEN_VERSION=3.3.9
+RUN mkdir -p $HOME/.m2 && \
+    mkdir /home/user/tomcat8 && \
+    wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
+    rm -rf /home/user/tomcat8/webapps/* && \
+    sudo chmod a+x $HOME/run.sh && \
+    sudo mkdir -p /home/user/jdtls/data && \
+    sudo chgrp -R 0 ${HOME} && \
+    sudo chmod -R g+rwX ${HOME}
 
-ENV M2_HOME=/home/user/apache-maven-$MAVEN_VERSION \
-    JAVA_HOME=/etc/alternatives/java_sdk \
-    TOMCAT_HOME=/home/user/tomcat8
+ADD ./contrib/settings.xml $HOME/.m2/settings.xml
+RUN sudo chgrp -R 0 /home/user && \
+    sudo chmod -R g+rwX /home/user
 
-ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
-ENV MAVEN_OPTS=$JAVA_OPTS
-RUN mkdir /home/user/tomcat8 && mkdir /home/user/apache-maven-$MAVEN_VERSION && \
-  wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/
-ENV TERM xterm
 
-RUN wget -qO- "http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.tar.gz" | tar -zx --strip-components=1 -C /home/user/tomcat8 && \
-    rm -rf /home/user/tomcat8/webapps/*
-ENV LANG C.UTF-8
-RUN svn --version && \
-    sed -i 's/# store-passwords = no/store-passwords = yes/g' /home/user/.subversion/servers && \
-    sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
-WORKDIR /projects
-
-CMD sudo /usr/bin/ssh-keygen -A && \
-    sudo /usr/sbin/sshd -D && \
-    tail -f /dev/null
+# override the default CMD form base image to allow configuring maven settings
+CMD ["sh","-c","${HOME}/run.sh"]

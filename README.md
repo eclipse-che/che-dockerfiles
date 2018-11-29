@@ -36,4 +36,4 @@ If you are interested in fixing issues and contributing directly to the code bas
 * **Weekly Meetings:** Join us on [a hangout](https://github.com/eclipse/che/wiki/Weekly-Planning-Meetings).
 
 ### License
-Che is open sourced under the Eclipse Public License 1.0.
+Che is open sourced under the Eclipse Public License 2.0.
