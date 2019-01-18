@@ -10,8 +10,6 @@
 
 FROM ubuntu:16.04
 
-ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
-ENV PATH=$JAVA_HOME/bin:$PATH
 RUN apt-get update && \
     apt-get -y install \
     locales \
@@ -34,14 +32,11 @@ RUN apt-get update && \
     useradd -u 1000 -G users,sudo,root -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
     add-apt-repository ppa:git-core/ppa && \
-    add-apt-repository ppa:openjdk-r/ppa && \
     apt-get update && \
     sudo apt-get install git subversion -y && \
     apt-get clean && \
     apt-get -y autoremove && \
-    sudo apt-get install openjdk-8-jdk-headless=8u171-b11-0ubuntu0.16.04.1 openjdk-8-source=8u171-b11-0ubuntu0.16.04.1 -y && \
     sudo update-ca-certificates -f && \
-    sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -53,7 +48,6 @@ RUN sudo locale-gen en_US.UTF-8 && \
     cd /home/user && ls -la && \
     sed -i 's/# store-passwords = no/store-passwords = yes/g' /home/user/.subversion/servers && \
     sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
-COPY open-jdk-source-file-location /open-jdk-source-file-location
 EXPOSE 22 4403
 WORKDIR /projects
 
