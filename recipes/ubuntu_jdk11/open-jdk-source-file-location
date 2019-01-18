@@ -2,8 +2,8 @@ This package distributes OpenJDK binaries that are licensed under the GPL.
 The source code and build scripts used to create this binary are available for download at:
 
 OpenJDK Packages installed via package manager: openjdk-11-jdk-headless, openjdk-11-source
-OpenJDK version: 11.0.1+13-3ubuntu3.19.04.1
-OpenJDK sources: http://archive.ubuntu.com/ubuntu/pool/main/o/openjdk-8/openjdk-8_8u162-b12.orig.tar.xz
+OpenJDK version: 10.0.2+13-1ubuntu0.18.04.4
+OpenJDK sources: http://archive.ubuntu.com/ubuntu/pool/main/o/openjdk-lts/openjdk-lts_10.0.2+13.orig.tar.xz
 
 The following license applies to OpenJDK
 
