@@ -12,7 +12,7 @@ ENV PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
 
 COPY open-jdk-source-file-location /open-jdk-source-file-location
 
-RUN sudo apt-get install openjdk-11-jdk-headless openjdk-11-source -y && \
+RUN sudo apt-get install openjdk-11-jdk-headless=11.0.1+13-3ubuntu3.19.04.1 openjdk-11-source=11.0.1+13-3ubuntu3.19.04.1 -y && \
     sudo sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure && \
     mkdir /home/user/tomcat9 /home/user/apache-maven-$MAVEN_VERSION && \
     wget -qO- "http://apache.ip-connect.vn.ua/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar -zx --strip-components=1 -C /home/user/apache-maven-$MAVEN_VERSION/ && \
