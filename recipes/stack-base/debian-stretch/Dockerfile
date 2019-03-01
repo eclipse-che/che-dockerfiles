@@ -8,19 +8,20 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 
-FROM debian:jessie
+FROM debian:stretch
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 ENV PATH $JAVA_HOME/bin:$PATH
-RUN echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get -y install \
+    git \
+    subversion \
+    gnupg2 \
     openssh-server \
     sudo \
     rsync \
     procps \
-    -t jessie-backports \
-    openjdk-8-jdk-headless=8u171-b11-1~bpo8+1 \
-    openjdk-8-source=8u171-b11-1~bpo8+1 \
+    openjdk-8-jdk-headless \
+    openjdk-8-source \
     wget \
     unzip \
     mc \
@@ -34,9 +35,6 @@ RUN echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/s
     # Adding user to the 'root' is a workaround for https://issues.jboss.org/browse/CDK-305
     useradd -u 1000 -G users,sudo,root -d /home/user --shell /bin/bash -m user && \
     usermod -p "*" user && \
-    sudo echo -e "deb http://ppa.launchpad.net/git-core/ppa/ubuntu precise main\ndeb-src http://ppa.launchpad.net/git-core/ppa/ubuntu precise main" >> /etc/apt/sources.list.d/sources.list && \
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A1715D88E1DF1F24 && \
-    sudo apt-get install git subversion -y && \
     apt-get clean && \
     apt-get -y autoremove \
     && apt-get -y clean \
@@ -48,7 +46,6 @@ RUN sudo localedef -i en_US -f UTF-8 en_US.UTF-8 && \
     svn --version && \
     sed -i 's/# store-passwords = no/store-passwords = yes/g' /home/user/.subversion/servers && \
     sed -i 's/# store-plaintext-passwords = no/store-plaintext-passwords = yes/g' /home/user/.subversion/servers
-COPY open-jdk-source-file-location /open-jdk-source-file-location
 EXPOSE 22 4403
 WORKDIR /projects
 
