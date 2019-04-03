@@ -7,6 +7,9 @@ images=$(for i in $(find recipes -maxdepth 3 -mindepth 1 -type f -not -path '*/\
 external_images=$(echo "$images" | grep -v eclipse/)
 eclipse_images=$(echo "$images" | grep eclipse/)
 
+echo -e "Going to Pull the following External Images:\n$external_images"
+echo -e "\nThen going to Build the following Eclipse Che Images:\n$eclipse_images\n\n"
+
 function error() {
   echo $1 > /dev/stderr
   exit 1
