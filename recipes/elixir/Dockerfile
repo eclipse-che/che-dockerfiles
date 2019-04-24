@@ -13,10 +13,12 @@ RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf && \
     unzip curl make && \
     sudo apt-get -y clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
+    echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.bashrc && \
+    echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc && \
     source ~/.bashrc && \
     asdf plugin-add erlang && \
-    asdf install erlang ERLANG_VERSION && \
-    asdf global erlang ERLANG_VERSION && \
+    asdf install erlang $ERLANG_VERSION && \
+    asdf global erlang $ERLANG_VERSION && \
     asdf plugin-add elixir && \
-    asdf install elixir ELIXIR_VERSION && \
-    asdf global elixir ELIXIR_VERSION
+    asdf install elixir $ELIXIR_VERSION && \
+    asdf global elixir $ELIXIR_VERSION
