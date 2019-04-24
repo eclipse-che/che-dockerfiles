@@ -5,6 +5,7 @@ ENV ELIXIR_VERSION 1.8
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf && \
     cd ~/.asdf && \
     git checkout "$(git describe --abbrev=0 --tags)" && \
+    sudo apt-get -y update && \
     sudo apt-get -y install \
     automake autoconf libreadline-dev \
     libncurses-dev libssl-dev libyaml-dev \
