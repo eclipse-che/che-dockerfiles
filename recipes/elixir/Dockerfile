@@ -12,7 +12,6 @@ RUN wget -q https://packages.erlang-solutions.com/erlang-solutions_"$ERLANG_VERS
 && wget -q https://packages.erlang-solutions.com/erlang/elixir/FLAVOUR_2_download/elixir_"$ELIXIR_VERSION"-2~ubuntu~xenial_amd64.deb \
 && apt-get -qq install ./elixir_"$ELIXIR_VERSION"-2~ubuntu~xenial_amd64.deb \
 && apt-get -qq update \
-&& apt-get -qq install --allow-unauthenticated elixir \
 && apt-get -qq clean \
 && rm -rf /var/lib/apt/lists \
 && rm -rf /projects/*.deb
