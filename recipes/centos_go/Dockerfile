@@ -9,7 +9,8 @@
 #   Red Hat, Inc. - initial API and implementation
 
 FROM registry.centos.org/che-stacks/centos-nodejs
-RUN sudo yum -y update && \
+RUN sudo yum -y install epel-release && \
+    sudo yum -y update && \
     sudo yum -y install gcc-c++ \
            gcc \
            glibc-devel \
