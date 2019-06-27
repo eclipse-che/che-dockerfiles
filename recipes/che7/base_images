@@ -1,0 +1,8 @@
+dotnet mcr.microsoft.com/dotnet/core/sdk:2.2-stretch
+golang golang:1.12.4-stretch
+java11-maven maven:3.6.0-jdk-11
+java8-maven maven:3.6.1-jdk-8
+java-gradle gradle:5.2.1-jdk11
+node-alpine node:10.16-alpine
+node-ubi8 registry.access.redhat.com/ubi8/nodejs-10
+python-centos centos/python-36-centos7:1
