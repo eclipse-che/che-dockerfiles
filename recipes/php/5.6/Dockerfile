@@ -1,4 +1,4 @@
-FROM eclipse/stack-base:debian
+FROM eclipse/stack-base:debian-jessie
 ENV DEBIAN_FRONTEND noninteractive
 ENV CHE_MYSQL_PASSWORD=che
 ENV CHE_MYSQL_DB=che_db
