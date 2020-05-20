@@ -14,7 +14,7 @@ EXPOSE 8080 5005
 LABEL che:server:8080:ref=vertx che:server:8080:protocol=http che:server:5005:ref=vertx-debug che:server:5005:protocol=http
 
 ARG JAVA_VERSION=1.8.0
-ARG VERTX_VERSION=3.8.1
+ARG VERTX_VERSION=3.9.1
 
 ENV VERTX_GROUPID=io.vertx 
 
