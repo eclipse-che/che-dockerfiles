@@ -20,6 +20,6 @@ RUN set -ex && sudo curl -fSL "https://www.python.org/ftp/python/${PYTHON_VERSIO
 RUN cd /usr/local/bin && sudo ln -s easy_install-3.5 easy_install && sudo ln -s idle3 idle && sudo ln -s pydoc3 pydoc && sudo ln -s python3 python && sudo ln -s python-config3 python-config
 RUN sudo pip install --upgrade pip && \
     sudo pip install --no-cache-dir virtualenv && \
-    sudo pip install --upgrade setuptools && \
-    sudo pip install 'python-language-server[all]'
+    sudo pip install --no-cache-dir --upgrade setuptools && \
+    sudo pip install --no-cache-dir 'python-language-server[all]'
 EXPOSE 8080

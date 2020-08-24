@@ -15,7 +15,7 @@ ENV GAE /home/user/google_appengine
 RUN sudo apt-get update -y && \
     sudo apt-get install --no-install-recommends -y -q build-essential python3 python3-dev python-pip git python3-pip && \
     sudo pip3 install -U pip && \
-    sudo pip3 install virtualenv
+    sudo pip install --no-cache-dir virtualenv
 RUN wget -qO- "https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.40.zip" -O /tmp/gae-sdk.zip && \
     unzip -q /tmp/gae-sdk.zip -d /home/user && \
     rm /tmp/gae-sdk.zip
