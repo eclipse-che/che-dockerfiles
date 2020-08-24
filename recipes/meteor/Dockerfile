@@ -14,7 +14,7 @@ ENV NODE_VERSION 7.7.3
 ENV LC_ALL=POSIX
 
 RUN sudo apt-get update && \
-    sudo apt-get -y install locales build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems-integration && \
+    sudo apt-get --no-install-recommends -y -q install locales build-essential libssl-dev libkrb5-dev gcc make ruby-full rubygems-integration && \
     sudo gem install sass compass && \
     sudo apt-get clean && \
     sudo apt-get -y autoremove && \

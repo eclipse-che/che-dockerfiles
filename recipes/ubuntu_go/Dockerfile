@@ -1,6 +1,6 @@
 FROM eclipse/stack-base:ubuntu
 RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
-    sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+    sudo apt-get update && sudo apt-get --no-install-recommends -y -q install \
     g++ \
     gcc \
     libc6-dev \

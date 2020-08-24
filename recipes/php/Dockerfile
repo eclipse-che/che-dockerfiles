@@ -17,7 +17,7 @@ ENV CHE_MYSQL_USER=che
 ENV PHP_LS_VERSION=5.4.1
 # install php with a set of most widely used extensions
 RUN sudo apt-get update && \
-    sudo apt-get install -y \
+    sudo apt-get --no-install-recommends -y -q install \
     apache2 \
     php \
     php-mcrypt \
@@ -74,7 +74,7 @@ RUN curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/
 # Install NodeJS to improve startup time when the JSON language server is enabled
 RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
     sudo apt-get update && \
-    sudo apt-get install -y nodejs
+    sudo apt-get --no-install-recommends -y -q install nodejs
 
 # install language server
 
@@ -89,7 +89,7 @@ RUN mkdir -p ${HOME}/che/ls-php/php-language-server && \
     sudo chmod -R g+rwX ${HOME}/che
 ENV GAE_VERSION="1.9.70"
 RUN sudo apt-get update && \
-    sudo apt-get install --no-install-recommends -y -q build-essential python2.7 python2.7-dev python-pip php-bcmath && \
+    sudo apt-get --no-install-recommends -y -q install build-essential python2.7 python2.7-dev python-pip php-bcmath && \
     sudo pip install -U pip && \
     sudo pip install virtualenv
 RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/featured/google_appengine_${GAE_VERSION}.zip && \

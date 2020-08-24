@@ -13,7 +13,7 @@ FROM eclipse/stack-base:ubuntu
 # remove several traces of debian python
 RUN sudo apt-get purge -y python.* && \
     sudo apt-get update && \
-    sudo apt-get install -y gcc make python-pip zlibc zlib1g zlib1g-dev libssl-dev
+    sudo apt-get --no-install-recommends -y -q install gcc make python-pip zlibc zlib1g zlib1g-dev libssl-dev
 
 # http://bugs.python.org/issue19846
 # > At the moment, setting "LANG=C" on a Linux system *fundamentally breaks Python 3*, and that's not OK.

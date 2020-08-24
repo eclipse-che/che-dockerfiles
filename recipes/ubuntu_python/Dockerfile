@@ -1,5 +1,5 @@
 FROM eclipse/stack-base:ubuntu
-RUN sudo apt-get purge -y python.* &&   sudo apt-get update &&   sudo apt-get install -y --no-install-recommends \
+RUN sudo apt-get purge -y python.* &&   sudo apt-get update &&   sudo apt-get --no-install-recommends -y -q install \
     autoconf \
     automake \
     bzip2 \

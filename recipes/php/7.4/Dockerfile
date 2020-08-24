@@ -11,7 +11,7 @@
 FROM php:7.4-apache
 
 RUN apt-get -y update \
-    && apt-get install -y libicu-dev\
+    && apt-get --no-install-recommends -y -q install libicu-dev\
     	tree \
         vim \
         wget \
