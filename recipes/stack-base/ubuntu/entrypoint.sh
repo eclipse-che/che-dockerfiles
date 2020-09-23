@@ -33,7 +33,7 @@ if test "${USER_ID}" = 0; then
     # current user is root
     /usr/sbin/sshd -D &
 elif sudo -n true > /dev/null 2>&1; then
-    # current user is a suoder
+    # current user is a sudoer
     sudo /usr/sbin/sshd -D &
 fi
 
