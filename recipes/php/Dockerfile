@@ -91,7 +91,7 @@ ENV GAE_VERSION="1.9.70"
 RUN sudo apt-get update && \
     sudo apt-get install --no-install-recommends -y -q build-essential python2.7 python2.7-dev python-pip php-bcmath && \
     sudo pip install -U pip && \
-    sudo pip install virtualenv
+    sudo pip install --no-cache-dir virtualenv
 RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/featured/google_appengine_${GAE_VERSION}.zip && \
     unzip -q google_appengine_${GAE_VERSION}.zip && \
     rm google_appengine_${GAE_VERSION}.zip && \
