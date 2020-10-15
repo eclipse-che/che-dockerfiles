@@ -6,6 +6,7 @@ RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo bash - && \
     libc6-dev \
     make \
     nodejs \
+    npm \
     && sudo rm -rf /var/lib/apt/lists/*
 ENV GOLANG_VERSION 1.10.2
 ENV GOLANG_LS_VERSION="0.1.7"
@@ -34,7 +35,7 @@ RUN sudo curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz \
     go get -v github.com/zmb3/gogetdoc && \
     go get -v golang.org/x/tools/cmd/goimports && \
     go get -v sourcegraph.com/sqs/goreturns && \
-    go get -v github.com/golang/lint/golint && \
+    go get -v golang.org/x/lint/golint && \
     go get -v github.com/cweill/gotests/... && \
     go get -v github.com/alecthomas/gometalinter && \
     go get -v honnef.co/go/tools/... && \
