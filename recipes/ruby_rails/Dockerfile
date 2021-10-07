@@ -32,7 +32,7 @@ RUN set -ex \
 	ruby \
     ' \
     && sudo apt-get update \
-    && sudo apt-get install -y --no-install-recommends make gcc zlib1g-dev autoconf build-essential libssl-dev libsqlite3-dev $buildDeps tzdata \
+    && sudo apt-get --no-install-recommends -y -q install make gcc zlib1g-dev autoconf build-essential libssl-dev libsqlite3-dev $buildDeps tzdata \
     && sudo rm -rf /var/lib/apt/lists/* \
     && sudo curl -fSL -o ruby.tar.xz "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" \
     && echo "$RUBY_DOWNLOAD_SHA256 *ruby.tar.xz" | sha256sum -c - \
@@ -70,10 +70,10 @@ ENV PATH $BUNDLE_BIN:$PATH
 RUN sudo mkdir -p "$GEM_HOME" "$BUNDLE_BIN" \
     && sudo chmod 777 "$GEM_HOME" "$BUNDLE_BIN"
 
-RUN sudo apt-get update && sudo apt-get install -y nodejs --no-install-recommends && sudo rm -rf /var/lib/apt/lists/*
+RUN sudo apt-get update && sudo apt-get --no-install-recommends -y -q install nodejs --no-install-recommends && sudo rm -rf /var/lib/apt/lists/*
 
 # see http://guides.rubyonrails.org/command_line.html#rails-dbconsole
-RUN sudo apt-get update && sudo apt-get install -y mysql-client postgresql-client sqlite3 --no-install-recommends && sudo rm -rf /var/lib/apt/lists/*
+RUN sudo apt-get update && sudo apt-get --no-install-recommends -y -q install mysql-client postgresql-client sqlite3 --no-install-recommends && sudo rm -rf /var/lib/apt/lists/*
 
 RUN sudo gem install rails --version "$RAILS_VERSION"
 

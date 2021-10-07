@@ -17,4 +17,4 @@ RUN wget -O- http://archive.apache.org/dist/bigtop/bigtop-1.1.0/repos/GPG-KEY-bi
 RUN sudo wget -O /etc/apt/sources.list.d/bigtop-1.1.0.list \
 		http://archive.apache.org/dist/bigtop/bigtop-1.1.0/repos/trusty/bigtop.list
 RUN sudo apt-get update
-RUN sudo apt-get -y install hadoop-client hive pig sqoop flume 
+RUN sudo apt-get --no-install-recommends -y -q install hadoop-client hive pig sqoop flume 

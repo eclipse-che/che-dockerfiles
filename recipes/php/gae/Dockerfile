@@ -12,7 +12,7 @@ FROM eclipse/php
 ENV GAE /home/user/google_appengine
 
 RUN sudo apt-get update && \
-    sudo apt-get install --no-install-recommends -y -q build-essential python2.7 python2.7-dev python-pip php-bcmath && \
+    sudo apt-get --no-install-recommends -y -q install build-essential python2.7 python2.7-dev python-pip php-bcmath && \
     sudo pip install -U pip && \
     sudo pip install virtualenv
 RUN cd /home/user/ && wget -q https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.40.zip && \
