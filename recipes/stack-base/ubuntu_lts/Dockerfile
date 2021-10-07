@@ -8,10 +8,11 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 RUN apt-get update && \
     apt-get -y install \
+    libcap2-bin \
     locales \
     rsync \
     openssh-server \
@@ -23,7 +24,6 @@ RUN apt-get update && \
     ca-certificates \
     curl \
     software-properties-common \
-    python-software-properties \
     bash-completion && \
     mkdir /var/run/sshd && \
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
@@ -69,6 +69,7 @@ RUN for f in "/home/user" "/etc/passwd" "/etc/group" "/projects"; do\
         sed s#root:x:0:#root:x:0:0,\${USER_ID}:#g \
         > /home/user/group.template && \
         sudo sed -ri 's/StrictModes yes/StrictModes no/g' /etc/ssh/sshd_config
-COPY ["entrypoint.sh","/home/user/entrypoint.sh"]
+COPY --chown=user entrypoint.sh /home/user/entrypoint.sh
+RUN chmod +x /home/user/entrypoint.sh
 ENTRYPOINT ["/home/user/entrypoint.sh"]
 CMD tail -f /dev/null
