@@ -11,4 +11,4 @@
 # tests. More information on cccp.yml file can be found on:
 # https://github.com/CentOS/container-index#the-cccpyml-file
 
-job-id: wildfly-swarm
+job-id: thorntail

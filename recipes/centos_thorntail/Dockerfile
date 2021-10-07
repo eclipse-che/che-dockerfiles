@@ -15,12 +15,12 @@ MAINTAINER Dharmit Shah
 EXPOSE 8080
 LABEL che:server:8080:ref=wildfly che:server:8080:protocol=http
 
-ARG SWARM_VERSION=2018.5.0
+ARG THORNTAIL_VERSION=2.2.1.Final
 
-COPY install-swarm-dependencies.sh /tmp/
-RUN sudo chown user:user /tmp/install-swarm-dependencies.sh && \
-    chmod a+x /tmp/install-swarm-dependencies.sh && \
-    scl enable rh-maven33 /tmp/install-swarm-dependencies.sh && \
-    sudo rm -f /tmp/install-swarm-dependencies.sh && \
+COPY install-thorntail-dependencies.sh /tmp/
+RUN sudo chown user:user /tmp/install-thorntail-dependencies.sh && \
+    chmod a+x /tmp/install-thorntail-dependencies.sh && \
+    scl enable rh-maven33 /tmp/install-thorntail-dependencies.sh && \
+    sudo rm -f /tmp/install-thorntail-dependencies.sh && \
     sudo chgrp -R 0 /home/user && \
     sudo chmod -R g+rwX /home/user
